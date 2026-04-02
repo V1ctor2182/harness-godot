@@ -1,20 +1,16 @@
 extends CharacterBody2D
+class_name Player
 
 const SPEED: float = 200.0
 
-func _physics_process(delta: float) -> void:
+
+func get_input_direction() -> Vector2:
 	var direction: Vector2 = Vector2.ZERO
-	if Input.is_action_pressed("move_right"):
-		direction.x += 1.0
-	if Input.is_action_pressed("move_left"):
-		direction.x -= 1.0
-	if Input.is_action_pressed("move_down"):
-		direction.y += 1.0
-	if Input.is_action_pressed("move_up"):
-		direction.y -= 1.0
+	direction.x = Input.get_axis("move_left", "move_right")
+	direction.y = Input.get_axis("move_up", "move_down")
+	return direction.normalized()
 
-	if direction != Vector2.ZERO:
-		direction = direction.normalized()
 
-	velocity = direction * SPEED
+func _physics_process(_delta: float) -> void:
+	velocity = get_input_direction() * SPEED
 	move_and_slide()
