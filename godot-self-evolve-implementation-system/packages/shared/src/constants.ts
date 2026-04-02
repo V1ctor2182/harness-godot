@@ -7,7 +7,7 @@ export const DEFAULT_MAX_RETRIES = 3;
 // ─── Timeouts (Bug #9: aligned with architecture 05-infrastructure.md §5.4) ─
 
 export const ORCHESTRATOR_TIMEOUT_MS = 5 * 60 * 1_000; // 5 min
-export const CODER_TIMEOUT_MS = 10 * 60 * 1_000; // 10 min
+export const CODER_TIMEOUT_MS = 15 * 60 * 1_000; // 15 min (10 min architecture target + 5 min buffer for amd64 emulation)
 export const TESTER_TIMEOUT_MS = 10 * 60 * 1_000; // 10 min
 export const REVIEWER_TIMEOUT_MS = 5 * 60 * 1_000; // 5 min
 export const INTEGRATOR_TIMEOUT_MS = 10 * 60 * 1_000; // 10 min base (dynamic: + test_count * 5s, max 30min)

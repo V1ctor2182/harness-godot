@@ -219,15 +219,26 @@ export async function spawnAgent(params: SpawnParams): Promise<string> {
 
     // Bug #2 fix: Persist Godot test results and screenshots from structured output
     // These come from the agent's JSON output, NOT from stream events
+    // Wrapped in try-catch — agent JSON may have missing/malformed fields, must never crash the spawner
     const godotOutput = captureResult.structuredOutput as Record<string, unknown> | undefined;
     if (godotOutput?.testResults && Array.isArray(godotOutput.testResults)) {
       for (const result of godotOutput.testResults) {
-        await TestResultModel.create({ ...result, taskId, cycleId, agentRunId });
+        try {
+          await TestResultModel.create({ ...result, taskId, cycleId, agentRunId });
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.warn(`Failed to persist TestResult for ${agentRunId}: ${msg}`);
+        }
       }
     }
     if (godotOutput?.screenshots && Array.isArray(godotOutput.screenshots)) {
       for (const screenshot of godotOutput.screenshots) {
-        await ScreenshotModel.create({ ...screenshot, taskId });
+        try {
+          await ScreenshotModel.create({ ...screenshot, taskId });
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : String(e);
+          console.warn(`Failed to persist Screenshot for ${agentRunId}: ${msg}`);
+        }
       }
     }
 

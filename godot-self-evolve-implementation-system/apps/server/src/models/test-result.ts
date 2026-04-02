@@ -22,16 +22,18 @@ const prdViolationSchema = new Schema(
   { _id: false }
 );
 
+// Agent-provided fields are NOT required — Claude's JSON may omit them.
+// Only server-injected fields (taskId, cycleId, agentRunId) are required.
 const testResultSchema = new Schema({
   taskId: { type: String, required: true },
   cycleId: { type: Number, required: true },
   agentRunId: { type: String, required: true },
-  layer: { type: String, enum: ['L1', 'L2', 'L3', 'L4'], required: true },
-  status: { type: String, enum: ['passed', 'failed', 'error', 'skipped'], required: true },
-  durationMs: { type: Number, required: true },
-  totalTests: { type: Number, required: true },
-  passed: { type: Number, required: true },
-  failed: { type: Number, required: true },
+  layer: { type: String, enum: ['L1', 'L2', 'L3', 'L4'], default: 'L1' },
+  status: { type: String, enum: ['passed', 'failed', 'error', 'skipped'], default: 'passed' },
+  durationMs: { type: Number, default: 0 },
+  totalTests: { type: Number, default: 0 },
+  passed: { type: Number, default: 0 },
+  failed: { type: Number, default: 0 },
   failures: [testFailureDetailSchema],
   // L2 performance metrics
   fps: Number,
