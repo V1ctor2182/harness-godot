@@ -10,7 +10,8 @@ import {
   CONTAINER_CPU_COUNT,
 } from '@zombie-farm/shared';
 
-const AGENT_IMAGE = 'erika-agent';
+import { AGENT_DOCKER_IMAGE } from '@zombie-farm/shared';
+const AGENT_IMAGE = AGENT_DOCKER_IMAGE;
 
 export interface ContainerConfig {
   agentRunId: string;
