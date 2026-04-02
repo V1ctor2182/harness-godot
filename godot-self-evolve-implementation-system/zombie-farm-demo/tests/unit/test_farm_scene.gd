@@ -3,17 +3,20 @@ extends GutTest
 
 
 var _scene: Node
+var _scene_name_before_add: String
 
 
 func before_each() -> void:
 	var packed: PackedScene = load("res://scenes/farm.tscn")
 	_scene = packed.instantiate()
+	_scene_name_before_add = _scene.name
 	add_child(_scene)
 
 
 func after_each() -> void:
 	_scene.queue_free()
 	_scene = null
+	_scene_name_before_add = ""
 
 
 func test_farm_scene_root_is_node2d() -> void:
@@ -22,7 +25,7 @@ func test_farm_scene_root_is_node2d() -> void:
 
 
 func test_farm_scene_root_name() -> void:
-	assert_eq(_scene.name, "FarmScene", "root node name should be FarmScene")
+	assert_eq(_scene_name_before_add, "FarmScene", "root node name should be FarmScene")
 
 
 func test_ground_child_exists() -> void:
