@@ -79,6 +79,7 @@ export default tseslint.config(
       '*.config.js',
       '*.config.ts',
       '**/__tests__/**',
+      'godot-self-evolve-implementation-system/**',
     ],
   }
 );
