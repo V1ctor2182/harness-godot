@@ -19,10 +19,12 @@ echo "=== [AGENT] Branch: ${BASE_BRANCH:-main} ==="
 # --- Step 1: Clone repository ---
 cd "$WORKSPACE"
 
-if [ -n "${GITHUB_REPO:-}" ] && [ -n "${GH_TOKEN:-}" ]; then
-    echo "=== [AGENT] Cloning ${GITHUB_REPO} (branch: ${BASE_BRANCH:-main}) ==="
-    git clone --depth 1 --branch "${BASE_BRANCH:-main}" \
-        "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPO}.git" . 2>&1
+if [ -n "${GITHUB_REPO_URL:-}" ] && [ -n "${GH_TOKEN:-}" ]; then
+    # GITHUB_REPO_URL is the full URL (https://github.com/owner/repo.git)
+    # Insert token for authentication
+    CLONE_URL=$(echo "$GITHUB_REPO_URL" | sed "s|https://|https://x-access-token:${GH_TOKEN}@|")
+    echo "=== [AGENT] Cloning ${GITHUB_REPO_URL} (branch: ${BASE_BRANCH:-main}) ==="
+    git clone --depth 1 --branch "${BASE_BRANCH:-main}" "$CLONE_URL" . 2>&1
     echo "=== [AGENT] Clone complete ==="
 elif [ -d "/home/agent/workspace/.git" ]; then
     echo "=== [AGENT] Using pre-mounted workspace ==="
