@@ -88,3 +88,7 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+  # GUT (Godot Unit Tests) will be added in a future cycle when the godot-agent
+  # Docker image is available in GHCR. For now, GDScript tests are run locally
+  # and verified before PR submission.
