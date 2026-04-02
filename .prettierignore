@@ -3,3 +3,4 @@ dist
 coverage
 pnpm-lock.yaml
 *.md
+godot-self-evolve-implementation-system
