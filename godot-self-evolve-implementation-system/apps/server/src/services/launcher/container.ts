@@ -64,11 +64,12 @@ export async function injectContext(
   taskPrompt: string
 ): Promise<void> {
   const pack = tar.pack();
-  pack.entry({ name: 'context/system-prompt.md' }, systemPrompt);
-  pack.entry({ name: 'context/task-prompt.md' }, taskPrompt);
+  pack.entry({ name: 'system-prompt.md' }, systemPrompt);
+  pack.entry({ name: 'task-prompt.md' }, taskPrompt);
   pack.finalize();
 
-  await container.putArchive(pack, { path: '/' });
+  // Inject into /home/agent/context/ (matching entrypoint.sh CONTEXT path)
+  await container.putArchive(pack, { path: '/home/agent/context' });
 }
 
 export async function attachStream(container: Dockerode.Container): Promise<NodeJS.ReadableStream> {
