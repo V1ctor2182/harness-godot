@@ -1,0 +1,2161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Implementation Team — 自演进开发流水线</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg-deep: #0a0c10;
+  --bg-panel: #111520;
+  --bg-card: #161b2a;
+  --bg-hover: #1c2340;
+  --border-dim: #1e2744;
+  --border-glow: #2a3a6a;
+  --text-primary: #e0e6f0;
+  --text-secondary: #8090b0;
+  --text-dim: #4a5a7a;
+  --accent-green: #00ff88;
+  --accent-green-dim: #00cc6a;
+  --accent-blue: #4488ff;
+  --accent-cyan: #00ddff;
+  --accent-purple: #aa66ff;
+  --accent-orange: #ff8844;
+  --accent-red: #ff4466;
+  --accent-yellow: #ffcc00;
+  --accent-pink: #ff66aa;
+  --glow-green: 0 0 20px rgba(0,255,136,0.3);
+  --glow-blue: 0 0 20px rgba(68,136,255,0.3);
+  --glow-cyan: 0 0 20px rgba(0,221,255,0.3);
+  --glow-purple: 0 0 20px rgba(170,102,255,0.3);
+  --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Noto Sans SC', sans-serif;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  min-height: 100vh;
+  overflow-x: hidden;
+  line-height: 1.6;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: var(--noise);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ═══════ SCROLLBAR ═══════ */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 3px; }
+
+/* ═══════ NAV ═══════ */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(10,12,16,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border-dim);
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  height: 56px;
+  gap: 1rem;
+}
+
+nav .logo {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: 0.85rem;
+  letter-spacing: 2px;
+  color: var(--accent-green);
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: var(--glow-green);
+}
+
+nav .logo span { color: var(--text-dim); font-weight: 400; }
+
+nav .nav-links {
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  flex: 1;
+  scrollbar-width: none;
+}
+nav .nav-links::-webkit-scrollbar { display: none; }
+
+nav a {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.7rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+nav a:hover { color: var(--text-primary); background: var(--bg-hover); }
+nav a.active { color: var(--accent-green); background: rgba(0,255,136,0.08); }
+
+/* ═══════ HERO ═══════ */
+.hero {
+  padding: 7rem 2rem 3rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(ellipse, rgba(0,255,136,0.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.hero h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  font-weight: 900;
+  letter-spacing: 3px;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero .subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 300;
+  margin-bottom: 2rem;
+}
+
+.hero .stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.hero .stat {
+  text-align: center;
+}
+
+.hero .stat-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent-green);
+}
+
+.hero .stat-label {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* ═══════ SECTIONS ═══════ */
+section {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+}
+
+.section-header {
+  margin-bottom: 2.5rem;
+  position: relative;
+  padding-left: 1rem;
+  border-left: 3px solid var(--accent-green);
+}
+
+.section-header h2 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 0.3rem;
+}
+
+.section-header p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.section-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  color: var(--accent-green);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 0.3rem;
+}
+
+/* ═══════ AGENT GRID ═══════ */
+.agent-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.agent-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.agent-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--card-accent, var(--accent-green));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.agent-card:hover { border-color: var(--card-accent, var(--accent-green)); transform: translateY(-2px); }
+.agent-card:hover::before { opacity: 1; }
+.agent-card.expanded { border-color: var(--card-accent, var(--accent-green)); }
+.agent-card.expanded::before { opacity: 1; }
+
+.agent-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  background: rgba(0,255,136,0.1);
+  border: 1px solid rgba(0,255,136,0.2);
+}
+
+.agent-card h3 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95rem;
+  margin-bottom: 0.2rem;
+}
+
+.agent-card .role-cn {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.8rem;
+}
+
+.agent-card .brief {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.agent-details {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+}
+
+.agent-card.expanded .agent-details {
+  max-height: 600px;
+}
+
+.agent-details-inner {
+  padding-top: 1rem;
+  margin-top: 1rem;
+  border-top: 1px solid var(--border-dim);
+}
+
+.detail-list {
+  list-style: none;
+}
+
+.detail-list li {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  padding: 0.25rem 0;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.detail-list li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: var(--card-accent, var(--accent-green));
+}
+
+.tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.65rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  background: rgba(0,255,136,0.1);
+  color: var(--accent-green);
+  border: 1px solid rgba(0,255,136,0.15);
+  margin-right: 0.3rem;
+}
+
+.tag.blue { background: rgba(68,136,255,0.1); color: var(--accent-blue); border-color: rgba(68,136,255,0.15); }
+.tag.purple { background: rgba(170,102,255,0.1); color: var(--accent-purple); border-color: rgba(170,102,255,0.15); }
+.tag.orange { background: rgba(255,136,68,0.1); color: var(--accent-orange); border-color: rgba(255,136,68,0.15); }
+.tag.cyan { background: rgba(0,221,255,0.1); color: var(--accent-cyan); border-color: rgba(0,221,255,0.15); }
+.tag.red { background: rgba(255,68,102,0.1); color: var(--accent-red); border-color: rgba(255,68,102,0.15); }
+.tag.yellow { background: rgba(255,204,0,0.1); color: var(--accent-yellow); border-color: rgba(255,204,0,0.15); }
+
+/* ═══════ CYCLE FLOW ═══════ */
+.cycle-container {
+  position: relative;
+  padding: 2rem 0;
+}
+
+.cycle-track {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  overflow-x: auto;
+  padding: 1rem 0 2rem;
+  scrollbar-width: none;
+}
+.cycle-track::-webkit-scrollbar { display: none; }
+
+.cycle-phase {
+  flex: 0 0 auto;
+  min-width: 160px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.phase-node {
+  width: 140px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-dim);
+  border-radius: 10px;
+  padding: 1.2rem 0.8rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  z-index: 2;
+}
+
+.phase-node:hover {
+  border-color: var(--phase-color, var(--accent-green));
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(0,255,136,0.15);
+}
+
+.phase-node.active {
+  border-color: var(--phase-color, var(--accent-green));
+  box-shadow: 0 0 25px rgba(0,255,136,0.15);
+}
+
+.phase-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.6rem;
+  color: var(--phase-color, var(--accent-green));
+  letter-spacing: 2px;
+  margin-bottom: 0.5rem;
+  opacity: 0.7;
+}
+
+.phase-icon {
+  font-size: 1.5rem;
+  margin-bottom: 0.4rem;
+  display: block;
+}
+
+.phase-name {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 0.2rem;
+}
+
+.phase-name-cn {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.phase-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.phase-arrow::after {
+  content: '';
+  width: 100%;
+  height: 2px;
+  background: var(--border-glow);
+  position: relative;
+}
+
+.phase-arrow .arrow-head {
+  position: absolute;
+  right: -2px;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+/* Fix loop indicator */
+.fix-loop {
+  position: absolute;
+  top: -35px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: rgba(255,136,68,0.1);
+  border: 1px solid rgba(255,136,68,0.25);
+  border-radius: 20px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.65rem;
+  color: var(--accent-orange);
+  white-space: nowrap;
+}
+
+.fix-loop-wide {
+  position: absolute;
+  top: -55px;
+  width: 340px;
+  left: 50%;
+  margin-left: -90px;
+  height: 40px;
+  border: 1.5px dashed rgba(255,136,68,0.35);
+  border-bottom: none;
+  border-radius: 20px 20px 0 0;
+}
+
+.fix-loop-label {
+  position: absolute;
+  top: -55px;
+  left: 50%;
+  margin-left: 30px;
+  font-size: 0.65rem;
+  color: var(--accent-orange);
+  background: var(--bg-deep);
+  padding: 0 0.5rem;
+  white-space: nowrap;
+}
+
+/* Phase detail panel */
+.phase-detail {
+  display: none;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-glow);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-top: 1.5rem;
+  animation: fadeSlideIn 0.3s ease;
+}
+
+.phase-detail.visible { display: block; }
+
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.phase-detail h4 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.85rem;
+  margin-bottom: 0.8rem;
+  color: var(--accent-green);
+}
+
+.phase-detail p, .phase-detail li {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ═══════ TESTING PYRAMID ═══════ */
+.pyramid-container {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.pyramid-visual {
+  flex: 0 0 320px;
+  position: relative;
+}
+
+.pyramid-layer {
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.pyramid-layer:hover { transform: translateX(4px); }
+.pyramid-layer.active .pyramid-bar { opacity: 1; }
+
+.pyramid-bar {
+  height: 52px;
+  display: flex;
+  align-items: center;
+  padding: 0 1rem;
+  gap: 0.8rem;
+  opacity: 0.7;
+  transition: opacity 0.3s;
+  position: relative;
+}
+
+.pyramid-bar .layer-tag {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  min-width: 24px;
+}
+
+.pyramid-bar .layer-name {
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
+.pyramid-bar .layer-cn {
+  font-size: 0.68rem;
+  color: rgba(255,255,255,0.5);
+  margin-left: auto;
+}
+
+.pyramid-info {
+  flex: 1;
+  min-width: 300px;
+}
+
+.pyramid-detail {
+  display: none;
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 1.2rem 1.5rem;
+  animation: fadeSlideIn 0.3s ease;
+}
+
+.pyramid-detail.visible { display: block; }
+
+.pyramid-detail h4 {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pyramid-detail .detail-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.3rem 1rem;
+  font-size: 0.78rem;
+}
+
+.detail-grid dt {
+  color: var(--text-dim);
+  text-align: right;
+}
+
+.detail-grid dd {
+  color: var(--text-secondary);
+}
+
+/* ═══════ KNOWLEDGE FLOW ═══════ */
+.knowledge-flow {
+  position: relative;
+}
+
+.flow-diagram {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.flow-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.flow-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+}
+
+.flow-box:hover { border-color: var(--accent-cyan); transform: translateY(-1px); }
+.flow-box.highlight { border-color: var(--accent-green); background: rgba(0,255,136,0.05); }
+
+.flow-arrow-down {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+  padding: 0.2rem 0;
+}
+
+.flow-connector {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.flow-label {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+/* ═══════ FEATURE ROOM TREE ═══════ */
+.room-tree {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78rem;
+  line-height: 1.8;
+}
+
+.tree-node {
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.tree-node::before {
+  content: '';
+  position: absolute;
+  left: 0.5rem;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--border-dim);
+}
+
+.tree-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  padding: 0.15rem 0.4rem;
+  border-radius: 3px;
+  transition: background 0.2s;
+  position: relative;
+}
+
+.tree-item:hover { background: var(--bg-hover); }
+
+.tree-item::before {
+  content: '';
+  position: absolute;
+  left: -1rem;
+  top: 50%;
+  width: 0.8rem;
+  height: 1px;
+  background: var(--border-dim);
+}
+
+.tree-icon { font-size: 0.85rem; }
+
+.tree-name { color: var(--text-primary); }
+
+.tree-lifecycle {
+  font-size: 0.6rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  margin-left: auto;
+}
+
+.lifecycle-done { background: rgba(0,255,136,0.1); color: var(--accent-green); }
+.lifecycle-in-dev { background: rgba(68,136,255,0.1); color: var(--accent-blue); }
+.lifecycle-planning { background: rgba(255,204,0,0.1); color: var(--accent-yellow); }
+
+.spec-types {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.spec-type-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  padding: 0.8rem 1rem;
+  flex: 1;
+  min-width: 140px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.spec-type-card:hover { border-color: var(--accent-cyan); }
+
+.spec-type-card h5 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  margin-bottom: 0.3rem;
+}
+
+.spec-type-card p {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+}
+
+/* ═══════ INFRA DIAGRAM ═══════ */
+.infra-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.infra-layer {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.infra-layer:hover { border-color: var(--accent-blue); }
+.infra-layer.expanded { border-color: var(--accent-blue); }
+
+.infra-layer::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+}
+
+.infra-icon {
+  font-size: 1.3rem;
+  width: 40px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.infra-label {
+  flex: 1;
+}
+
+.infra-label h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85rem;
+  margin-bottom: 0.15rem;
+}
+
+.infra-label p {
+  font-size: 0.73rem;
+  color: var(--text-secondary);
+}
+
+.infra-expand {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease;
+  width: 100%;
+}
+
+.infra-layer.expanded .infra-expand { max-height: 400px; }
+
+.infra-expand-inner {
+  padding-top: 1rem;
+  margin-top: 0.8rem;
+  border-top: 1px solid var(--border-dim);
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* ═══════ HUMAN GATE ═══════ */
+.gate-matrix {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.gate-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  transition: all 0.3s;
+}
+
+.gate-card:hover { border-color: var(--accent-red); }
+
+.gate-card h4 {
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gate-card p {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.3rem;
+}
+
+.trust-levels {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.trust-card {
+  flex: 1;
+  min-width: 200px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 1.2rem;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.trust-card:hover { border-color: var(--accent-yellow); }
+
+.trust-level-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 900;
+  margin-bottom: 0.3rem;
+}
+
+.trust-card h4 {
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+}
+
+.trust-card p {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+}
+
+/* ═══════ REFLECT ═══════ */
+.reflect-flow {
+  display: flex;
+  gap: 0;
+  align-items: stretch;
+  overflow-x: auto;
+  padding: 1rem 0;
+  scrollbar-width: none;
+}
+.reflect-flow::-webkit-scrollbar { display: none; }
+
+.reflect-step {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+.reflect-node {
+  width: 150px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-dim);
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.reflect-node:hover {
+  border-color: var(--accent-purple);
+  box-shadow: var(--glow-purple);
+}
+
+.reflect-node .step-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.55rem;
+  color: var(--accent-purple);
+  letter-spacing: 2px;
+  margin-bottom: 0.4rem;
+}
+
+.reflect-node .step-icon { font-size: 1.2rem; margin-bottom: 0.3rem; display: block; }
+.reflect-node .step-name { font-size: 0.75rem; font-weight: 700; margin-bottom: 0.2rem; }
+.reflect-node .step-cn { font-size: 0.68rem; color: var(--text-secondary); }
+
+.reflect-arrow {
+  width: 30px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* ═══════ ANIMATED PULSE ═══════ */
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes flowRight {
+  0% { transform: translateX(-100%); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+
+.pulse { animation: pulse 2s ease-in-out infinite; }
+
+/* ═══════ COST TABLE ═══════ */
+.cost-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.cost-table th {
+  text-align: left;
+  padding: 0.6rem 1rem;
+  border-bottom: 1px solid var(--border-glow);
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.cost-table td {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--border-dim);
+  color: var(--text-secondary);
+}
+
+.cost-table tr:hover td { background: var(--bg-hover); }
+
+.cost-table .cost-val {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--accent-green);
+}
+
+/* ═══════ SEPARATOR ═══════ */
+.section-sep {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.section-sep hr {
+  border: none;
+  border-top: 1px solid var(--border-dim);
+}
+
+/* ═══════ RESPONSIVE ═══════ */
+@media (max-width: 768px) {
+  nav { padding: 0 1rem; }
+  .hero { padding: 6rem 1rem 2rem; }
+  section { padding: 2rem 1rem; }
+  .pyramid-container { flex-direction: column; }
+  .pyramid-visual { flex: 0 0 auto; width: 100%; }
+}
+
+/* ═══════ TOOLTIP ═══════ */
+.tooltip {
+  position: relative;
+}
+
+.tooltip::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  border: 1px solid var(--border-glow);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.tooltip:hover::after { opacity: 1; }
+
+/* ═══════ RETRY VISUAL ═══════ */
+.retry-visual {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.retry-box {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 4px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.72rem;
+}
+
+.retry-num {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.retry-plus {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+/* ═══════ CONTEXT FEEDBACK ═══════ */
+.feedback-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 768px) {
+  .feedback-cols { grid-template-columns: 1fr; }
+}
+
+.feedback-col {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.feedback-col h5 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.feedback-col p {
+  font-size: 0.73rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════ NAV ═══════ -->
+<nav>
+  <div class="logo">GSEI<span>.system</span></div>
+  <div class="nav-links">
+    <a href="#agents" class="active">Agents</a>
+    <a href="#cycle">Dev Cycle</a>
+    <a href="#testing">Testing</a>
+    <a href="#knowledge">Knowledge</a>
+    <a href="#rooms">Feature Rooms</a>
+    <a href="#infra">Infrastructure</a>
+    <a href="#gates">Human Gates</a>
+    <a href="#reflect">REFLECT</a>
+    <a href="#cost">Cost</a>
+  </div>
+</nav>
+
+<!-- ═══════ HERO ═══════ -->
+<div class="hero">
+  <h1>AI IMPLEMENTATION TEAM</h1>
+  <p class="subtitle">Godot 自演进实现系统 — 6 Agent 协作开发流水线</p>
+  <div class="stats">
+    <div class="stat"><div class="stat-num">6</div><div class="stat-label">AI Agents</div></div>
+    <div class="stat"><div class="stat-num">5</div><div class="stat-label">Dev Phases</div></div>
+    <div class="stat"><div class="stat-num">4</div><div class="stat-label">Test Layers</div></div>
+    <div class="stat"><div class="stat-num">18</div><div class="stat-label">Feature Rooms</div></div>
+    <div class="stat"><div class="stat-num">3</div><div class="stat-label">Evolution Layers</div></div>
+    <div class="stat"><div class="stat-num">14</div><div class="stat-label">Job Types</div></div>
+  </div>
+</div>
+
+<!-- ═══════ SECTION 1: AGENTS ═══════ -->
+<section id="agents">
+  <div class="section-header">
+    <span class="section-num">Section 01</span>
+    <h2>Agent 角色 — AI Implementation Team</h2>
+    <p>6 个专职 Agent 在 Docker 容器中自主协作。安全来自流程守护，不来自能力限制。</p>
+  </div>
+
+  <div class="agent-grid">
+    <!-- Orchestrator -->
+    <div class="agent-card" style="--card-accent: var(--accent-cyan)" onclick="toggleCard(this)">
+      <div class="agent-icon" style="background:rgba(0,221,255,0.1);border-color:rgba(0,221,255,0.2)">🎯</div>
+      <h3>Orchestrator</h3>
+      <div class="role-cn">编排者</div>
+      <div class="brief">读取 Milestone + PRD + Feature Room spec，将目标分解为 3-7 个 Task，输出 JSON 计划。</div>
+      <div class="agent-details"><div class="agent-details-inner">
+        <div style="margin-bottom:0.5rem"><span class="tag cyan">PLAN 阶段</span><span class="tag">超时 5min</span><span class="tag orange">$3/run</span></div>
+        <ul class="detail-list">
+          <li>分析最近 3 个 cycle 的 retrospective 检测重复模式</li>
+          <li>最小化 estimatedFiles 重叠，防止并行合并冲突</li>
+          <li>为每个 task 指定 testScenarios（L2/L3 测试路径）</li>
+          <li>标注 featureRooms + crossDomainRisks</li>
+          <li>对 .tscn 和 data/global/ 施加互斥约束</li>
+          <li>输出 contextFeedback: useful / missing / unnecessary</li>
+        </ul>
+      </div></div>
+    </div>
+
+    <!-- Coder -->
+    <div class="agent-card" style="--card-accent: var(--accent-green)" onclick="toggleCard(this)">
+      <div class="agent-icon">⌨️</div>
+      <h3>Coder ×N</h3>
+      <div class="role-cn">开发者（可并行）</div>
+      <div class="brief">读取 Task Spec + PRD + Room Spec，实现功能、写 L1 单元测试、生成占位素材、提交 PR。</div>
+      <div class="agent-details"><div class="agent-details-inner">
+        <div style="margin-bottom:0.5rem"><span class="tag">IMPLEMENT 阶段</span><span class="tag">超时 10min</span><span class="tag orange">$5/run</span></div>
+        <ul class="detail-list">
+          <li>从 BASE_BRANCH 创建 task 分支</li>
+          <li>资源引用必须通过 AssetManager（禁止裸 load()）</li>
+          <li>新资源同步注册到 registry/*.json + placeholder_manifest</li>
+          <li>L1 GUT 测试自己跑通后才提 PR</li>
+          <li>PR body 包含 Decisions Made + Constraints Discovered</li>
+          <li>每次 commit 立即 push（防容器崩溃丢失代码）</li>
+          <li>修复循环中在同一分支继续，带累积错误上下文</li>
+        </ul>
+      </div></div>
+    </div>
+
+    <!-- Tester -->
+    <div class="agent-card" style="--card-accent: var(--accent-blue)" onclick="toggleCard(this)">
+      <div class="agent-icon" style="background:rgba(68,136,255,0.1);border-color:rgba(68,136,255,0.2)">🧪</div>
+      <h3>Tester</h3>
+      <div class="role-cn">测试者</div>
+      <div class="brief">执行 L2-L4 四层测试，发现问题生成 fix-task，驱动修复闭环。</div>
+      <div class="agent-details"><div class="agent-details-inner">
+        <div style="margin-bottom:0.5rem"><span class="tag blue">TEST 阶段</span><span class="tag">超时 10min</span><span class="tag orange">$3/run</span></div>
+        <ul class="detail-list">
+          <li>L2: Headless 集成测试 + 性能基线（FPS≥60, 节点≤500）+ 资源校验</li>
+          <li>L3: MCP Pro 截图 + AI 视觉分析（异步，不阻塞 REVIEW）</li>
+          <li>L4: PRD 公式/常量/数据合规检查（可与 L2 并行）</li>
+          <li>失败时生成 fix-task（含失败断言 + 截图 + 建议方向）</li>
+          <li>快速失败: L1 不过→不跑 L2, L2 不过→不跑 L3</li>
+          <li>占位素材只验证"存在且可见"，不评判美术质量</li>
+        </ul>
+      </div></div>
+    </div>
+
+    <!-- Reviewer -->
+    <div class="agent-card" style="--card-accent: var(--accent-purple)" onclick="toggleCard(this)">
+      <div class="agent-icon" style="background:rgba(170,102,255,0.1);border-color:rgba(170,102,255,0.2)">🔍</div>
+      <h3>Reviewer</h3>
+      <div class="role-cn">审查者</div>
+      <div class="brief">审查代码质量、PRD 合规、架构一致性、资源管线合规，输出 approved 或 changes-requested。</div>
+      <div class="agent-details"><div class="agent-details-inner">
+        <div style="margin-bottom:0.5rem"><span class="tag purple">REVIEW 阶段</span><span class="tag">超时 5min</span><span class="tag orange">$2/run</span></div>
+        <ul class="detail-list">
+          <li>7 项审查清单: 代码质量/PRD 合规/架构一致/测试覆盖/数据同步/文档完整/资源管线</li>
+          <li>按 task type 应用不同标准（feature/bug/refactor/test）</li>
+          <li>交叉校验 Coder 的 contextFeedback 是否与代码一致</li>
+          <li>changes-requested 计入重试计数（REVIEW 阶段上限 2 次）</li>
+        </ul>
+      </div></div>
+    </div>
+
+    <!-- Integrator -->
+    <div class="agent-card" style="--card-accent: var(--accent-orange)" onclick="toggleCard(this)">
+      <div class="agent-icon" style="background:rgba(255,136,68,0.1);border-color:rgba(255,136,68,0.2)">🔀</div>
+      <h3>Integrator</h3>
+      <div class="role-cn">集成者</div>
+      <div class="brief">按依赖顺序合并 PR、运行全量回归、更新 Milestone 文档、处理冲突和回滚。</div>
+      <div class="agent-details"><div class="agent-details-inner">
+        <div style="margin-bottom:0.5rem"><span class="tag orange">INTEGRATE 阶段</span><span class="tag">动态超时 5-30min</span></div>
+        <ul class="detail-list">
+          <li>正常路径可降级为脚本（integrate.sh），只在冲突/回归失败时启动 AI</li>
+          <li>dry-run merge 检测冲突 → .tscn 冲突用 Godot headless 解决</li>
+          <li>全量回归: L1 全量 + L2 受影响模块 + L3 关键路径</li>
+          <li>回归失败: 先尝试 hotfix（2 次），再 git revert</li>
+          <li>同一 Milestone 内 >2 次回滚 → 系统暂停，人类架构审查</li>
+        </ul>
+      </div></div>
+    </div>
+
+    <!-- Curator -->
+    <div class="agent-card" style="--card-accent: var(--accent-pink)" onclick="toggleCard(this)">
+      <div class="agent-icon" style="background:rgba(255,102,170,0.1);border-color:rgba(255,102,170,0.2)">📚</div>
+      <h3>Curator</h3>
+      <div class="role-cn">策展者</div>
+      <div class="brief">知识沉淀 + 演化提案。从 PR 中提取 decision/constraint 写入 Feature Room，识别改进机会写入 evolution-inbox。</div>
+      <div class="agent-details"><div class="agent-details-inner">
+        <div style="margin-bottom:0.5rem"><span class="tag" style="background:rgba(255,102,170,0.1);color:var(--accent-pink);border-color:rgba(255,102,170,0.15)">SEDIMENT + REFLECT</span><span class="tag">按需启动</span></div>
+        <ul class="detail-list">
+          <li>SEDIMENT: 读 PR body + diff → 提取 decision/constraint/context → 写入 Room spec.md</li>
+          <li>置信度标注: high（PR 明确声明）/ medium（diff 推断）/ low（间接推断，标记[待确认]）</li>
+          <li>演化提案: 重复失败 → Layer 1 checklist / 系统性问题 → Layer 2 分析框架</li>
+          <li>REFLECT: 审查 agents/*.md 每条规则 → KEEP/MERGE/OUTDATED/CONFLICT/UNTESTED/FROZEN</li>
+          <li>合并冗余 decision，不删除有效知识</li>
+        </ul>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<div class="section-sep"><hr></div>
+
+<!-- ═══════ SECTION 2: DEV CYCLE ═══════ -->
+<section id="cycle">
+  <div class="section-header">
+    <span class="section-num">Section 02</span>
+    <h2>开发循环 — 5 阶段 + 内嵌修复闭环</h2>
+    <p>PLAN → IMPLEMENT ↔ TEST → REVIEW → INTEGRATE + RETROSPECT → SEDIMENT → REFLECT</p>
+  </div>
+
+  <div class="cycle-container">
+    <!-- Fix loop arc -->
+    <div style="position:relative;margin-bottom:2rem;">
+      <div class="cycle-track" id="cycleTrack">
+        <!-- PLAN -->
+        <div class="cycle-phase">
+          <div class="phase-node" style="--phase-color:var(--accent-cyan)" onclick="showPhase('plan')">
+            <div class="phase-num">PHASE 1</div>
+            <span class="phase-icon">🎯</span>
+            <div class="phase-name">PLAN</div>
+            <div class="phase-name-cn">编排</div>
+          </div>
+        </div>
+        <div class="phase-arrow"><span class="arrow-head">›</span></div>
+
+        <!-- IMPLEMENT -->
+        <div class="cycle-phase" style="position:relative">
+          <div class="phase-node" style="--phase-color:var(--accent-green)" onclick="showPhase('implement')">
+            <div class="phase-num">PHASE 2</div>
+            <span class="phase-icon">⌨️</span>
+            <div class="phase-name">IMPLEMENT</div>
+            <div class="phase-name-cn">实现</div>
+          </div>
+        </div>
+
+        <!-- Bidirectional arrow with fix loop label -->
+        <div class="phase-arrow" style="position:relative;width:60px;">
+          <span class="arrow-head" style="left:-2px;right:auto;">‹</span>
+          <span class="arrow-head">›</span>
+          <div style="position:absolute;top:-22px;left:50%;transform:translateX(-50);white-space:nowrap;font-size:0.6rem;color:var(--accent-orange);background:var(--bg-deep);padding:0 0.3rem;">⟳ fix loop</div>
+        </div>
+
+        <!-- TEST -->
+        <div class="cycle-phase">
+          <div class="phase-node" style="--phase-color:var(--accent-blue)" onclick="showPhase('test')">
+            <div class="phase-num">PHASE 3</div>
+            <span class="phase-icon">🧪</span>
+            <div class="phase-name">TEST</div>
+            <div class="phase-name-cn">四层测试</div>
+          </div>
+        </div>
+        <div class="phase-arrow"><span class="arrow-head">›</span></div>
+
+        <!-- REVIEW -->
+        <div class="cycle-phase">
+          <div class="phase-node" style="--phase-color:var(--accent-purple)" onclick="showPhase('review')">
+            <div class="phase-num">PHASE 4</div>
+            <span class="phase-icon">🔍</span>
+            <div class="phase-name">REVIEW</div>
+            <div class="phase-name-cn">审查</div>
+          </div>
+        </div>
+        <div class="phase-arrow"><span class="arrow-head">›</span></div>
+
+        <!-- INTEGRATE -->
+        <div class="cycle-phase">
+          <div class="phase-node" style="--phase-color:var(--accent-orange)" onclick="showPhase('integrate')">
+            <div class="phase-num">PHASE 5</div>
+            <span class="phase-icon">🔀</span>
+            <div class="phase-name">INTEGRATE</div>
+            <div class="phase-name-cn">集成 + 回顾</div>
+          </div>
+        </div>
+        <div class="phase-arrow"><span class="arrow-head">›</span></div>
+
+        <!-- SEDIMENT -->
+        <div class="cycle-phase">
+          <div class="phase-node" style="--phase-color:var(--accent-pink);border-style:dashed" onclick="showPhase('sediment')">
+            <div class="phase-num">POST</div>
+            <span class="phase-icon">📚</span>
+            <div class="phase-name">SEDIMENT</div>
+            <div class="phase-name-cn">知识沉淀</div>
+          </div>
+        </div>
+        <div class="phase-arrow"><span class="arrow-head">›</span></div>
+
+        <!-- REFLECT -->
+        <div class="cycle-phase">
+          <div class="phase-node" style="--phase-color:var(--accent-yellow);border-style:dashed" onclick="showPhase('reflect-phase')">
+            <div class="phase-num">MILESTONE</div>
+            <span class="phase-icon">🪞</span>
+            <div class="phase-name">REFLECT</div>
+            <div class="phase-name-cn">Prompt 精简</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Phase detail panels -->
+    <div id="phase-plan" class="phase-detail">
+      <h4>🎯 PLAN — Orchestrator 编排</h4>
+      <p><strong>输入:</strong> Milestone 文档 + PRD + Feature Room spec + 最近 3 个 retrospective + known-issues</p>
+      <p><strong>输出:</strong> JSON 任务计划（3-7 个 task），每个 task 含 acceptanceCriteria / prdRefs / testScenarios / estimatedFiles / featureRooms / crossDomainRisks</p>
+      <p style="margin-top:0.5rem"><strong>关键规则:</strong></p>
+      <ul class="detail-list">
+        <li>最小化文件重叠（防并行合并冲突）</li>
+        <li>.tscn 和 data/global/ 施加互斥约束</li>
+        <li>同一 Room 的并行 task 必须有不重叠的 estimatedFiles</li>
+        <li>plan-validator 做结构验证（字段完整性、无循环依赖）</li>
+      </ul>
+    </div>
+
+    <div id="phase-implement" class="phase-detail">
+      <h4>⌨️ IMPLEMENT — Coder 实现</h4>
+      <p><strong>上下文注入:</strong> Task Spec + PRD 全文 + 目标 Room spec + 父 Epic Room + Project Room + depends_on Room 摘要 + conventions + registry/*.json</p>
+      <p style="margin-top:0.5rem"><strong>工作流:</strong> 读需求 → 探索代码 → 创建分支 → 生成占位素材 → 实现功能 → 写 L1 测试 → 跑 GUT → 通过 → 提 PR</p>
+      <div class="retry-visual">
+        <div class="retry-box" style="border-color:var(--accent-green)"><span>L1 自测:</span><span class="retry-num" style="color:var(--accent-green)">∞</span><span style="color:var(--text-dim);font-size:0.65rem">内部循环</span></div>
+      </div>
+    </div>
+
+    <div id="phase-test" class="phase-detail">
+      <h4>🧪 TEST — 四层测试 + 修复闭环</h4>
+      <p><strong>快速失败原则:</strong> L1 不过→不跑 L2 → 不跑 L3。L4 可与 L2/L3 并行。</p>
+      <p><strong>L3 异步:</strong> L1+L2 通过后 task 进入 REVIEW，L3 后台排队。</p>
+      <div class="retry-visual">
+        <div class="retry-box" style="border-color:var(--accent-blue)"><span>TEST 重试:</span><span class="retry-num" style="color:var(--accent-blue)">3</span></div>
+        <div class="retry-plus">+</div>
+        <div class="retry-box" style="border-color:var(--accent-purple)"><span>REVIEW 重试:</span><span class="retry-num" style="color:var(--accent-purple)">2</span></div>
+        <div class="retry-plus">=</div>
+        <div class="retry-box" style="border-color:var(--accent-red)"><span>全局上限:</span><span class="retry-num" style="color:var(--accent-red)">5</span><span style="color:var(--text-dim);font-size:0.65rem">超出 → blocked</span></div>
+      </div>
+    </div>
+
+    <div id="phase-review" class="phase-detail">
+      <h4>🔍 REVIEW — Reviewer 审查</h4>
+      <p><strong>7 项审查清单:</strong></p>
+      <ul class="detail-list">
+        <li>代码质量 — GDScript 规范、命名约定、信号使用</li>
+        <li>PRD 合规 — acceptanceCriteria 全部有验证证据</li>
+        <li>架构一致性 — Autoload / 信号驱动 / 场景树</li>
+        <li>测试覆盖 — 按 testRequirements 覆盖所有层级</li>
+        <li>数据同步 — JSON / data.md / project.godot 一致</li>
+        <li>文档完整 — PR body Scene/Signal/Data Changes 已填写</li>
+        <li>资源管线 — 注册完整、无裸 load()、占位清单已更新</li>
+      </ul>
+    </div>
+
+    <div id="phase-integrate" class="phase-detail">
+      <h4>🔀 INTEGRATE + RETROSPECT</h4>
+      <p><strong>合并:</strong> dry-run merge → 冲突检测 → 按 blockedBy 顺序合并 → 全量回归</p>
+      <p><strong>回归策略:</strong></p>
+      <ul class="detail-list">
+        <li>快速回归（每 cycle）: L1 全量 + L2 受影响模块 + L2 核心路径 — 目标 5 分钟</li>
+        <li>完整回归（Milestone 边界）: L1 + L2 + L3 全量 — 不限时间</li>
+      </ul>
+      <p style="margin-top:0.5rem"><strong>回滚:</strong> 回归失败 → hotfix（2 次）→ git revert → 人类审查。回滚时 Curator 标记 decision 为 (REVERTED)</p>
+    </div>
+
+    <div id="phase-sediment" class="phase-detail">
+      <h4>📚 SEDIMENT — 知识沉淀</h4>
+      <p>Curator 读取本 cycle 所有 PR body + diff:</p>
+      <ul class="detail-list">
+        <li>提取 decision → 写入 Room spec.md（附 cycle 引用和置信度）</li>
+        <li>提取 constraint → 写入 Room spec.md（必须可验证）</li>
+        <li>提取 context → 写入 Room spec.md（设计意图、失败教训）</li>
+        <li>识别重复失败 → 写入 evolution-inbox/layer1-*.md</li>
+        <li>识别系统性问题 → 写入 evolution-inbox/layer2-*.md</li>
+        <li>更新 room.yaml lifecycle / code_refs / _tree.yaml</li>
+      </ul>
+    </div>
+
+    <div id="phase-reflect-phase" class="phase-detail">
+      <h4>🪞 REFLECT — Prompt 防膨胀</h4>
+      <p><strong>触发条件（任一）:</strong> Milestone 完成 / agents/*.md 行数增长 ≥30% / inbox ≥10 条 / 人类手动</p>
+      <p><strong>独立预算:</strong> $10/次，不占用 cycle 预算。每次最多审查 3 个 agents/*.md，处理 ≤15 条提案。</p>
+      <p style="margin-top:0.5rem">详见下方 <a href="#reflect" style="color:var(--accent-purple)">REFLECT 机制</a> 专节。</p>
+    </div>
+  </div>
+</section>
+
+<div class="section-sep"><hr></div>
+
+<!-- ═══════ SECTION 3: TESTING ═══════ -->
+<section id="testing">
+  <div class="section-header">
+    <span class="section-num">Section 03</span>
+    <h2>四层测试金字塔</h2>
+    <p>从逻辑层到审计层，每一层都是独立的安全网。快速失败 + 递进验证。</p>
+  </div>
+
+  <div class="pyramid-container">
+    <div class="pyramid-visual">
+      <!-- L4 (top, narrowest) -->
+      <div class="pyramid-layer" onclick="showLayer(this, 'l4')" data-layer="l4">
+        <div class="pyramid-bar" style="background:linear-gradient(90deg, rgba(255,204,0,0.2), rgba(255,204,0,0.05)); width:55%; margin-left:auto; border-left:3px solid var(--accent-yellow);">
+          <span class="layer-tag" style="color:var(--accent-yellow)">L4</span>
+          <span class="layer-name">PRD Compliance</span>
+          <span class="layer-cn">审计层</span>
+        </div>
+      </div>
+      <!-- L3 -->
+      <div class="pyramid-layer" onclick="showLayer(this, 'l3')" data-layer="l3">
+        <div class="pyramid-bar" style="background:linear-gradient(90deg, rgba(170,102,255,0.2), rgba(170,102,255,0.05)); width:70%; margin-left:auto; border-left:3px solid var(--accent-purple);">
+          <span class="layer-tag" style="color:var(--accent-purple)">L3</span>
+          <span class="layer-name">MCP Pro Visual</span>
+          <span class="layer-cn">表现层</span>
+        </div>
+      </div>
+      <!-- L2 -->
+      <div class="pyramid-layer" onclick="showLayer(this, 'l2')" data-layer="l2">
+        <div class="pyramid-bar" style="background:linear-gradient(90deg, rgba(68,136,255,0.2), rgba(68,136,255,0.05)); width:85%; margin-left:auto; border-left:3px solid var(--accent-blue);">
+          <span class="layer-tag" style="color:var(--accent-blue)">L2</span>
+          <span class="layer-name">Headless Integration</span>
+          <span class="layer-cn">系统层</span>
+        </div>
+      </div>
+      <!-- L1 (bottom, widest) -->
+      <div class="pyramid-layer active" onclick="showLayer(this, 'l1')" data-layer="l1">
+        <div class="pyramid-bar" style="background:linear-gradient(90deg, rgba(0,255,136,0.2), rgba(0,255,136,0.05)); width:100%; border-left:3px solid var(--accent-green);">
+          <span class="layer-tag" style="color:var(--accent-green)">L1</span>
+          <span class="layer-name">GUT Unit Tests</span>
+          <span class="layer-cn">逻辑层</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="pyramid-info">
+      <div id="layer-l1" class="pyramid-detail visible">
+        <h4><span style="color:var(--accent-green)">L1</span> GUT 单元测试 — 逻辑层</h4>
+        <dl class="detail-grid">
+          <dt>执行者</dt><dd>Coder（IMPLEMENT 阶段自测）</dd>
+          <dt>工具</dt><dd>GUT 9.x + Godot headless</dd>
+          <dt>覆盖</dt><dd>公式计算、状态转换、数据校验、AssetManager ID 加载</dd>
+          <dt>随机系统</dt><dd>≥1000 次迭代，验证分布在 2σ 范围内</dd>
+          <dt>通过标准</dt><dd>所有断言通过，零失败</dd>
+          <dt>超时</dt><dd>1 分钟</dd>
+        </dl>
+      </div>
+      <div id="layer-l2" class="pyramid-detail">
+        <h4><span style="color:var(--accent-blue)">L2</span> Headless 集成测试 — 系统层</h4>
+        <dl class="detail-grid">
+          <dt>执行者</dt><dd>Tester Agent</dd>
+          <dt>工具</dt><dd>TestRunner 场景 + Godot headless + 资源校验工具</dd>
+          <dt>覆盖</dt><dd>完整游戏流程模拟 — 种植/战斗/经济/变异</dd>
+          <dt>性能基线</dt><dd>FPS ≥60, 节点 ≤500, 内存增量 ≤10MB, 加载 ≤3s</dd>
+          <dt>资源校验</dt><dd>注册表完整性、文件命名、尺寸/帧数匹配</dd>
+          <dt>超时</dt><dd>2 分钟</dd>
+        </dl>
+      </div>
+      <div id="layer-l3" class="pyramid-detail">
+        <h4><span style="color:var(--accent-purple)">L3</span> MCP Pro 视觉测试 — 表现层</h4>
+        <dl class="detail-grid">
+          <dt>执行者</dt><dd>Tester Agent（异步，不阻塞 REVIEW）</dd>
+          <dt>工具</dt><dd>Godot MCP Pro（WebSocket 连接，单连接限制）</dd>
+          <dt>覆盖</dt><dd>UI 正确性、视觉表现、交互响应、截图存档</dd>
+          <dt>结构正确性</dt><dd>节点存在/可见、无紫粉色 fallback、无 ERROR 日志 → <strong>阻断</strong></dd>
+          <dt>布局合理性</dt><dd>soft check — 仅记录 visualNotes，不阻断</dd>
+          <dt>超时</dt><dd>5 分钟</dd>
+        </dl>
+      </div>
+      <div id="layer-l4" class="pyramid-detail">
+        <h4><span style="color:var(--accent-yellow)">L4</span> PRD 合规检查 — 审计层</h4>
+        <dl class="detail-grid">
+          <dt>执行者</dt><dd>Tester Agent（可与 L2/L3 完全并行）</dd>
+          <dt>工具</dt><dd>AI 直接读 PRD + 代码（不需要 Godot runtime）</dd>
+          <dt>覆盖</dt><dd>公式实现 vs PRD 定义、常量值对比、数据文件内容</dd>
+          <dt>资源合规</dt><dd>PRD 提到的对象是否有对应 asset_id</dd>
+          <dt>Milestone 级</dt><dd>Milestone 完成后跑全局 L4，检查 coverage_gap</dd>
+          <dt>输出</dt><dd>合规报告 JSON（匹配项 + 偏差项 + severity）</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-sep"><hr></div>
+
+<!-- ═══════ SECTION 4: KNOWLEDGE ═══════ -->
+<section id="knowledge">
+  <div class="section-header">
+    <span class="section-num">Section 04</span>
+    <h2>知识演化流 — contextFeedback 驱动闭环</h2>
+    <p>每个 Agent 输出结构化反馈，驱动知识流转和 Prompt 自我迭代。</p>
+  </div>
+
+  <!-- contextFeedback 三维 -->
+  <div class="feedback-cols">
+    <div class="feedback-col" style="border-left:3px solid var(--accent-green)">
+      <h5 style="color:var(--accent-green)">✓ useful</h5>
+      <p>注入的上下文中，哪些确实帮助了工作</p>
+      <p style="margin-top:0.5rem;color:var(--text-dim)">→ Context Builder 提升文件权重<br>→ useCount +1</p>
+    </div>
+    <div class="feedback-col" style="border-left:3px solid var(--accent-orange)">
+      <h5 style="color:var(--accent-orange)">? missing</h5>
+      <p>工作中需要但上下文中没有的知识</p>
+      <p style="margin-top:0.5rem;color:var(--text-dim)">→ knowledge inbox → Curator 处理<br>→ Feature Room / patterns / evolution-inbox</p>
+    </div>
+    <div class="feedback-col" style="border-left:3px solid var(--accent-red)">
+      <h5 style="color:var(--accent-red)">✗ unnecessary</h5>
+      <p>注入了但完全没用的上下文</p>
+      <p style="margin-top:0.5rem;color:var(--text-dim)">→ Context Builder 降权<br>→ 连续 3 cycle → 移除自动注入</p>
+    </div>
+  </div>
+
+  <!-- Knowledge flow diagram -->
+  <div style="margin-top:2rem;background:var(--bg-panel);border:1px solid var(--border-dim);border-radius:10px;padding:1.5rem;">
+    <h4 style="font-family:'Orbitron',sans-serif;font-size:0.85rem;margin-bottom:1.2rem;color:var(--accent-cyan)">知识流转管道</h4>
+
+    <div class="flow-diagram">
+      <div class="flow-row">
+        <div class="flow-box" style="border-color:var(--accent-cyan)">Agent contextFeedback.missing</div>
+        <div class="flow-connector">→</div>
+        <div class="flow-box">Knowledge Inbox<br><span style="font-size:0.65rem;color:var(--text-dim)">MongoDB KnowledgeFile</span></div>
+      </div>
+
+      <div class="flow-arrow-down">↓ <span class="flow-label">Curator 每 cycle 处理</span></div>
+
+      <div class="flow-row">
+        <div class="flow-box highlight">功能域知识<br><span style="font-size:0.65rem;color:var(--text-dim)">→ Feature Room spec.md</span></div>
+        <div class="flow-box">编码规范<br><span style="font-size:0.65rem;color:var(--text-dim)">→ conventions.md</span></div>
+        <div class="flow-box">已知问题<br><span style="font-size:0.65rem;color:var(--text-dim)">→ known-issues.md</span></div>
+        <div class="flow-box">通用模式<br><span style="font-size:0.65rem;color:var(--text-dim)">→ patterns/*.md</span></div>
+        <div class="flow-box" style="border-color:var(--accent-purple)">Agent 行为建议<br><span style="font-size:0.65rem;color:var(--text-dim)">→ evolution-inbox/</span></div>
+      </div>
+
+      <div class="flow-arrow-down">↓ <span class="flow-label">evolution-inbox 不直接改 prompt — 等待 REFLECT</span></div>
+
+      <div class="flow-row">
+        <div class="flow-box" style="border-color:var(--accent-yellow)">
+          <strong>REFLECT 流程</strong><br>
+          <span style="font-size:0.65rem;color:var(--text-dim)">CLUSTER → AUDIT → CONSOLIDATE → INTEGRATE → VERIFY</span>
+        </div>
+        <div class="flow-connector">→</div>
+        <div class="flow-box" style="border-color:var(--accent-red)">PR + Human Gate<br><span style="font-size:0.65rem;color:var(--text-dim)">agents/*.md 修改需人类审批</span></div>
+        <div class="flow-connector">→</div>
+        <div class="flow-box highlight">agents/*.md 更新<br><span style="font-size:0.65rem;color:var(--text-dim)">Prompt 演化生效</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 三层演化 -->
+  <div style="margin-top:2rem;">
+    <h4 style="font-family:'Orbitron',sans-serif;font-size:0.85rem;margin-bottom:1rem;color:var(--accent-purple)">三层 Prompt 演化</h4>
+    <div style="display:flex;gap:0.8rem;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;background:var(--bg-card);border:1px solid var(--border-dim);border-radius:8px;padding:1rem;border-top:2px solid var(--accent-green)">
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.6rem;color:var(--accent-green);letter-spacing:2px;margin-bottom:0.3rem">LAYER 1</div>
+        <h5 style="font-size:0.85rem;margin-bottom:0.4rem">Checklist 规则</h5>
+        <p style="font-size:0.72rem;color:var(--text-secondary)">具体的操作条目。触发: 同类问题 2+ 次。REFLECT 自动合并。</p>
+        <p style="font-size:0.68rem;color:var(--text-dim);margin-top:0.3rem">例: "提交前运行 gdformat"</p>
+      </div>
+      <div style="flex:1;min-width:200px;background:var(--bg-card);border:1px solid var(--border-dim);border-radius:8px;padding:1rem;border-top:2px solid var(--accent-blue)">
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.6rem;color:var(--accent-blue);letter-spacing:2px;margin-bottom:0.3rem">LAYER 2</div>
+        <h5 style="font-size:0.85rem;margin-bottom:0.4rem">分析框架</h5>
+        <p style="font-size:0.72rem;color:var(--text-secondary)">改变思考方式。触发: 系统性判断失误。需 3+ 证据。</p>
+        <p style="font-size:0.68rem;color:var(--text-dim);margin-top:0.3rem">例: "修复时读前两次失败做 pattern 分析"</p>
+      </div>
+      <div style="flex:1;min-width:200px;background:var(--bg-card);border:1px solid var(--border-dim);border-radius:8px;padding:1rem;border-top:2px solid var(--accent-red)">
+        <div style="font-family:'Orbitron',sans-serif;font-size:0.6rem;color:var(--accent-red);letter-spacing:2px;margin-bottom:0.3rem">LAYER 3</div>
+        <h5 style="font-size:0.85rem;margin-bottom:0.4rem">角色再定义</h5>
+        <p style="font-size:0.72rem;color:var(--text-secondary)">改变核心职责。罕见，高风险。<strong>必须 Human Gate 审批。</strong></p>
+        <p style="font-size:0.68rem;color:var(--text-dim);margin-top:0.3rem">例: "Tester 同时负责 L4 合规检查"</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-sep"><hr></div>
+
+<!-- ═══════ SECTION 5: FEATURE ROOMS ═══════ -->
+<section id="rooms">
+  <div class="section-header">
+    <span class="section-num">Section 05</span>
+    <h2>Feature Room — 结构化知识层</h2>
+    <p>Milestone = 时间轴（先做什么）。Feature Room = 知识轴（每个域知道什么）。两者正交互补。</p>
+  </div>
+
+  <div style="display:flex;gap:2rem;flex-wrap:wrap;">
+    <!-- Tree -->
+    <div style="flex:1;min-width:360px;">
+      <div class="room-tree">
+        <div class="tree-item" style="padding-left:0"><span class="tree-icon">🏗️</span><span class="tree-name" style="font-weight:700">rooms/</span></div>
+
+        <div class="tree-node">
+          <div class="tree-item"><span class="tree-icon">🌐</span><span class="tree-name">project/</span><span class="tree-lifecycle lifecycle-done">active</span></div>
+        </div>
+
+        <div class="tree-node">
+          <div class="tree-item"><span class="tree-icon">🧟</span><span class="tree-name" style="font-weight:600">zombie/</span><span class="tag" style="font-size:0.55rem">Epic</span><span class="tree-lifecycle lifecycle-in-dev">in-dev</span></div>
+          <div class="tree-node">
+            <div class="tree-item"><span class="tree-icon">🚶</span><span class="tree-name">living/</span><span class="tree-lifecycle lifecycle-done">done</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M2</span></div>
+            <div class="tree-item"><span class="tree-icon">👥</span><span class="tree-name">types/</span><span class="tree-lifecycle lifecycle-done">done</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M3</span></div>
+            <div class="tree-item"><span class="tree-icon">🧬</span><span class="tree-name">mutation/</span><span class="tree-lifecycle lifecycle-in-dev">in-dev</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M8</span></div>
+            <div class="tree-item"><span class="tree-icon">🍖</span><span class="tree-name">nurture/</span><span class="tree-lifecycle lifecycle-planning">planning</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M9a</span></div>
+            <div class="tree-item"><span class="tree-icon">💕</span><span class="tree-name">bonds/</span><span class="tree-lifecycle lifecycle-planning">planning</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M9b</span></div>
+            <div class="tree-item"><span class="tree-icon">📖</span><span class="tree-name">codex/</span><span class="tree-lifecycle lifecycle-planning">planning</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M14</span></div>
+          </div>
+        </div>
+
+        <div class="tree-node">
+          <div class="tree-item"><span class="tree-icon">🌱</span><span class="tree-name" style="font-weight:600">farming/</span><span class="tag" style="font-size:0.55rem">Epic</span><span class="tree-lifecycle lifecycle-in-dev">in-dev</span></div>
+          <div class="tree-node">
+            <div class="tree-item"><span class="tree-icon">🔄</span><span class="tree-name">core-loop/</span><span class="tree-lifecycle lifecycle-done">done</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M1</span></div>
+            <div class="tree-item"><span class="tree-icon">🌰</span><span class="tree-name">seeds/</span><span class="tree-lifecycle lifecycle-done">done</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M3</span></div>
+            <div class="tree-item"><span class="tree-icon">⭐</span><span class="tree-name">quality/</span><span class="tree-lifecycle lifecycle-done">done</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M6</span></div>
+            <div class="tree-item"><span class="tree-icon">🧬</span><span class="tree-name">hidden-genes/</span><span class="tree-lifecycle lifecycle-planning">planning</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M8</span></div>
+            <div class="tree-item"><span class="tree-icon">🌸</span><span class="tree-name">cross-pollination/</span><span class="tree-lifecycle lifecycle-planning">planning</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M8</span></div>
+          </div>
+        </div>
+
+        <div class="tree-node">
+          <div class="tree-item"><span class="tree-icon">⚔️</span><span class="tree-name" style="font-weight:600">combat/</span><span class="tag" style="font-size:0.55rem">Epic</span><span class="tree-lifecycle lifecycle-done">done</span></div>
+          <div class="tree-node">
+            <div class="tree-item"><span class="tree-icon">🤖</span><span class="tree-name">auto-battle/</span><span class="tree-lifecycle lifecycle-done">done</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M4</span></div>
+            <div class="tree-item"><span class="tree-icon">🗺️</span><span class="tree-name">world-pve/</span><span class="tree-lifecycle lifecycle-planning">planning</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M11</span></div>
+            <div class="tree-item"><span class="tree-icon">🎖️</span><span class="tree-name">advanced/</span><span class="tree-lifecycle lifecycle-planning">planning</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M12</span></div>
+            <div class="tree-item"><span class="tree-icon">🏰</span><span class="tree-name">base-defense/</span><span class="tree-lifecycle lifecycle-planning">planning</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M13</span></div>
+          </div>
+        </div>
+
+        <div class="tree-node">
+          <div class="tree-item"><span class="tree-icon">💰</span><span class="tree-name" style="font-weight:600">economy/</span><span class="tag" style="font-size:0.55rem">Epic</span><span class="tree-lifecycle lifecycle-done">done</span></div>
+          <div class="tree-node">
+            <div class="tree-item"><span class="tree-icon">📦</span><span class="tree-name">resources/</span><span class="tree-lifecycle lifecycle-done">done</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M5</span></div>
+            <div class="tree-item"><span class="tree-icon">🌳</span><span class="tree-name">skill-tree/</span><span class="tree-lifecycle lifecycle-done">done</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M7</span></div>
+          </div>
+        </div>
+
+        <div class="tree-node">
+          <div class="tree-item"><span class="tree-icon">🌍</span><span class="tree-name" style="font-weight:600">world/</span><span class="tag" style="font-size:0.55rem">Epic</span><span class="tree-lifecycle lifecycle-planning">planning</span></div>
+          <div class="tree-node">
+            <div class="tree-item"><span class="tree-icon">🌤️</span><span class="tree-name">weather/</span><span class="tree-lifecycle lifecycle-planning">planning</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M10</span></div>
+            <div class="tree-item"><span class="tree-icon">🏕️</span><span class="tree-name">exploration/</span><span class="tree-lifecycle lifecycle-planning">planning</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M11</span></div>
+            <div class="tree-item"><span class="tree-icon">💾</span><span class="tree-name">save-loop/</span><span class="tree-lifecycle lifecycle-planning">planning</span><span style="font-size:0.6rem;color:var(--text-dim);margin-left:0.3rem">M14</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Spec types -->
+    <div style="flex:1;min-width:300px;">
+      <h4 style="font-family:'Orbitron',sans-serif;font-size:0.8rem;margin-bottom:1rem;color:var(--accent-cyan)">4 种 Spec 类型</h4>
+      <div class="spec-types" style="flex-direction:column">
+        <div class="spec-type-card" style="border-left:3px solid var(--accent-cyan)">
+          <h5 style="color:var(--accent-cyan)">intent — 意图</h5>
+          <p>这个功能要做什么。从 PRD 提取。</p>
+          <p style="font-size:0.68rem;color:var(--text-dim);margin-top:0.3rem">例: "用户可以在实验室选僵尸+催化剂启动突变"</p>
+        </div>
+        <div class="spec-type-card" style="border-left:3px solid var(--accent-green)">
+          <h5 style="color:var(--accent-green)">decision — 决策</h5>
+          <p>关键技术/设计选择 + 理由。implement 过程中 Curator 沉淀。</p>
+          <p style="font-size:0.68rem;color:var(--text-dim);margin-top:0.3rem">例: "融合算法：70% 合计属性 + 20% bonus (M8-C1)"</p>
+        </div>
+        <div class="spec-type-card" style="border-left:3px solid var(--accent-red)">
+          <h5 style="color:var(--accent-red)">constraint — 约束</h5>
+          <p>不做什么 / 边界条件。必须可验证。</p>
+          <p style="font-size:0.68rem;color:var(--text-dim);margin-top:0.3rem">例: "衰变到 50% 停止不会死亡"</p>
+        </div>
+        <div class="spec-type-card" style="border-left:3px solid var(--accent-purple)">
+          <h5 style="color:var(--accent-purple)">context — 背景</h5>
+          <p>设计动机、失败教训、被否决方案。帮助理解 why。</p>
+          <p style="font-size:0.68rem;color:var(--text-dim);margin-top:0.3rem">例: "衰变系统的目的是制造管理压力"</p>
+        </div>
+      </div>
+
+      <div style="margin-top:1.5rem;background:var(--bg-card);border:1px solid var(--border-dim);border-radius:8px;padding:1rem;">
+        <h5 style="font-size:0.8rem;margin-bottom:0.5rem">Agent 如何使用 Room</h5>
+        <div style="font-size:0.73rem;color:var(--text-secondary);line-height:1.8">
+          <div><span class="tag cyan" style="min-width:70px;display:inline-block;text-align:center">Orchestrator</span> 读 — 了解已有 decision，避免冲突</div>
+          <div><span class="tag" style="min-width:70px;display:inline-block;text-align:center">Coder</span> 读 — 获取功能域上下文和设计意图</div>
+          <div><span class="tag blue" style="min-width:70px;display:inline-block;text-align:center">Tester</span> 读 — 用 constraint 做验证依据</div>
+          <div><span class="tag purple" style="min-width:70px;display:inline-block;text-align:center">Reviewer</span> 读 — 检查代码是否违反 constraint</div>
+          <div><span class="tag" style="min-width:70px;display:inline-block;text-align:center;background:rgba(255,102,170,0.1);color:var(--accent-pink);border-color:rgba(255,102,170,0.15)">Curator</span> 读+写 — 每个 cycle 沉淀新知识</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="section-sep"><hr></div>
+
+<!-- ═══════ SECTION 6: INFRASTRUCTURE ═══════ -->
+<section id="infra">
+  <div class="section-header">
+    <span class="section-num">Section 06</span>
+    <h2>基础设施</h2>
+    <p>Docker 容器 + Express Launcher + MongoDB + Next.js Dashboard + GitHub CI</p>
+  </div>
+
+  <div class="infra-stack">
+    <div class="infra-layer" onclick="toggleInfra(this)" style="--il-color:var(--accent-cyan)">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent-cyan)"></div>
+      <div class="infra-icon">🚀</div>
+      <div class="infra-label">
+        <h4>Launcher Service <span style="color:var(--text-dim);font-weight:400">(Express.js)</span></h4>
+        <p>Job Queue + SSE 事件流 + GitHub Service + Plan Validator</p>
+      </div>
+      <div class="infra-expand"><div class="infra-expand-inner">
+        <strong>14 个 Job 类型:</strong> spawn-orchestrator / spawn-coder / spawn-tester / spawn-reviewer / spawn-curator / spawn-reflect / run-gut-tests / run-integration-tests / run-visual-tests / run-prd-compliance / validate-assets / capture-screenshot / wait-for-ci / create-fix-task<br><br>
+        <strong>并行限制:</strong> agentSlots: 3 | infraSlots: 2 | godotEditorSlots: 1 (MCP Pro)<br>
+        <strong>轮询:</strong> 500ms Job Queue polling + 5s Stale Job 检测
+      </div></div>
+    </div>
+
+    <div class="infra-layer" onclick="toggleInfra(this)" style="--il-color:var(--accent-green)">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent-green)"></div>
+      <div class="infra-icon">🐳</div>
+      <div class="infra-label">
+        <h4>Docker Agent Pool</h4>
+        <p>多阶段构建: Godot 4.6.1 + Node 22 + Claude Code CLI + GUT 9.x + MCP Pro + sox</p>
+      </div>
+      <div class="infra-expand"><div class="infra-expand-inner">
+        <strong>容器生命周期 (9 步):</strong> PREPARE → CREATE → INJECT → ATTACH → START → STREAM → WAIT → COLLECT → CLEANUP<br><br>
+        <strong>入口脚本:</strong> 浅克隆 → GUT 插件检查 → Godot headless import → 读 /context/ → Claude Code CLI (stream-json, budget)<br>
+        <strong>崩溃恢复:</strong> 每次 commit 立即 push | OOM(137) 标记内存问题 | 连续 2 次段错误 → blocked
+      </div></div>
+    </div>
+
+    <div class="infra-layer" onclick="toggleInfra(this)" style="--il-color:var(--accent-orange)">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent-orange)"></div>
+      <div class="infra-icon">🗄️</div>
+      <div class="infra-label">
+        <h4>MongoDB <span style="color:var(--text-dim);font-weight:400">(9 Collections)</span></h4>
+        <p>Cycle | Task | AgentRun | AgentEvent | Job | KnowledgeFile | Control | TestResult | Screenshot</p>
+      </div>
+      <div class="infra-expand"><div class="infra-expand-inner">
+        <strong>Godot 新增:</strong> TestResult (layer/status/duration/details/screenshots) + Screenshot (step/filepath/aiAnalysis)<br>
+        <strong>知识存储:</strong> KnowledgeFile (category=inbox) 作为 contextFeedback.missing 的中间态<br>
+        <strong>Control:</strong> 模式(active/paused/killed) + 预算上限 + trustLevel + retryLimits
+      </div></div>
+    </div>
+
+    <div class="infra-layer" onclick="toggleInfra(this)" style="--il-color:var(--accent-blue)">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent-blue)"></div>
+      <div class="infra-icon">📊</div>
+      <div class="infra-label">
+        <h4>Dashboard <span style="color:var(--text-dim);font-weight:400">(Next.js)</span></h4>
+        <p>Cycles | Tasks | Agents | Tests | Screenshots | PRD Compliance | Assets | Review Gate</p>
+      </div>
+      <div class="infra-expand"><div class="infra-expand-inner">
+        <strong>Godot 新增页面:</strong> /tests (层级汇总+趋势图) | /screenshots (截图库+AI分析) | /prd-compliance (公式对比+覆盖率) | /assets (注册表浏览+占位进度)<br>
+        <strong>Human Review:</strong> /review 页面按优先级列出待审批项，支持批量审批
+      </div></div>
+    </div>
+
+    <div class="infra-layer" onclick="toggleInfra(this)" style="--il-color:var(--accent-purple)">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent-purple)"></div>
+      <div class="infra-icon">⚡</div>
+      <div class="infra-label">
+        <h4>GitHub Actions CI</h4>
+        <p>触发: push to main + 所有 PR。使用与 Agent 容器相同的 Docker 镜像。</p>
+      </div>
+      <div class="infra-expand"><div class="infra-expand-inner">
+        <strong>流水线:</strong> Checkout → Docker godot-agent:4.6.1 → Godot headless import → GUT L1 → 资源校验 → 报告<br>
+        <strong>wait-for-ci:</strong> 每 5s 轮询 CI 状态 → 通过: spawn-tester | 失败: create-fix-task | 超时 15min: failed<br>
+        <strong>普通分支 push 不触发 CI</strong>（避免 Coder 频繁 push 的无效触发）
+      </div></div>
+    </div>
+
+    <div class="infra-layer" onclick="toggleInfra(this)" style="--il-color:var(--accent-yellow)">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent-yellow)"></div>
+      <div class="infra-icon">📡</div>
+      <div class="infra-label">
+        <h4>Event Streaming <span style="color:var(--text-dim);font-weight:400">(NDJSON + SSE)</span></h4>
+        <p>14 个 Godot 专用事件类型: test-result / screenshot / prd-violation / asset-validation / context-feedback / evolution/*</p>
+      </div>
+      <div class="infra-expand"><div class="infra-expand-inner">
+        Container stdout → Dockerode attach → Line parser → JSON validation → MongoDB 持久化 + SSE 广播到 Dashboard<br><br>
+        <strong>格式检查:</strong> contextFeedback 每条 useful/unnecessary 必须包含文件路径; missing ≥10 字符
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<div class="section-sep"><hr></div>
+
+<!-- ═══════ SECTION 7: HUMAN GATES ═══════ -->
+<section id="gates">
+  <div class="section-header">
+    <span class="section-num">Section 07</span>
+    <h2>Human Gate — 人类审批矩阵</h2>
+    <p>Agent 在容器内完全自主，安全来自 6 个审批点 + 3 级信任等级。</p>
+  </div>
+
+  <div class="gate-matrix">
+    <div class="gate-card" style="border-left:3px solid var(--accent-red)">
+      <h4><span style="color:var(--accent-red)">🔒</span> PR 合并到 main</h4>
+      <p>Integrator 准备执行合并时触发</p>
+      <p style="color:var(--text-dim)">超时: 24h → 暂停 cycle</p>
+      <p><span class="tag yellow">Level 3 可自动</span></p>
+    </div>
+    <div class="gate-card" style="border-left:3px solid var(--accent-orange)">
+      <h4><span style="color:var(--accent-orange)">🔒</span> Reviewer approved</h4>
+      <p>Reviewer 输出 approved 时需人类确认</p>
+      <p style="color:var(--text-dim)">超时: 12h → 暂停 cycle</p>
+      <p><span class="tag yellow">Level 2+ 自动信任</span></p>
+    </div>
+    <div class="gate-card" style="border-left:3px solid var(--accent-red)">
+      <h4><span style="color:var(--accent-red)">🚫</span> blocked 升级</h4>
+      <p>Task 重试 5 次仍失败</p>
+      <p style="color:var(--text-dim)">无超时 — cycle 暂停直到人类响应</p>
+    </div>
+    <div class="gate-card" style="border-left:3px solid var(--accent-red)">
+      <h4><span style="color:var(--accent-red)">🚫</span> PRD 修改</h4>
+      <p>任何对 prd/ 目录的写入</p>
+      <p style="color:var(--text-dim)">永远阻断，人类专属</p>
+    </div>
+    <div class="gate-card" style="border-left:3px solid var(--accent-red)">
+      <h4><span style="color:var(--accent-red)">🚫</span> Agent Prompt 修改</h4>
+      <p>任何对 agents/*.md 的修改（只能通过 REFLECT PR）</p>
+      <p style="color:var(--text-dim)">永远阻断，不受信任等级影响</p>
+    </div>
+    <div class="gate-card" style="border-left:3px solid var(--accent-red)">
+      <h4><span style="color:var(--accent-red)">🚫</span> boot.md 修改</h4>
+      <p>系统引导文件的任何变更</p>
+      <p style="color:var(--text-dim)">永远阻断，不受信任等级影响</p>
+    </div>
+  </div>
+
+  <!-- Trust levels -->
+  <div class="trust-levels">
+    <div class="trust-card" style="border-top:3px solid var(--accent-orange)">
+      <div class="trust-level-num" style="color:var(--accent-orange)">1</div>
+      <h4>初始 — 全量审批</h4>
+      <p>前 3 个 cycle。所有 Gate 需要人类确认。<br>降级: 一次回滚 → 立即到 Level 1</p>
+    </div>
+    <div class="trust-card" style="border-top:3px solid var(--accent-yellow)">
+      <div class="trust-level-num" style="color:var(--accent-yellow)">2</div>
+      <h4>信任 — 部分自动</h4>
+      <p>连续 3 cycle 无 reject。Reviewer approved 自动信任，PR 合并仍需确认。<br>降级: 一次 blocked → 降一级</p>
+    </div>
+    <div class="trust-card" style="border-top:3px solid var(--accent-green)">
+      <div class="trust-level-num" style="color:var(--accent-green)">3</div>
+      <h4>自主 — 通知模式</h4>
+      <p>连续 5 cycle 无回滚。approved + 合并都自动执行，人类只收通知。<br>agents/*.md / boot.md / prd/ 仍永远需要人类</p>
+    </div>
+  </div>
+</section>
+
+<div class="section-sep"><hr></div>
+
+<!-- ═══════ SECTION 8: REFLECT ═══════ -->
+<section id="reflect">
+  <div class="section-header">
+    <span class="section-num">Section 08</span>
+    <h2>REFLECT — Prompt 防膨胀机制</h2>
+    <p>从 Erika 的教训出发: Prompt 73→147 行只增不减。REFLECT 系统性地审查、合并、删除过时规则。</p>
+  </div>
+
+  <div style="margin-bottom:1.5rem;display:flex;gap:0.8rem;flex-wrap:wrap;">
+    <div style="background:var(--bg-card);border:1px solid var(--border-dim);border-radius:6px;padding:0.6rem 1rem;font-size:0.75rem;">
+      <span style="color:var(--text-dim)">触发条件:</span>
+      <span class="tag yellow">Milestone 完成</span>
+      <span class="tag orange">行数增长 ≥30%</span>
+      <span class="tag purple">inbox ≥10 条</span>
+      <span class="tag blue">人类手动</span>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border-dim);border-radius:6px;padding:0.6rem 1rem;font-size:0.75rem;">
+      <span style="color:var(--text-dim)">预算:</span>
+      <span class="tag">$10/次独立预算</span>
+      <span class="tag">最多 3 个 agents/*.md</span>
+      <span class="tag">≤15 条提案</span>
+    </div>
+  </div>
+
+  <div class="reflect-flow">
+    <div class="reflect-step">
+      <div class="reflect-node" onclick="showReflectDetail('cluster')">
+        <div class="step-num">STEP 0</div>
+        <span class="step-icon">🔮</span>
+        <div class="step-name">CLUSTER</div>
+        <div class="step-cn">聚类</div>
+      </div>
+    </div>
+    <div class="reflect-arrow">→</div>
+    <div class="reflect-step">
+      <div class="reflect-node" onclick="showReflectDetail('audit')">
+        <div class="step-num">STEP 1</div>
+        <span class="step-icon">🔎</span>
+        <div class="step-name">AUDIT</div>
+        <div class="step-cn">盘点</div>
+      </div>
+    </div>
+    <div class="reflect-arrow">→</div>
+    <div class="reflect-step">
+      <div class="reflect-node" onclick="showReflectDetail('consolidate')">
+        <div class="step-num">STEP 2</div>
+        <span class="step-icon">🔧</span>
+        <div class="step-name">CONSOLIDATE</div>
+        <div class="step-cn">整理</div>
+      </div>
+    </div>
+    <div class="reflect-arrow">→</div>
+    <div class="reflect-step">
+      <div class="reflect-node" onclick="showReflectDetail('integrate-inbox')">
+        <div class="step-num">STEP 3</div>
+        <span class="step-icon">📥</span>
+        <div class="step-name">INTEGRATE</div>
+        <div class="step-cn">整合提案</div>
+      </div>
+    </div>
+    <div class="reflect-arrow">→</div>
+    <div class="reflect-step">
+      <div class="reflect-node" onclick="showReflectDetail('verify')">
+        <div class="step-num">STEP 4</div>
+        <span class="step-icon">✅</span>
+        <div class="step-name">VERIFY</div>
+        <div class="step-cn">验证</div>
+      </div>
+    </div>
+    <div class="reflect-arrow">→</div>
+    <div class="reflect-step">
+      <div class="reflect-node" onclick="showReflectDetail('output')">
+        <div class="step-num">STEP 5</div>
+        <span class="step-icon">📤</span>
+        <div class="step-name">OUTPUT</div>
+        <div class="step-cn">输出</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reflect detail panels -->
+  <div id="reflect-cluster" class="phase-detail">
+    <h4 style="color:var(--accent-purple)">🔮 CLUSTER — 聚类分析</h4>
+    <ul class="detail-list">
+      <li>按 target_agent 分组 evolution-inbox 中所有提案</li>
+      <li>同一 agent 的提案按主题聚类（如 "retry 处理" 相关归为一组）</li>
+      <li>互补提案合并为一条更完整的规则</li>
+      <li>矛盾提案标记为 CONFLICT → 列出冲突对提交人类裁决</li>
+      <li>优先级: 3+ cycle 证据 > 2 cycle > 1 cycle; Layer 1 优先于 Layer 2</li>
+    </ul>
+  </div>
+
+  <div id="reflect-audit" class="phase-detail">
+    <h4 style="color:var(--accent-purple)">🔎 AUDIT — 逐行盘点</h4>
+    <p>Curator 逐行审查目标 agents/*.md，标注每条规则:</p>
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:0.4rem 1rem;margin-top:0.8rem;font-size:0.78rem;">
+      <span class="tag">KEEP</span><span style="color:var(--text-secondary)">仍有效 + 最近 3 cycle 被引用</span>
+      <span class="tag blue">MERGE</span><span style="color:var(--text-secondary)">与另一条重叠，可合并</span>
+      <span class="tag orange">OUTDATED</span><span style="color:var(--text-secondary)">针对的问题已不存在</span>
+      <span class="tag red">CONFLICT</span><span style="color:var(--text-secondary)">与另一条规则矛盾</span>
+      <span class="tag yellow">UNTESTED</span><span style="color:var(--text-secondary)">添加后从未被 useful 引用 → 进入观察期</span>
+      <span class="tag purple">FROZEN</span><span style="color:var(--text-secondary)">domain-scoped 规则近期无该域 task → 豁免，不计入膨胀</span>
+    </div>
+  </div>
+
+  <div id="reflect-consolidate" class="phase-detail">
+    <h4 style="color:var(--accent-purple)">🔧 CONSOLIDATE — 整理</h4>
+    <ul class="detail-list">
+      <li>合并 [MERGE] 条目 — 两条变一条，保留两者的 cycle 引用</li>
+      <li>删除 [OUTDATED] 条目 — 已被架构/代码变更解决</li>
+      <li>解决 [CONFLICT] — 保留更新的那条，或重写为无歧义版本</li>
+      <li>[UNTESTED] → 标记"观察中"（再给 3 cycle），域规则冻结超 2 个 Milestone 且仍未引用才删除</li>
+    </ul>
+  </div>
+
+  <div id="reflect-integrate-inbox" class="phase-detail">
+    <h4 style="color:var(--accent-purple)">📥 INTEGRATE INBOX — 整合待处理提案</h4>
+    <ul class="detail-list">
+      <li>Layer 1 + Layer 2 提案 → 合并到 agents/*.md 对应段落</li>
+      <li>Layer 3 提案 → 提交 Human Gate 审批（不自动合并）</li>
+      <li>每次最多处理 15 条提案，超出保留到下次 REFLECT</li>
+    </ul>
+  </div>
+
+  <div id="reflect-verify" class="phase-detail">
+    <h4 style="color:var(--accent-purple)">✅ VERIFY — 验证净增长</h4>
+    <ul class="detail-list">
+      <li>检查 agents/*.md 行数净增长 ≤ 20%</li>
+      <li>超过 → 进一步压缩（寻找可合并规则、删除最低价值规则）</li>
+      <li>统计 [KEEP] vs [删除+合并] 比例，写入 REFLECT 报告</li>
+    </ul>
+  </div>
+
+  <div id="reflect-output" class="phase-detail">
+    <h4 style="color:var(--accent-purple)">📤 OUTPUT — 输出</h4>
+    <ul class="detail-list">
+      <li>生成 knowledge/retrospectives/{milestoneId}-reflect.md</li>
+      <li>包含: before/after 行数、删除的规则列表及原因、新增规则及来源</li>
+      <li>修改后的 agents/*.md 提交为 PR → <strong>Human Gate 审批</strong></li>
+      <li>超时/超预算 → partial — 已完成部分正常提交，未处理部分保留</li>
+    </ul>
+  </div>
+</section>
+
+<div class="section-sep"><hr></div>
+
+<!-- ═══════ SECTION 9: COST ═══════ -->
+<section id="cost">
+  <div class="section-header">
+    <span class="section-num">Section 09</span>
+    <h2>成本控制与预算</h2>
+    <p>per-run budget cap + 80% 暂停 + 100% 阻断 + Dashboard 实时追踪</p>
+  </div>
+
+  <div style="background:var(--bg-card);border:1px solid var(--border-dim);border-radius:8px;overflow:hidden;">
+    <table class="cost-table">
+      <thead>
+        <tr><th>Agent / 操作</th><th>单次预算</th><th>超时</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Orchestrator</td><td class="cost-val">$3</td><td>5 min</td><td>PLAN 阶段，输出 JSON 任务计划</td></tr>
+        <tr><td>Coder</td><td class="cost-val">$5</td><td>10 min</td><td>IMPLEMENT 阶段，含代码探索时间</td></tr>
+        <tr><td>Tester</td><td class="cost-val">$3</td><td>10 min</td><td>TEST 阶段，含游戏启动和截图</td></tr>
+        <tr><td>Reviewer</td><td class="cost-val">$2</td><td>5 min</td><td>REVIEW 阶段，chore/test 类型可降到 $1</td></tr>
+        <tr><td>Integrator (脚本)</td><td class="cost-val">$0</td><td>5-30 min</td><td>正常路径自动化脚本（冲突时才启动 AI）</td></tr>
+        <tr><td>Curator</td><td class="cost-val">$3</td><td>5 min</td><td>SEDIMENT 阶段，按需启动</td></tr>
+        <tr><td>REFLECT</td><td class="cost-val">$10</td><td>—</td><td>独立预算，不占用 cycle 预算</td></tr>
+        <tr style="font-weight:700;border-top:2px solid var(--border-glow)">
+          <td>单个 Cycle 总计</td><td class="cost-val">$30-50</td><td>—</td><td>含重试</td></tr>
+        <tr style="font-weight:700">
+          <td>预估 M8-M15</td><td class="cost-val">~$1,600+</td><td>—</td><td>8 Milestone × ~5 cycles × $40</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div style="margin-top:1.5rem;display:flex;gap:0.8rem;flex-wrap:wrap;">
+    <div style="background:var(--bg-card);border:1px solid var(--border-dim);border-radius:6px;padding:0.8rem 1rem;flex:1;min-width:200px;">
+      <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:0.3rem">80% Budget</div>
+      <div style="font-size:0.85rem;color:var(--accent-yellow)">⚠️ Soft Warning</div>
+      <div style="font-size:0.72rem;color:var(--text-secondary);margin-top:0.2rem">暂停 + 通知人类</div>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border-dim);border-radius:6px;padding:0.8rem 1rem;flex:1;min-width:200px;">
+      <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:0.3rem">100% Budget</div>
+      <div style="font-size:0.85rem;color:var(--accent-red)">🚫 Hard Cap</div>
+      <div style="font-size:0.72rem;color:var(--text-secondary);margin-top:0.2rem">阻止新 Agent spawn</div>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border-dim);border-radius:6px;padding:0.8rem 1rem;flex:1;min-width:200px;">
+      <div style="font-size:0.7rem;color:var(--text-dim);margin-bottom:0.3rem">Dashboard</div>
+      <div style="font-size:0.85rem;color:var(--accent-green)">📊 实时追踪</div>
+      <div style="font-size:0.72rem;color:var(--text-secondary);margin-top:0.2rem">每个 Agent run 的 costUsd 按 cycle 聚合</div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer style="text-align:center;padding:3rem 1rem;color:var(--text-dim);font-size:0.7rem;border-top:1px solid var(--border-dim)">
+  <div style="font-family:'Orbitron',sans-serif;letter-spacing:2px;margin-bottom:0.5rem;">GODOT SELF-EVOLVE IMPLEMENTATION SYSTEM</div>
+  <div>Architecture v1.0 — 6 Agents / 5 Phases / 4 Test Layers / 18 Feature Rooms / 3 Evolution Layers</div>
+</footer>
+
+<script>
+// ═══════ Nav highlighting ═══════
+const sections = document.querySelectorAll('section[id]');
+const navLinks = document.querySelectorAll('nav a');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(l => l.classList.remove('active'));
+      const link = document.querySelector(`nav a[href="#${entry.target.id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-100px 0px -60% 0px' });
+
+sections.forEach(s => observer.observe(s));
+
+// ═══════ Agent cards ═══════
+function toggleCard(el) {
+  const wasExpanded = el.classList.contains('expanded');
+  document.querySelectorAll('.agent-card').forEach(c => c.classList.remove('expanded'));
+  if (!wasExpanded) el.classList.add('expanded');
+}
+
+// ═══════ Cycle phases ═══════
+function showPhase(id) {
+  document.querySelectorAll('.phase-detail').forEach(p => p.classList.remove('visible'));
+  document.querySelectorAll('.phase-node').forEach(n => n.classList.remove('active'));
+  const panel = document.getElementById('phase-' + id);
+  if (panel) {
+    panel.classList.add('visible');
+    event.currentTarget.classList.add('active');
+  }
+}
+
+// ═══════ Testing pyramid ═══════
+function showLayer(el, id) {
+  document.querySelectorAll('.pyramid-layer').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.pyramid-detail').forEach(d => d.classList.remove('visible'));
+  el.classList.add('active');
+  const detail = document.getElementById('layer-' + id);
+  if (detail) detail.classList.add('visible');
+}
+
+// ═══════ Infrastructure ═══════
+function toggleInfra(el) {
+  const wasExpanded = el.classList.contains('expanded');
+  document.querySelectorAll('.infra-layer').forEach(l => l.classList.remove('expanded'));
+  if (!wasExpanded) el.classList.add('expanded');
+}
+
+// ═══════ REFLECT details ═══════
+function showReflectDetail(id) {
+  const allPanels = ['cluster','audit','consolidate','integrate-inbox','verify','output'];
+  allPanels.forEach(p => {
+    const el = document.getElementById('reflect-' + p);
+    if (el) el.classList.remove('visible');
+  });
+  const panel = document.getElementById('reflect-' + id);
+  if (panel) {
+    const isVisible = panel.classList.contains('visible');
+    if (!isVisible) panel.classList.add('visible');
+  }
+}
+</script>
+
+</body>
+</html>
