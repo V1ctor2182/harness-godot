@@ -15,36 +15,30 @@ Before planning, read these sources in order:
 
 ## Output Format
 
-End your session with a single JSON block:
+Your FINAL message must be ONLY a fenced JSON block — no prose before or after it. The system parses this block to create tasks. If the JSON is missing or malformed, the entire cycle fails.
 
 ```json
 {
-  "cycleId": "cycle-042",
-  "goal": "Concrete goal echoing task-title terms — see goal-writing rule",
-  "tasks": [
-    {
-      "id": "TASK-001",
-      "title": "Add ZombieGrowthManager autoload",
-      "type": "feature",
-      "priority": "high",
-      "acceptanceCriteria": [
-        "ZombieGrowthManager registered in project.godot autoloads",
-        "grow() advances growth_stage and emits growth_stage_changed signal"
-      ],
-      "prdRefs": ["03-zombie-growth.md#growth-stages"],
-      "testRequirements": ["L1 unit: growth stage transitions", "L2 integration: signal listeners update UI"],
-      "blockedBy": [],
-      "estimatedFiles": ["zombie-farm-demo/scripts/zombie_growth_manager.gd"],
-      "testScenarios": {
-        "L2": ["Zombie planted in farm plot advances stage after tick"],
-        "L3": ["Full growth cycle from seed to harvest across 5 stages"]
-      },
-      "featureRooms": ["zombie/growth"],
-      "crossDomainRisks": ["Touches farm plot state — verify no conflict with crop system"]
-    }
-  ],
+  "summary": "Brief description of what this cycle plan covers",
+  "decisions": ["Key planning decisions and their rationale"],
+  "plan": {
+    "goal": "Concrete goal echoing task-title terms — see goal-writing rule",
+    "tasks": [
+      {
+        "title": "Add ZombieGrowthManager autoload",
+        "description": "Create ZombieGrowthManager as a Node autoload that tracks growth stages for all planted zombies. Emit signals on stage transitions.",
+        "type": "feature",
+        "priority": "high",
+        "acceptanceCriteria": [
+          "ZombieGrowthManager registered in project.godot autoloads",
+          "grow() advances growth_stage and emits growth_stage_changed signal"
+        ],
+        "blockedBy": []
+      }
+    ]
+  },
   "contextFeedback": {
-    "useful": ["milestones/M3-*.md", "knowledge/cycle-041-retrospective.md"],
+    "useful": ["milestones/M3-*.md"],
     "missing": ["No spec for zombie aging decay — needed for growth cap logic"],
     "unnecessary": ["prd/99-v1-not-doing.md"]
   }
@@ -53,17 +47,16 @@ End your session with a single JSON block:
 
 ### Field Rules
 
-- **id**: `TASK-NNN`, zero-padded, sequential within the cycle.
-- **type**: One of `feature`, `bug`, `chore`, `refactor`, `test`.
-- **priority**: `critical` (blocks the cycle), `high`, `medium`, `low`.
-- **acceptanceCriteria**: Minimum 2 entries. Each must be concrete and verifiable — no "works correctly" or "handles edge cases". Name the function, signal, value, or behavior.
-- **prdRefs**: List of `prd/{file}#{section}` anchors grounding the task in game design.
-- **testRequirements**: What test levels are expected (L1 unit, L2 integration, L3 end-to-end).
-- **estimatedFiles**: Paths relative to repo root that the coder will likely touch.
-- **testScenarios**: Keyed by `L2` and/or `L3`. Brief scenario descriptions.
-- **featureRooms**: Room paths (e.g., `zombie/mutation`, `farm/crops`). Coder reads `rooms/{room}/spec.md`.
-- **crossDomainRisks**: Free-text notes when a task's changes could impact another domain.
-- **blockedBy**: Array of task indices (0-based). Empty means the task can run in parallel.
+- **summary**: One sentence describing the cycle plan. Required.
+- **decisions**: Array of strings — key planning rationale. Required.
+- **plan.goal**: Concrete goal composed from task-title terms (see goal-writing rule below).
+- **plan.tasks[].title**: Short imperative title.
+- **plan.tasks[].description**: 1-3 sentences explaining what the coder must build.
+- **plan.tasks[].type**: One of `feature`, `bug`, `chore`, `refactor`, `test`.
+- **plan.tasks[].priority**: `critical` (blocks the cycle), `high`, `medium`, `low`.
+- **plan.tasks[].acceptanceCriteria**: Minimum 2 entries. Each must be concrete and verifiable — no "works correctly" or "handles edge cases". Name the function, signal, value, or behavior.
+- **plan.tasks[].blockedBy**: Array of task indices (0-based). Empty means the task can run in parallel.
+- **contextFeedback**: `useful` / `missing` / `unnecessary` arrays. Required.
 
 ### Goal-Writing Rule
 

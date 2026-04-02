@@ -140,15 +140,17 @@ export async function captureStream(
         await persistEvent(agentRunId, sequenceNum, 'error', data);
         broadcast('agent:error', { agentRunId, ...data }, { agentRunId });
       } else {
+        // Claude Code CLI uses total_cost_usd and usage.{input,output}_tokens
+        const usage = parsed['usage'] as Record<string, unknown> | undefined;
         completionEvent = {
           result: (parsed['result'] as string) ?? '',
-          costUsd: (parsed['cost_usd'] as number) ?? 0,
+          costUsd: (parsed['total_cost_usd'] as number) ?? (parsed['cost_usd'] as number) ?? 0,
           inputTokens:
-            (parsed['input_tokens_used'] as number) ?? (parsed['num_input_tokens'] as number) ?? 0,
+            (usage?.['input_tokens'] as number) ??
+            (parsed['input_tokens_used'] as number) ?? 0,
           outputTokens:
-            (parsed['output_tokens_used'] as number) ??
-            (parsed['num_output_tokens'] as number) ??
-            0,
+            (usage?.['output_tokens'] as number) ??
+            (parsed['output_tokens_used'] as number) ?? 0,
           durationMs: (parsed['duration_ms'] as number) ?? 0,
         };
         await persistEvent(agentRunId, sequenceNum, 'completion', completionEvent);
