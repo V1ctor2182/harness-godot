@@ -8,7 +8,7 @@ config_version=5
 
 config/name="Zombie Farm"
 config/description="A zombie farming & cultivation game with xianxia elements"
-run/main_scene=""
+run/main_scene="res://scenes/farm_scene.tscn"
 config/features=PackedStringArray("4.6")
 
 [autoload]
