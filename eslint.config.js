@@ -79,6 +79,9 @@ export default tseslint.config(
       '*.config.js',
       '*.config.ts',
       '**/__tests__/**',
+      // Game harness subdirectory has its own ESLint config and tsconfig setup;
+      // exclude it from the root Inxtone ESLint project to avoid type-checking errors.
+      'godot-self-evolve-implementation-system/**',
     ],
   }
 );
