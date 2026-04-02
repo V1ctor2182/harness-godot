@@ -10,4 +10,4 @@ func test_basic_math():
 func test_string_operations():
 	var name := "Zombie Farm"
 	assert_string_contains(name, "Zombie")
-	assert_eq(name.length(), 10)
+	assert_eq(name.length(), 11)
