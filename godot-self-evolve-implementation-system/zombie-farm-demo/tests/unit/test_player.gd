@@ -1,11 +1,12 @@
 extends GutTest
 ## Unit tests for the Player script (scripts/player.gd).
 
+const PlayerScript: GDScript = preload("res://scripts/player.gd")
 var _player: CharacterBody2D
 
 
 func before_each() -> void:
-	_player = load("res://scripts/player.gd").new()
+	_player = PlayerScript.new()
 	add_child(_player)
 
 
