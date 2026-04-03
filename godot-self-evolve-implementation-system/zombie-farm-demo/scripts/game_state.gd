@@ -3,7 +3,6 @@ class_name GameState
 ## Global game state autoload.
 ## Tracks dark_coins and current_day, emits signals on state changes.
 
-
 signal coins_changed(new_amount: int)
 signal day_advanced(new_day: int)
 
