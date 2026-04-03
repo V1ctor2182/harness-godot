@@ -1,4 +1,3 @@
-class_name SeedInventory
 extends Node
 ## SeedInventory autoload — tracks seed quantities across the game session.
 
