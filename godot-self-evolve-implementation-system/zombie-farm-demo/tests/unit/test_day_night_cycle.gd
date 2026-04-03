@@ -1,11 +1,13 @@
 extends GutTest
 ## Unit tests for DayNightCycle autoload.
 
-var _cycle: DayNightCycle
+const DayNightCycleScript = preload("res://scripts/day_night_cycle.gd")
+
+var _cycle: Node
 
 
 func before_each() -> void:
-	_cycle = DayNightCycle.new()
+	_cycle = DayNightCycleScript.new()
 	add_child(_cycle)
 
 
