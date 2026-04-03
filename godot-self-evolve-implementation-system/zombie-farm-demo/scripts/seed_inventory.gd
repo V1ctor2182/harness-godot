@@ -3,8 +3,7 @@ extends Node
 ##
 ## Seeds are stored as a Dictionary keyed by seed_id (String).
 ## Each value is an integer quantity.
-
-class_name SeedInventory
+## Note: no class_name — the autoload name "SeedInventory" serves as the global identifier.
 
 signal seed_added(seed_id: String, quantity: int)
 signal seed_removed(seed_id: String, quantity: int)
@@ -28,11 +27,9 @@ func add_seed(seed_id: String, quantity: int) -> void:
 func remove_seed(seed_id: String, quantity: int) -> bool:
 	assert(quantity > 0, "remove_seed: quantity must be positive")
 	if not _seeds.has(seed_id):
-		push_error("remove_seed: seed_id '%s' not in inventory" % seed_id)
 		return false
 	var current: int = _seeds[seed_id]
 	if current < quantity:
-		push_error("remove_seed: insufficient stock for '%s' (have %d, need %d)" % [seed_id, current, quantity])
 		return false
 	_seeds[seed_id] = current - quantity
 	if _seeds[seed_id] == 0:
