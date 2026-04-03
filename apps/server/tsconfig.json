@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "paths": {
+      "@zombie-farm/shared": ["../../packages/shared/src/index.ts"]
+    }
+  },
+  "include": [],
+  "exclude": ["node_modules"]
+}

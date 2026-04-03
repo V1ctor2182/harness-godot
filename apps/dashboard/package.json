@@ -1,0 +1,10 @@
+{
+  "name": "@zombie-farm/dashboard",
+  "version": "0.0.1",
+  "dependencies": {
+    "@zombie-farm/shared": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}

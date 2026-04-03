@@ -1,0 +1,11 @@
+{
+  "name": "@zombie-farm/server",
+  "version": "0.0.1",
+  "type": "module",
+  "dependencies": {
+    "@zombie-farm/shared": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
