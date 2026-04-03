@@ -5,11 +5,12 @@ import {
   RefreshCw,
   ListTodo,
   Bot,
-  Layers,
   BookOpen,
   ShieldCheck,
   Settings,
   BarChart2,
+  Milestone,
+  FlaskConical,
 } from 'lucide-react';
 
 export const metadata = {
@@ -19,10 +20,11 @@ export const metadata = {
 
 const navItems = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/milestones', label: 'Milestones', icon: Milestone },
   { href: '/cycles', label: 'Cycles', icon: RefreshCw },
   { href: '/tasks', label: 'Tasks', icon: ListTodo },
+  { href: '/tests', label: 'Tests', icon: FlaskConical },
   { href: '/agents', label: 'Agents', icon: Bot },
-  { href: '/jobs', label: 'Jobs', icon: Layers },
   { href: '/knowledge', label: 'Knowledge', icon: BookOpen },
   { href: '/analytics', label: 'Analytics', icon: BarChart2 },
   { href: '/review', label: 'Review', icon: ShieldCheck },
