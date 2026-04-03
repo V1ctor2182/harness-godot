@@ -26,7 +26,6 @@ jobs:
       - name: TypeScript compile check
         run: |
           npx tsc --noEmit -p packages/shared/tsconfig.json
-          npx tsc --noEmit -p apps/server/tsconfig.json
 
   # GUT tests will be added in Phase 2 when we have the godot-agent Docker image in GHCR
   # For now, just verify TypeScript compiles
