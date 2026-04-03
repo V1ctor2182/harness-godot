@@ -1,6 +1,5 @@
 extends Node
 ## SeedInventory autoload — tracks seed quantities across the game session.
-class_name SeedInventory
 
 signal inventory_changed(seed_id: String, new_quantity: int)
 
