@@ -1,12 +1,14 @@
 extends Node
-class_name SeedManager
 ## Autoload managing the player's seed inventory.
 ## Handles adding, removing, and listing seeds.
+## Note: class_name omitted — autoload name "SeedManager" already exposes this globally.
+
+const SeedDataScript = preload("res://scripts/seed_data.gd")
 
 signal seed_removed(seed_id: String, amount: int)
 signal seed_added(seed_id: String, amount: int)
 
-## Internal storage: seed_id -> SeedData
+## Internal storage: seed_id -> SeedDataScript instance
 var _inventory: Dictionary = {}
 
 
@@ -17,10 +19,10 @@ func add_seed(seed_id: String, amount: int) -> void:
 		push_error("SeedManager.add_seed: amount must be > 0 (got %d)" % amount)
 		return
 	if _inventory.has(seed_id):
-		var entry: SeedData = _inventory[seed_id] as SeedData
+		var entry: Resource = _inventory[seed_id]
 		entry.quantity += amount
 	else:
-		var entry: SeedData = SeedData.new(seed_id, amount)
+		var entry: Resource = SeedDataScript.new(seed_id, amount)
 		_inventory[seed_id] = entry
 	seed_added.emit(seed_id, amount)
 
@@ -31,7 +33,7 @@ func add_seed(seed_id: String, amount: int) -> void:
 func remove_seed(seed_id: String, amount: int) -> bool:
 	if not _inventory.has(seed_id):
 		return false
-	var entry: SeedData = _inventory[seed_id] as SeedData
+	var entry: Resource = _inventory[seed_id]
 	if entry.quantity < amount:
 		return false
 	entry.quantity -= amount
@@ -40,10 +42,10 @@ func remove_seed(seed_id: String, amount: int) -> bool:
 
 
 ## Return all seeds whose quantity is greater than zero.
-func list_seeds() -> Array[SeedData]:
-	var result: Array[SeedData] = []
+func list_seeds() -> Array:
+	var result: Array = []
 	for key: String in _inventory.keys():
-		var entry: SeedData = _inventory[key] as SeedData
+		var entry: Resource = _inventory[key]
 		if entry.quantity > 0:
 			result.append(entry)
 	return result
