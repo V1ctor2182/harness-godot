@@ -40,3 +40,7 @@ yarn.lock
 
 # Claude Code local settings
 .claude/
+
+# Godot
+.godot/
+*.import
