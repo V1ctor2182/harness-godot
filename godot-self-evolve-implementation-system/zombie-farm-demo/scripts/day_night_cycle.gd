@@ -1,5 +1,4 @@
 extends Node
-class_name DayNightCycle
 ## Tracks the in-game time of day and exposes day/night state.
 ## time_of_day is normalised 0.0–1.0 where 0.0 = midnight, 0.5 = noon.
 

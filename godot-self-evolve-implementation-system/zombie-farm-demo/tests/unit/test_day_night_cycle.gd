@@ -2,7 +2,7 @@ extends GutTest
 ## Unit tests for DayNightCycle.
 ## Instantiates the script directly — does NOT rely on the autoload singleton.
 
-var _cycle: DayNightCycle
+var _cycle: Node
 
 
 func before_each() -> void:
