@@ -1,0 +1,8 @@
+{
+  "name": "@zombie-farm/shared",
+  "version": "0.0.1",
+  "main": "src/index.ts",
+  "scripts": {
+    "build": "tsc"
+  }
+}
