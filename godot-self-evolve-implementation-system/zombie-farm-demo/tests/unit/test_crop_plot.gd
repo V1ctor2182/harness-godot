@@ -43,14 +43,20 @@ func test_plant_emits_zombie_planted_signal() -> void:
 
 
 func test_plant_emits_signal_with_correct_zombie() -> void:
-	watch_signals(_plot)
+	# Manually capture signal parameter because GUT's comparator does not
+	# support Object equality in assert_signal_emitted_with_parameters.
+	var captured: Array = []
+	_plot.zombie_planted.connect(func(z: ZombieData) -> void: captured.append(z))
 	var z: ZombieData = _make_zombie()
 	_plot.plant(z)
-	assert_signal_emitted_with_parameters(_plot, "zombie_planted", [z],
-		"zombie_planted signal should carry the planted ZombieData")
+	assert_eq(captured.size(), 1, "zombie_planted should fire exactly once")
+	assert_eq(captured[0], z, "zombie_planted signal should carry the planted ZombieData")
 
 
 func test_plant_when_already_occupied_does_not_overwrite() -> void:
+	# push_error() is intentionally called inside plant() when already occupied;
+	# tell GUT not to treat it as a test failure.
+	gut.error_tracker.treat_push_error_as = GutUtils.TREAT_AS.NOTHING
 	var first: ZombieData = _make_zombie()
 	var second: ZombieData = _make_zombie(1, 2)
 	_plot.plant(first)
@@ -59,6 +65,9 @@ func test_plant_when_already_occupied_does_not_overwrite() -> void:
 
 
 func test_plant_when_already_occupied_does_not_emit_again() -> void:
+	# push_error() is intentionally called inside plant() when already occupied;
+	# tell GUT not to treat it as a test failure.
+	gut.error_tracker.treat_push_error_as = GutUtils.TREAT_AS.NOTHING
 	var first: ZombieData = _make_zombie()
 	var second: ZombieData = _make_zombie(1, 2)
 	_plot.plant(first)
@@ -143,12 +152,21 @@ func test_harvest_emits_zombie_harvested() -> void:
 
 
 func test_harvest_emits_signal_with_zombie_and_yield() -> void:
+	# Manually capture signal parameters because GUT's comparator does not
+	# support Object equality in assert_signal_emitted_with_parameters.
 	var z: ZombieData = _make_zombie(1, 0)  # yield = (1+1)*(0+1) = 2
+	var captured_zombie: Array = []
+	var captured_yield: Array = []
+	_plot.zombie_harvested.connect(
+		func(hz: ZombieData, ya: int) -> void:
+			captured_zombie.append(hz)
+			captured_yield.append(ya)
+	)
 	_plot.plant(z)
-	watch_signals(_plot)
 	_plot.harvest()
-	assert_signal_emitted_with_parameters(_plot, "zombie_harvested", [z, 2],
-		"zombie_harvested must carry the harvested zombie and yield amount")
+	assert_eq(captured_zombie.size(), 1, "zombie_harvested should fire exactly once")
+	assert_eq(captured_zombie[0], z, "zombie_harvested signal should carry the harvested ZombieData")
+	assert_eq(captured_yield[0], 2, "zombie_harvested signal should carry yield_amount = 2")
 
 
 func test_harvest_clears_planted_zombie() -> void:
