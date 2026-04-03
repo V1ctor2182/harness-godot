@@ -18,7 +18,7 @@ func after_each() -> void:
 
 func test_add_seed_creates_entry() -> void:
 	_manager.add_seed("s1", "Corpse Lotus", "Wood", 3)
-	var seed: SeedData = _manager.get_seed("s1")
+	var seed: RefCounted = _manager.get_seed("s1")
 	assert_not_null(seed, "get_seed should return a SeedData after add_seed")
 
 
@@ -139,5 +139,5 @@ func test_list_seeds_returns_multiple_entries() -> void:
 # --- get_seed ---
 
 func test_get_seed_returns_null_for_missing() -> void:
-	var seed: SeedData = _manager.get_seed("nonexistent")
+	var seed: RefCounted = _manager.get_seed("nonexistent")
 	assert_null(seed, "get_seed should return null for unknown seed_id")

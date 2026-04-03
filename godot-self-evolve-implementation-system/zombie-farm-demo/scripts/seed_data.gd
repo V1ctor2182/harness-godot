@@ -1,5 +1,4 @@
 extends RefCounted
-class_name SeedData
 
 var seed_id: String = ""
 var seed_name: String = ""

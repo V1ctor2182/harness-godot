@@ -1,7 +1,9 @@
 extends GutTest
 ## Unit tests for SeedData.
 
-var _seed: SeedData
+const SeedData = preload("res://scripts/seed_data.gd")
+
+var _seed: RefCounted
 
 
 func before_each() -> void:
