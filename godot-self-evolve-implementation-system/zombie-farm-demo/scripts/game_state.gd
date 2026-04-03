@@ -1,5 +1,4 @@
 extends Node
-class_name GameState
 ## Autoload singleton tracking global game state: currency and day progression.
 
 signal coins_changed(new_balance: int)

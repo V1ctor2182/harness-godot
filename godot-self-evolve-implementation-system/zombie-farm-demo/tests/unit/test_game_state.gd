@@ -32,8 +32,11 @@ func test_add_coins_emits_coins_changed() -> void:
 func test_add_coins_emits_coins_changed_with_new_balance() -> void:
 	watch_signals(_game_state)
 	_game_state.add_coins(25)
-	assert_signal_emitted_with_parameters(_game_state, "coins_changed", [25],
-		"coins_changed should carry the new balance of 25")
+	assert_signal_emitted(_game_state, "coins_changed",
+		"coins_changed should be emitted after add_coins")
+	var params: Array = get_signal_parameters(_game_state, "coins_changed")
+	assert_not_null(params, "signal parameters should not be null")
+	assert_eq(params[0], 25, "coins_changed should carry the new balance of 25")
 
 
 func test_add_coins_accumulates_across_multiple_calls() -> void:
@@ -103,8 +106,11 @@ func test_advance_day_emits_day_advanced() -> void:
 func test_advance_day_emits_new_day_number() -> void:
 	watch_signals(_game_state)
 	_game_state.advance_day()
-	assert_signal_emitted_with_parameters(_game_state, "day_advanced", [2],
-		"day_advanced should carry the new day number 2")
+	assert_signal_emitted(_game_state, "day_advanced",
+		"day_advanced should be emitted after advance_day")
+	var params: Array = get_signal_parameters(_game_state, "day_advanced")
+	assert_not_null(params, "signal parameters should not be null")
+	assert_eq(params[0], 2, "day_advanced should carry the new day number 2")
 
 
 func test_advance_day_accumulates() -> void:
