@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(git add:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: Inkstone 砚台 - AI原生网文创作Playbook\n\nComplete web novel creation framework including:\n- 6-phase pipeline \\(Meta → World → Characters → Plot → Outline → Draft\\)\n- Wayne Principles creative guidelines and red lines\n- B20 literary techniques integration\n- 40+ AI collaboration prompts\n- Central index system for AI-friendly context management\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
-    ]
-  }
-}

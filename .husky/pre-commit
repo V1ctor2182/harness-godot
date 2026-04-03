@@ -1,7 +1,0 @@
-#!/bin/sh
-
-# Run lint-staged for incremental checks
-pnpm lint-staged
-
-# Run typecheck on staged files' packages
-pnpm typecheck

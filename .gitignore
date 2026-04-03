@@ -1,42 +1,4 @@
-# Dependencies
 node_modules/
-
-# Build outputs
-dist/
-*.tsbuildinfo
-
-# Test coverage
-coverage/
-
-# Editor
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Environment
 .env
-.env.local
-.env.*.local
-
-# Logs
-*.log
-npm-debug.log*
-pnpm-debug.log*
-
-# Lock files (keep pnpm-lock.yaml)
-package-lock.json
-yarn.lock
-
-# Inxtone user data
-.inxtone/
-
-# pnpm store
-.pnpm-store/
-
-# Claude Code local settings
-.claude/
+.godot/
+*.import
