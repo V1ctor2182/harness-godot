@@ -1,5 +1,4 @@
 extends Node
-class_name DayNightCycle
 
 signal day_night_changed(is_night: bool)
 
