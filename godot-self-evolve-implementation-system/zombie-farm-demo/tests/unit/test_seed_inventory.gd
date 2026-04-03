@@ -68,24 +68,22 @@ func test_get_seeds_returns_copy() -> void:
 func test_inventory_changed_emitted_on_add() -> void:
 	watch_signals(SeedInventory)
 	SeedInventory.add_seed("corn", 1)
-	assert_signal_emitted_with_parameters(SeedInventory, "inventory_changed", ["corn", 1],
-			"inventory_changed should be emitted with seed_type and new_quantity on add_seed")
+	# assert_signal_emitted_with_parameters does not accept a description string (4th arg = index)
+	assert_signal_emitted_with_parameters(SeedInventory, "inventory_changed", ["corn", 1])
 
 
 func test_inventory_changed_emitted_on_add_accumulates() -> void:
 	SeedInventory.add_seed("corn", 3)
 	watch_signals(SeedInventory)
 	SeedInventory.add_seed("corn", 2)
-	assert_signal_emitted_with_parameters(SeedInventory, "inventory_changed", ["corn", 5],
-			"inventory_changed should emit the accumulated new_quantity after a second add")
+	assert_signal_emitted_with_parameters(SeedInventory, "inventory_changed", ["corn", 5])
 
 
 func test_inventory_changed_emitted_on_successful_remove() -> void:
 	SeedInventory.add_seed("corn", 5)
 	watch_signals(SeedInventory)
 	SeedInventory.remove_seed("corn", 2)
-	assert_signal_emitted_with_parameters(SeedInventory, "inventory_changed", ["corn", 3],
-			"inventory_changed should be emitted with remaining quantity after remove_seed")
+	assert_signal_emitted_with_parameters(SeedInventory, "inventory_changed", ["corn", 3])
 
 
 func test_inventory_changed_not_emitted_on_failed_remove() -> void:
