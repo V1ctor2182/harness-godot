@@ -527,10 +527,11 @@ export async function handleAdvanceCycle(payload: Record<string, unknown>): Prom
       await createJob('spawn', 'agent', { role: 'coder', taskId: task._id, cycleId });
     }
   } else if (nextPhase === 'review') {
-    // Spawn reviewer for tasks in-review
+    // Phase 2: Spawn tester (not reviewer directly) for tasks in-review
+    // Tester completion → spawn Reviewer via createFollowUpJobs in spawner.ts
     const tasks = await TaskModel.find({ cycleId, status: 'in-review' });
     for (const task of tasks) {
-      await createJob('spawn', 'agent', { role: 'reviewer', taskId: task._id, cycleId });
+      await createJob('spawn', 'agent', { role: 'tester', taskId: task._id, cycleId });
     }
   } else if (nextPhase === 'integrate') {
     // Merge all task branches into base branch
