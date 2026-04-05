@@ -14,7 +14,7 @@ export type TaskStatus =
 export type TaskPriority = 'critical' | 'high' | 'medium' | 'low';
 export type TaskType = 'feature' | 'bug' | 'chore' | 'refactor' | 'test';
 
-export type AgentRole = 'orchestrator' | 'coder' | 'reviewer' | (string & {});
+export type AgentRole = 'orchestrator' | 'coder' | 'tester' | 'reviewer' | 'integrator' | 'curator' | (string & {});
 export type AgentRunStatus = 'starting' | 'running' | 'completed' | 'failed' | 'timeout' | 'killed';
 
 export type AgentEventType =
@@ -33,7 +33,16 @@ export type JobType =
   | 'curate-inbox'
   | 'next-cycle'
   | 'reload'
-  | 'cleanup-prs';
+  | 'cleanup-prs'
+  | 'spawn-tester'
+  | 'run-gut-tests'
+  | 'run-integration-tests'
+  | 'run-visual-tests'
+  | 'run-prd-compliance'
+  | 'create-fix-task'
+  | 'validate-assets'
+  | 'spawn-curator'
+  | 'spawn-reflect';
 export type JobStatus = 'pending' | 'active' | 'completed' | 'failed';
 export type JobPool = 'agent' | 'infra';
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
@@ -365,3 +374,83 @@ export type SSEEventType =
   | 'review:ready'
   | 'system:spending_warning'
   | 'system:reload_triggered';
+
+// ─── Godot-specific Types ───────────────────────────────────────────
+
+export type TestLayer = 'L1' | 'L2' | 'L3' | 'L4';
+export type TestResultStatus = 'passed' | 'failed' | 'error' | 'skipped';
+
+export interface TestFailureDetail {
+  testName: string;
+  assertion: string;
+  expected?: string;
+  actual?: string;
+  line?: number;
+  file?: string;
+}
+
+export interface TestResult {
+  _id?: string;
+  taskId: string;
+  cycleId: number;
+  agentRunId: string;
+  layer: TestLayer;
+  status: TestResultStatus;
+  durationMs: number;
+  totalTests: number;
+  passed: number;
+  failed: number;
+  failures: TestFailureDetail[];
+  fps?: number;
+  nodeCount?: number;
+  memoryDeltaMb?: number;
+  loadTimeMs?: number;
+  screenshotIds?: string[];
+  visualNotes?: string;
+  prdViolations?: PrdViolation[];
+  createdAt?: Date;
+}
+
+export interface PrdViolation {
+  prdRef: string;
+  expected: string;
+  actual: string;
+  severity: 'error' | 'warning';
+}
+
+export interface Screenshot {
+  _id?: string;
+  testResultId?: string;
+  taskId: string;
+  step: string;
+  filepath: string;
+  aiAnalysis?: { description: string; issues: string[]; confidence: number };
+  createdAt?: Date;
+}
+
+export interface GodotPlanTask extends PlanTask {
+  prdRefs?: string[];
+  testRequirements?: ('unit' | 'integration' | 'visual' | 'prd-compliance')[];
+  testScenarios?: { L2?: string[]; L3?: string[] };
+  estimatedFiles?: string[];
+  requiredAssets?: string[];
+  featureRooms?: string[];
+  crossDomainRisks?: string[];
+}
+
+export interface GodotAgentOutput extends AgentStructuredOutput {
+  testResults?: TestResult[];
+  screenshots?: Screenshot[];
+  sceneChanges?: string[];
+  signalChanges?: string[];
+  dataChanges?: string[];
+  assetChanges?: string[];
+  constraintsDiscovered?: string[];
+}
+
+export type TrustLevel = 1 | 2 | 3;
+
+export interface GodotControl extends Control {
+  trustLevel: TrustLevel;
+  retryLimits: { test: number; review: number; global: number };
+}

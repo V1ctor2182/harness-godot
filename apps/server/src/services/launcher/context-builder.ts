@@ -20,17 +20,22 @@ interface AgentContext {
   knowledgeFiles: string[];
 }
 
+// Bug #3 fix: Detect repo root via .git/ or project.godot instead of package.json only
 function findRepoRoot(): string {
   let dir = __dirname;
   while (dir !== path.dirname(dir)) {
+    if (fs.existsSync(path.join(dir, '.git'))) return dir;
+    if (fs.existsSync(path.join(dir, 'project.godot'))) return dir;
     const pkgPath = path.join(dir, 'package.json');
     if (fs.existsSync(pkgPath)) {
-      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
-      if (pkg.workspaces) return dir;
+      try {
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
+        if (pkg.workspaces) return dir;
+      } catch { /* ignore parse errors */ }
     }
     dir = path.dirname(dir);
   }
-  throw new Error('Could not find repo root (no package.json with workspaces found)');
+  throw new Error('Could not find repo root (no .git, project.godot, or package.json with workspaces)');
 }
 
 const REPO_ROOT = findRepoRoot();
@@ -166,7 +171,9 @@ export function extractKeywords(text: string): string[] {
   // Expand camelCase boundaries:
   //   1. lowercase→uppercase: 'contextBuilder' → 'context Builder'
   //   2. consecutive-caps→single-cap: 'parseSSEEvent' → 'parse SSE Event'
+  // Bug #8 fix: Also split snake_case (GDScript convention)
   const expanded = text
+    .replace(/_/g, ' ')
     .replace(/([a-z])([A-Z])/g, '$1 $2')
     .replace(/([A-Z]+)([A-Z][a-z])/g, '$1 $2');
 
@@ -192,9 +199,9 @@ function getTaskTypeNote(taskType: string, role: string): string | null {
       case 'refactor':
         return 'Refactor: all existing tests must pass unchanged. Do not change external behavior — if a test must change, the refactor has drifted into a feature.';
       case 'test':
-        return 'Test task: run the affected test file in isolation first (`npx vitest run <path>`) before running the full suite.';
+        return 'Test task: write GUT tests (extends GutTest) in tests/unit/. Run with `godot --headless -s addons/gut/gut_cmdln.gd` before submitting.';
       case 'feature':
-        return 'Feature: add tests for the new behavior before opening the PR.';
+        return 'Feature: add GUT tests for the new behavior before opening the PR. Use static typing (:=, -> void) throughout.';
       default:
         return null;
     }

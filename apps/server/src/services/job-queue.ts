@@ -49,6 +49,7 @@ export async function detectAndFailStaleJobs(): Promise<void> {
       if (role === 'coder') timeoutMs = config.coderTimeoutMs;
       else if (role === 'orchestrator') timeoutMs = config.orchestratorTimeoutMs;
       else if (role === 'reviewer') timeoutMs = config.reviewerTimeoutMs;
+      else if (role === 'tester') timeoutMs = config.coderTimeoutMs; // tester same as coder
       else timeoutMs = config.coderTimeoutMs; // default for other agent roles (curator, integrator)
     } else {
       timeoutMs = INFRA_STALE_TIMEOUT_MS;
@@ -311,8 +312,9 @@ export async function handleWaitForCI(
                 },
               });
             } else {
+              // Phase 2: CI passed → spawn Tester before Reviewer
               await createJob('spawn', 'agent', {
-                role: 'reviewer',
+                role: 'tester',
                 taskId,
                 cycleId: task.cycleId,
               });
@@ -524,10 +526,11 @@ export async function handleAdvanceCycle(payload: Record<string, unknown>): Prom
       await createJob('spawn', 'agent', { role: 'coder', taskId: task._id, cycleId });
     }
   } else if (nextPhase === 'review') {
-    // Spawn reviewer for tasks in-review
+    // Phase 2: Spawn tester (not reviewer directly) for tasks in-review
+    // Tester completion → spawn Reviewer via createFollowUpJobs in spawner.ts
     const tasks = await TaskModel.find({ cycleId, status: 'in-review' });
     for (const task of tasks) {
-      await createJob('spawn', 'agent', { role: 'reviewer', taskId: task._id, cycleId });
+      await createJob('spawn', 'agent', { role: 'tester', taskId: task._id, cycleId });
     }
   } else if (nextPhase === 'integrate') {
     // Merge all task branches into base branch

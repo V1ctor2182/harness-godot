@@ -91,6 +91,30 @@ export function validatePlan(plan: Plan): string[] {
     errors.push('Circular dependency detected in blockedBy graph');
   }
 
+  // Bug #5: .tscn and data/global/ mutual exclusion check
+  errors.push(...validateFileMutex(plan.tasks));
+
+  return errors;
+}
+
+function validateFileMutex(tasks: Array<Record<string, unknown>>): string[] {
+  const errors: string[] = [];
+  const MUTEX_PATTERNS = ['.tscn', 'data/global/'];
+  for (let i = 0; i < tasks.length; i++) {
+    const filesI = (tasks[i]['estimatedFiles'] as string[] | undefined) ?? [];
+    const mutexFilesI = filesI.filter((f) => MUTEX_PATTERNS.some((p) => f.endsWith(p) || f.includes(p)));
+    if (mutexFilesI.length === 0) continue;
+    for (let j = i + 1; j < tasks.length; j++) {
+      const filesJ = (tasks[j]['estimatedFiles'] as string[] | undefined) ?? [];
+      const shared = mutexFilesI.filter((f) => filesJ.includes(f));
+      if (shared.length === 0) continue;
+      const blockedByI = (tasks[i]['blockedBy'] as number[] | undefined) ?? [];
+      const blockedByJ = (tasks[j]['blockedBy'] as number[] | undefined) ?? [];
+      if (!blockedByI.includes(j) && !blockedByJ.includes(i)) {
+        errors.push(`Tasks ${i} and ${j} both modify ${shared.join(', ')} but have no blockedBy dependency.`);
+      }
+    }
+  }
   return errors;
 }
 

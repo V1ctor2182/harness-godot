@@ -1,33 +1,38 @@
-# Erika System Overview
+# Zombie Farm — AI Implementation Team
 
-Erika is a self-improving agentic development team. Autonomous agents write code that builds and improves the system itself.
+## Project
+**Zombie Farm** is a zombie farming & cultivation game with xianxia elements, built with **Godot 4.6.1** (version locked).
 
-## How It Works
+## Development Cycle
+```
+PLAN (Orchestrator) → IMPLEMENT (Coder ×N) ↔ TEST (Tester) → REVIEW (Reviewer) → INTEGRATE (Integrator) → SEDIMENT (Curator)
+```
 
-Work is organized into **cycles** — bounded units with a stated goal and 3-7 tasks. Each cycle moves through five phases: `plan → implement → review → integrate → retrospect`.
+## Agent Roles
+| Role | Responsibility |
+|------|---------------|
+| **Orchestrator** | Reads milestone + PRD + Room specs → outputs 3-7 task plan |
+| **Coder** | Implements task in GDScript, writes GUT tests, creates PR |
+| **Tester** | Runs L2 integration + L4 PRD compliance tests |
+| **Reviewer** | Reviews PR for code quality, PRD compliance, architecture |
+| **Integrator** | Merges approved PRs, runs regression |
+| **Curator** | Extracts decisions/constraints → writes to Feature Rooms |
 
-### Agents
+## Test Layers
+| Layer | What | Who |
+|-------|------|-----|
+| L1 | GUT unit tests | Coder (self-test) |
+| L2 | Headless integration | Tester |
+| L3 | Visual (Phase 5) | Tester |
+| L4 | PRD compliance | Tester |
 
-- **Orchestrator** — plans cycles, decomposes goals into tasks
-- **Coder** — implements tasks, creates branches and PRs
-- **Reviewer** — evaluates code quality and correctness
-- **Integrator** — merges all task branches, resolves conflicts, verifies tests
+## Key Paths
+- `prd/` — 23 game design docs
+- `milestones/` — M0-M15 roadmap
+- `zombie-farm-demo/` — Godot project
+- `zombie-farm-demo/tests/` — GUT tests
 
-Agents run as Claude Code sessions in isolated Docker containers with full privileges. Guardrails come from process (CI, agent review, human gate), not capability restrictions.
+## contextFeedback
+Every agent outputs: `{ useful: [...], missing: [...], unnecessary: [...] }`
 
-### Evaluation Layers
-
-1. **CI** — automated tests, linting, type-checking (binary pass/fail)
-2. **Reviewer agent** — code quality, readability, architectural coherence
-3. **Human gate** — every change reviewed during bootstrap
-
-### Key Infrastructure
-
-- **Launcher service** — dispatches agents, manages job queue, tracks progress
-- **Job queue** — polling-based (5s interval), two slot pools (agent/infra)
-- **SSE streaming** — real-time agent events to the dashboard
-- **MongoDB** — all persistent state (cycles, tasks, runs, events, knowledge)
-
-## The Self-Improvement Loop
-
-Agents modify their own codebase: code, prompts, knowledge, and configuration. Better code → better agents → better code. The system earns autonomy incrementally through demonstrated reliability.
+## Godot Version: 4.6.1 (locked)
