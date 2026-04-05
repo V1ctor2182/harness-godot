@@ -1,0 +1,20 @@
+spec_id: "intent-10-game-rooms-001"
+type: intent
+state: draft
+intent:
+  summary: "Meta layer for agent-produced Zombie Farm game design knowledge"
+  detail: |
+    Meta layer — agents 在 cycle 中产生的 Zombie Farm game design knowledge。Curator 写入 feature specs (decisions, constraints, context)，Orchestrator 和 Coder 读取作为 context。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: epic
+  domain: "game-rooms"
+  tags: [game-design, curator, feature-rooms, zombie-farm, context]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []

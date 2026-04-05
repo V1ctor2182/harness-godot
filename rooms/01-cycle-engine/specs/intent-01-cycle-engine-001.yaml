@@ -1,0 +1,24 @@
+spec_id: "intent-01-cycle-engine-001"
+type: intent
+state: draft
+intent:
+  summary: "管理 bounded work units (cycles)，驱动五阶段流转和 task 生命周期"
+  detail: |
+    驱动 plan→implement→review→integrate→retrospect 五阶段流转。处理 task 生命周期
+    (backlog→ready→in-progress→in-review→done/failed)、phase transition、cycle failure path。
+    Cycle 包含 3-7 个 tasks，所有 tasks 失败时 cycle 标记为 failed，不会 spawn integrator，
+    需要人工介入。Phase transitions 是原子操作，由 advance-cycle job 处理。
+    Cycle._id 自增整数，Task._id 格式为 TASK-{padded number}。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: epic
+  domain: "cycle-management"
+  tags: [cycle, task-lifecycle, phase-transition, workflow, bounded-work-unit]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []

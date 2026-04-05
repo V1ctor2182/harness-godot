@@ -1,0 +1,20 @@
+spec_id: "intent-07-01-live-stream-001"
+type: intent
+state: draft
+intent:
+  summary: "SSE-driven real-time agent thinking process display"
+  detail: |
+    SSE 驱动的 agent 实时思考过程展示。Global event stream 和 per-agent filtered stream，tool calls 和 reasoning steps 结构化渲染。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: feature
+  domain: "live-stream"
+  tags: [SSE, real-time, event-stream, tool-calls, reasoning]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []

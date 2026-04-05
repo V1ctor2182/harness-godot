@@ -1,0 +1,23 @@
+spec_id: "intent-02-02-coder-001"
+type: intent
+state: draft
+intent:
+  summary: "实现 GDScript 代码、编写 L1 GUT 单元测试、创建 branch 和 PR"
+  detail: |
+    实现 GDScript 代码、编写 L1 GUT 单元测试、创建 branch 和 PR。
+    输出 structured PR body with summary, decisions, files changed, context feedback。
+    代码写 GDScript，测试用 GUT 9.x 框架。运行 godot --headless import 验证资源导入。
+    Branch 从 BASE_BRANCH 创建，不直接 push main。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: feature
+  domain: "implementation"
+  tags: [coder, gdscript, gut-testing, pull-request, branch]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []

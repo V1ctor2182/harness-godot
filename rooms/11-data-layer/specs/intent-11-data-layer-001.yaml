@@ -1,0 +1,36 @@
+spec_id: "intent-11-data-layer-001"
+type: intent
+state: draft
+intent:
+  summary: "MongoDB 数据库层 — 11 个 collections 支撑系统状态持久化、事件审计和知识管理"
+  detail: |
+    MongoDB standalone 数据库，包含 11 个 collections：
+    - cycles/tasks: Cycle 状态机和 Task 生命周期，ID 通过 Counter collection 自增生成
+    - agentruns/agentevents: Agent 执行元数据和完整事件流（30 天 TTL）
+    - jobs: Polling-based job queue，支持 approval gates
+    - knowledgefiles: 知识库，quality score feedback loop 驱动上下文选择
+    - controls: 单例系统控制文档（mode, spending cap, auto-approval）
+    - testresults/screenshots: Godot 测试结果和截图 + AI 分析
+    - counters/migrations: 基础设施（ID 生成、schema 版本控制）
+
+    关键设计：无 replica set，无 change streams，polling-based job queue。
+    Migrations 在 server startup 时自动运行。Knowledge files 从 knowledge/ 目录 upsert 到数据库。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: epic
+  domain: "database"
+  tags: [mongodb, mongoose, persistence, schema, migrations, TTL]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.9
+  source_ref: "apps/server/src/models/*.ts"
+relations:
+  - "01-cycle-engine"
+  - "02-agent-system"
+  - "03-job-queue"
+  - "04-knowledge-system"
+  - "05-testing-pipeline"
+  - "09-spending"
+anchors: []

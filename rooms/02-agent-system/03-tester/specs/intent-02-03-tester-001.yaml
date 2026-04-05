@@ -1,0 +1,24 @@
+spec_id: "intent-02-03-tester-001"
+type: intent
+state: draft
+intent:
+  summary: "执行多层测试 (L2-L4)，quick-fail 原则，失败时创建 fix tasks"
+  detail: |
+    执行 L2 integration、L3 visual、L4 PRD compliance 测试。Quick-fail 原则：
+    L1 fail→skip L2/L3/L4, L2 fail→skip L3。L4 (PRD compliance) 与 L2 并行执行。
+    输出 TestResult with pass/fail counts, performance data, PRD violations。
+    Screenshots captured during L3 with AI analysis。
+    GUT timeout: 3 min, integration test timeout: 2 min, visual test timeout: 5 min。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: feature
+  domain: "testing"
+  tags: [tester, integration-test, visual-test, prd-compliance, quick-fail]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []

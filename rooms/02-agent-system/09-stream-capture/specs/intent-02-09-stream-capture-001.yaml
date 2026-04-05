@@ -1,0 +1,25 @@
+spec_id: "intent-02-09-stream-capture-001"
+type: intent
+state: draft
+intent:
+  summary: "捕获 NDJSON stream-json 输出，解析事件类型，检测 rate limit，持久化到 MongoDB"
+  detail: |
+    捕获 Claude Code 的 NDJSON stream-json 输出，解析事件类型（text, tool_use,
+    tool_result, error, completion, system），检测 rate limit，持久化到 MongoDB
+    AgentEvent collection。只持久化 complete turns，不存 streaming deltas。
+    ToolResultEvent output 截断到 10KB 防止 bloat。
+    检测 'hit your limit' 和 'rate limit' 文本标记 rateLimited。
+    TTL index 30 天后自动清理 events。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: feature
+  domain: "stream-processing"
+  tags: [stream-capture, ndjson, rate-limit, mongodb, event-parsing]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []

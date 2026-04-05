@@ -1,0 +1,20 @@
+spec_id: "intent-06-plan-validation-001"
+type: intent
+state: draft
+intent:
+  summary: "Pre-execution plan validation to prevent wasted agent runs"
+  detail: |
+    在 plan 执行前进行结构化校验，拦截不合法 plan 防止浪费 agent run。包括 task count、circular deps、field validation、.tscn 互斥检查、pre-merge conflict detection。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: feature
+  domain: "plan-validation"
+  tags: [validation, circular-deps, file-mutex, pre-merge, task-count]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []

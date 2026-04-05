@@ -1,0 +1,26 @@
+spec_id: "intent-02-08-spawner-001"
+type: intent
+state: draft
+intent:
+  summary: "Agent dispatch、follow-up job 创建、OOM/timeout/network partition 错误恢复"
+  detail: |
+    Agent dispatch、follow-up job 创建、retry 策略。处理 OOM (exit 137)、timeout、
+    network partition 错误恢复。Tester follow-up 和 structured output 解析。
+    OOM (exit 137): retry with increased memory。
+    Timeout: retry with same timeout, escalate after repeated。
+    Network partition: kill container after 5 min no events。
+    Parse structured output from agent completion event。
+    Persist TestResult and Screenshot from tester output。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: feature
+  domain: "agent-dispatch"
+  tags: [spawner, dispatch, retry, oom, timeout, error-recovery]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []

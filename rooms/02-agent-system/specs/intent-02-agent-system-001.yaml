@@ -1,0 +1,23 @@
+spec_id: "intent-02-agent-system-001"
+type: intent
+state: draft
+intent:
+  summary: "6 个专业 agent 在隔离 Docker 容器中可靠执行，具备自动错误恢复能力"
+  detail: |
+    Orchestrator, Coder, Tester, Reviewer, Integrator, Curator 六个专业 agent
+    在隔离 Docker 容器中执行。每个 agent 运行在独立容器中，system prompts 通过
+    --system-prompt-file 传入。Agent 输出格式为 stream-json NDJSON。
+    Container 内 agent 有完全权限，安全边界在 container level。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: epic
+  domain: "agent-execution"
+  tags: [agent, docker, container, isolation, error-recovery]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []

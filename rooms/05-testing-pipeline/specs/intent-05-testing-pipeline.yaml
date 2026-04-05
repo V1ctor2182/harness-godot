@@ -1,0 +1,20 @@
+spec_id: "intent-05-testing-pipeline-001"
+type: intent
+state: draft
+intent:
+  summary: "Four-layer test pipeline for Godot game code quality assurance"
+  detail: |
+    4 层测试保障 Godot game code 质量：L1 GUT unit → L2 integration → L3 visual → L4 PRD compliance。Quick-fail 原则、TestResult/Screenshot 持久化、performance metrics 追踪。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: epic
+  domain: "testing-pipeline"
+  tags: [testing, GUT, integration, visual, PRD-compliance, quick-fail]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []

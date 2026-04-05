@@ -1,0 +1,20 @@
+spec_id: "intent-08-infrastructure-001"
+type: intent
+state: draft
+intent:
+  summary: "Docker compose stack, CI/CD, GitHub integration, migrations, and health checks"
+  detail: |
+    Docker compose stack (MongoDB + Server + Dashboard + Reloader)、GitHub Actions CI/CD、GitHub integration (PR/branch management)、database migrations、health checks。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: epic
+  domain: "infrastructure"
+  tags: [docker, mongodb, CI-CD, github, migrations, health-check]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []

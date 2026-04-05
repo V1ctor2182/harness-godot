@@ -1,0 +1,20 @@
+spec_id: "intent-07-dashboard-001"
+type: intent
+state: draft
+intent:
+  summary: "Real-time observability dashboard for human reviewers"
+  detail: |
+    Next.js 实时可观测面板，让 human reviewer 高效做决策。展示 cycle progress、agent reasoning、test results、spending metrics。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: epic
+  domain: "dashboard"
+  tags: [nextjs, SSE, real-time, observability]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []

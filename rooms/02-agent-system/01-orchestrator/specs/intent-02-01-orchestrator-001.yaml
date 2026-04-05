@@ -1,0 +1,24 @@
+spec_id: "intent-02-01-orchestrator-001"
+type: intent
+state: draft
+intent:
+  summary: "读取项目文档生成 3-7 task plans with dependencies"
+  detail: |
+    读取 milestone docs、PRD sections、Feature Room specs 和 retrospectives，
+    生成 3-7 task plans with dependencies。输出 structured plan JSON 供 plan-validator 校验。
+    每个 task 必须有 title, description, acceptanceCriteria (min 2)。
+    tasks 之间用 blockedBy 声明依赖，最小化文件 overlap。
+    Plan output 格式为 JSON，包含 goal, tasks[], prdRefs[]。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: feature
+  domain: "planning"
+  tags: [orchestrator, planning, task-generation, dependencies, prd]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []

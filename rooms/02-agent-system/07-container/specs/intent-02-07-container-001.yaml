@@ -1,0 +1,26 @@
+spec_id: "intent-02-07-container-001"
+type: intent
+state: draft
+intent:
+  summary: "Docker 容器 9 步生命周期管理，image build、entrypoint、orphan recovery"
+  detail: |
+    Docker 容器 9 步生命周期管理：PREPARE→CREATE→INJECT→ATTACH→START→STREAM→WAIT→COLLECT→CLEANUP。
+    Image build、entrypoint 脚本、orphan recovery。
+    Memory: 4GB default / 8GB max, CPU: 1 core。
+    Container label: zombie-farm=agent。
+    Entrypoint: clone repo → godot import (120s timeout) → rate limit check → claude code launch。
+    Orphan recovery on startup: scan Docker for labeled containers。
+    TASK_BRANCH support for retests — checkout existing branch。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: feature
+  domain: "container-management"
+  tags: [container, docker, lifecycle, entrypoint, orphan-recovery]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []

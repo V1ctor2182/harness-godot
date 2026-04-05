@@ -1,0 +1,20 @@
+spec_id: "intent-09-spending-001"
+type: intent
+state: draft
+intent:
+  summary: "Per-run cost tracking with budget caps and circuit breaker protection"
+  detail: |
+    Per-run 成本追踪、budget caps 强制执行、circuit breaker 防止 runaway agent spending。80% soft warning auto-pause，100% hard cap block spawns。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: feature
+  domain: "spending"
+  tags: [cost-tracking, budget-cap, circuit-breaker, spending-warning]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []

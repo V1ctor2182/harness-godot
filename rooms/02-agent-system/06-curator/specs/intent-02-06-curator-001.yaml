@@ -1,0 +1,25 @@
+spec_id: "intent-02-06-curator-001"
+type: intent
+state: draft
+intent:
+  summary: "从 cycle PR diffs 提取 knowledge sediment，写入 Feature Room specs"
+  detail: |
+    从 cycle 完成后的 PR diffs 中提取 knowledge sediment。写入 Feature Room specs
+    (decisions, constraints, context)，review knowledge inbox entries。
+    Retrospect 阶段执行，inbox 为空时不 spawn。
+    Knowledge 标记 cycle identifier: M{N}-C{N}。
+    只处理 L1 (observation) 和 L2 (proposal) entries。
+    写入 rooms/ 目录的 spec files。
+constraints: []
+indexing:
+  type: intent
+  priority: high
+  layer: feature
+  domain: "knowledge-management"
+  tags: [curator, knowledge, retrospect, spec-writing, sediment]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.85
+  source_ref: "harness-system codebase"
+relations: []
+anchors: []
