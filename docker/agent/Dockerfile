@@ -35,8 +35,8 @@ RUN git config --global user.name "zombie-farm-agent" \
 
 ENV GODOT_BINARY=/usr/local/bin/godot BASE_BRANCH=main MAX_BUDGET_USD=5 MODEL=claude-sonnet-4-6 NODE_ENV=production
 
-COPY docker/agent/entrypoint.sh /home/agent/entrypoint.sh
-COPY docker/agent/entrypoint-infra.sh /home/agent/entrypoint-infra.sh
+COPY --chmod=755 docker/agent/entrypoint.sh /home/agent/entrypoint.sh
+COPY --chmod=755 docker/agent/entrypoint-infra.sh /home/agent/entrypoint-infra.sh
 COPY docker/agent/tools/ /home/agent/tools/
 
 ENTRYPOINT ["/home/agent/entrypoint.sh"]
