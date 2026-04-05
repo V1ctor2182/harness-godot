@@ -50,7 +50,7 @@ export async function reconcileOrphans(): Promise<void> {
 
   for (const info of orphans) {
     const containerId = info.Id;
-    const agentRunId = info.Labels?.['erika.agent-run-id'];
+    const agentRunId = info.Labels?.['zombie-farm.agent-run-id'];
     const container = docker.getContainer(containerId);
 
     if (!agentRunId) {

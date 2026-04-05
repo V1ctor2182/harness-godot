@@ -11,7 +11,7 @@ function ghEnv(): Record<string, string> {
 export async function dryRunMerge(
   branch: string
 ): Promise<{ conflicts: boolean; message: string }> {
-  const repoDir = `/tmp/erika-merge-check-${Date.now()}`;
+  const repoDir = `/tmp/zombie-farm-merge-check-${Date.now()}`;
   const url = config.githubRepoUrl.replace(
     'https://github.com/',
     `https://${config.ghToken}@github.com/`

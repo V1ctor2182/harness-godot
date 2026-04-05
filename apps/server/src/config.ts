@@ -13,7 +13,7 @@ function envInt(key: string, fallback: number): number {
 
 export const config = {
   port: envInt('PORT', 3001),
-  mongodbUri: env('MONGODB_URI', 'mongodb://localhost:27017/erika'),
+  mongodbUri: env('MONGODB_URI', 'mongodb://localhost:27017/zombie-farm'),
   nodeEnv: env('NODE_ENV', 'development'),
   logLevel: env('LOG_LEVEL', 'info'),
 

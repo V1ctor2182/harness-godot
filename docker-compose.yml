@@ -1,4 +1,4 @@
-name: erika
+name: zombie-farm
 
 services:
   mongodb:
@@ -21,7 +21,7 @@ services:
       - '127.0.0.1:3001:3001'
     environment:
       - PORT=3001
-      - MONGODB_URI=mongodb://mongodb:27017/erika
+      - MONGODB_URI=mongodb://mongodb:27017/zombie-farm
       - NODE_ENV=production
     env_file:
       - .env

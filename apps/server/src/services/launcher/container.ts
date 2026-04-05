@@ -47,8 +47,8 @@ export async function createAgentContainer(cfg: ContainerConfig): Promise<Contai
     ],
     Labels: {
       [AGENT_CONTAINER_LABEL]: AGENT_CONTAINER_LABEL_VALUE,
-      'erika.agent-run-id': cfg.agentRunId,
-      'erika.role': cfg.role,
+      'zombie-farm.agent-run-id': cfg.agentRunId,
+      'zombie-farm.role': cfg.role,
     },
     HostConfig: {
       Memory: CONTAINER_MEMORY_MB * 1024 * 1024,

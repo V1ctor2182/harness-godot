@@ -2,9 +2,9 @@
  * Unit tests for container.ts: createAgentContainer and injectContext
  *
  * Tests cover:
- *   1. Container name is `erika-{agentRunId}`
+ *   1. Container name is `zombie-farm-{agentRunId}`
  *   2. All required env vars are injected
- *   3. Container labels include erika=agent and erika.agent-run-id
+ *   3. Container labels include zombie-farm=agent and zombie-farm.agent-run-id
  *   4. HostConfig includes ExtraHosts: ['host.docker.internal:host-gateway']
  *   5. Memory and CPU limits match shared constants
  *   6. Returns a ContainerHandle with container and containerId
@@ -89,14 +89,14 @@ describe('createAgentContainer', () => {
 
   // ── Test 1: Container name ────────────────────────────────────────────────
 
-  it('names the container erika-{agentRunId}', async () => {
+  it('names the container zombie-farm-{agentRunId}', async () => {
     const cfg = makeContainerConfig({ agentRunId: 'coder-xyz789' });
 
     await createAgentContainer(cfg);
 
     expect(mockCreateContainer).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: 'erika-coder-xyz789',
+        name: 'zombie-farm-coder-xyz789',
       })
     );
   });
@@ -130,7 +130,7 @@ describe('createAgentContainer', () => {
 
   // ── Test 3: Container labels ──────────────────────────────────────────────
 
-  it('sets erika=agent label and erika.agent-run-id label', async () => {
+  it('sets zombie-farm=agent label and zombie-farm.agent-run-id label', async () => {
     const cfg = makeContainerConfig({ agentRunId: 'coder-abc123' });
 
     await createAgentContainer(cfg);
@@ -139,7 +139,7 @@ describe('createAgentContainer', () => {
     const labels = call.Labels;
 
     expect(labels[AGENT_CONTAINER_LABEL]).toBe(AGENT_CONTAINER_LABEL_VALUE);
-    expect(labels['erika.agent-run-id']).toBe('coder-abc123');
+    expect(labels['zombie-farm.agent-run-id']).toBe('coder-abc123');
   });
 
   // ── Test 4: HostConfig ExtraHosts ─────────────────────────────────────────

@@ -4,7 +4,7 @@
  * Tests cover all 7 scenarios for reconcileOrphans():
  *   1. Docker not available → early return, no container ops
  *   2. No orphaned containers → no removes
- *   3. Container with no erika.agent-run-id label → removeContainer called
+ *   3. Container with no zombie-farm.agent-run-id label → removeContainer called
  *   4. Container with label but no AgentRun document → removeContainer called
  *   5. Container with label and terminal AgentRun (status 'completed') → removeContainer, no retry
  *   6. Container with label and in-progress AgentRun with taskId under retry cap → mark failed, remove, createJob
@@ -120,7 +120,7 @@ function makeContainerInfo(
 ) {
   return {
     Id: overrides.Id ?? 'container-abc123',
-    Labels: overrides.Labels !== undefined ? overrides.Labels : { 'erika.agent-run-id': 'run-001' },
+    Labels: overrides.Labels !== undefined ? overrides.Labels : { 'zombie-farm.agent-run-id': 'run-001' },
   };
 }
 
@@ -200,9 +200,9 @@ describe('reconcileOrphans', () => {
     expect(mockCreateJob).not.toHaveBeenCalled();
   });
 
-  // ── Scenario 3: Container with no erika.agent-run-id label ──────────────
+  // ── Scenario 3: Container with no zombie-farm.agent-run-id label ──────────────
 
-  it('removes a container that has no erika.agent-run-id label', async () => {
+  it('removes a container that has no zombie-farm.agent-run-id label', async () => {
     mockIsDockerAvailable.mockResolvedValue(true);
     const container = makeContainerInfo({ Labels: {} }); // no agent-run-id label
     mockFindOrphanedContainers.mockResolvedValue([container]);
@@ -220,7 +220,7 @@ describe('reconcileOrphans', () => {
 
   it('removes the container when there is no matching AgentRun document', async () => {
     mockIsDockerAvailable.mockResolvedValue(true);
-    const container = makeContainerInfo({ Labels: { 'erika.agent-run-id': 'run-ghost' } });
+    const container = makeContainerInfo({ Labels: { 'zombie-farm.agent-run-id': 'run-ghost' } });
     mockFindOrphanedContainers.mockResolvedValue([container]);
     mockAgentRunFindById.mockResolvedValue(null);
 
@@ -235,7 +235,7 @@ describe('reconcileOrphans', () => {
 
   it('removes a stale container for a completed AgentRun without creating a retry job', async () => {
     mockIsDockerAvailable.mockResolvedValue(true);
-    const container = makeContainerInfo({ Labels: { 'erika.agent-run-id': 'run-done' } });
+    const container = makeContainerInfo({ Labels: { 'zombie-farm.agent-run-id': 'run-done' } });
     mockFindOrphanedContainers.mockResolvedValue([container]);
     mockAgentRunFindById.mockResolvedValue({
       _id: 'run-done',
@@ -258,7 +258,7 @@ describe('reconcileOrphans', () => {
 
   it('marks an in-progress run as failed, removes the container, and creates a retry job when under the retry cap', async () => {
     mockIsDockerAvailable.mockResolvedValue(true);
-    const container = makeContainerInfo({ Labels: { 'erika.agent-run-id': 'run-active' } });
+    const container = makeContainerInfo({ Labels: { 'zombie-farm.agent-run-id': 'run-active' } });
     mockFindOrphanedContainers.mockResolvedValue([container]);
     mockAgentRunFindById.mockResolvedValue({
       _id: 'run-active',
@@ -309,7 +309,7 @@ describe('reconcileOrphans', () => {
 
   it('does not create a retry job when the task retryCount is at or above the cap', async () => {
     mockIsDockerAvailable.mockResolvedValue(true);
-    const container = makeContainerInfo({ Labels: { 'erika.agent-run-id': 'run-maxed' } });
+    const container = makeContainerInfo({ Labels: { 'zombie-farm.agent-run-id': 'run-maxed' } });
     mockFindOrphanedContainers.mockResolvedValue([container]);
     mockAgentRunFindById.mockResolvedValue({
       _id: 'run-maxed',

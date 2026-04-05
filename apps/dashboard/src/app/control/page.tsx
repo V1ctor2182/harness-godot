@@ -3,7 +3,7 @@ import ControlPanel, { type ControlData } from './control-panel';
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
 
 export const metadata = {
-  title: 'Control Panel — Erika',
+  title: 'Control Panel — Zombie Farm AI Team',
 };
 
 export default async function ControlPage() {
