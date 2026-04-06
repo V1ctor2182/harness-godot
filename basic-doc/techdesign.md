@@ -1,6 +1,6 @@
 # Zombie Farm AI Harness — Tech Design
 
-6 个文档，按关注点拆分。Prefix 编号避免跨文件冲突。
+7 个文档，按关注点拆分。Prefix 编号避免跨文件冲突。
 
 ## 文档索引
 
@@ -12,6 +12,7 @@
 | [04-failure-modes](techdesign/04-failure-modes.md) | 故障分类、级联场景、外部依赖、并发风险、已知 gap、Rollback、人工干预 | F1-F7 |
 | [05-api-contracts](techdesign/05-api-contracts.md) | REST API 端点、SSE 事件合约、并发模型、Authentication 现状 | P1-P4 |
 | [06-dashboard](techdesign/06-dashboard.md) | 页面结构、人工干预、数据流、Rooms、Control、Plan 交互、通知 | D1-D7 |
+| [07-known-issues](techdesign/07-known-issues.md) | 已知问题与解决方案：通知、冲突、预算、知识衰退、Debug、恢复 | I1-I12 |
 
 ## 术语表
 
