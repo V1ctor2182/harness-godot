@@ -4,7 +4,7 @@ AI-driven game development pipeline for **Zombie Farm** (Godot 4.6.1). 6 agents 
 
 ## Documentation
 
-- [architecture/](./architecture/) — 11 architecture docs covering dev cycle, phases, infrastructure, asset pipeline, feature rooms, knowledge evolution
+- [basic-doc/techdesign/](./basic-doc/techdesign/) — 5 techdesign docs covering architecture, execution, knowledge, failure modes, API contracts
 - Game repo: `V1ctor2182/zombie-farm-godot` — Godot project + PRD + milestones
 
 ## Rules
