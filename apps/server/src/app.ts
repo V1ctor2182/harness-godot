@@ -14,6 +14,9 @@ import controlRouter from './routes/control.js';
 import eventsRouter from './routes/events.js';
 import statusRouter from './routes/status.js';
 import analyticsRouter from './routes/analytics.js';
+import roomsRouter from './routes/rooms.js';
+import specsRouter from './routes/specs.js';
+import testsRouter from './routes/tests.js';
 
 const app = express();
 
@@ -34,6 +37,9 @@ app.use('/api/control', controlRouter);
 app.use('/api/events', eventsRouter);
 app.use('/api/status', statusRouter);
 app.use('/api/analytics', analyticsRouter);
+app.use('/api/rooms', roomsRouter);
+app.use('/api/specs', specsRouter);
+app.use('/api/tests', testsRouter);
 
 // Error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

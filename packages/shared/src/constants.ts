@@ -2,7 +2,7 @@
 
 export const DEFAULT_MODEL = 'claude-sonnet-4-6';
 export const DEFAULT_BUDGET_USD = 5;
-export const DEFAULT_MAX_RETRIES = 3;
+export const DEFAULT_MAX_RETRIES = 1;
 
 // ─── Timeouts (aligned with architecture 05-infrastructure.md §5.4) ─
 
@@ -54,10 +54,10 @@ export const SPENDING_WARNING_THRESHOLD = 0.8;
 export const CONFLICT_RETRY_ESCALATION_THRESHOLD = 0.2;
 
 // Retry limits (architecture 03-operation-specs.md §4.7)
-export const MAX_TEST_RETRIES = 3; // TEST phase: L1-L4 fix loop
-export const MAX_REVIEW_CYCLES = 2; // REVIEW phase: Reviewer changes-requested
-export const MAX_GLOBAL_RETRIES = 5; // TEST + REVIEW total → blocked
-export const MAX_RETRY_CODER_RUNS = 3; // Legacy compat (same as MAX_TEST_RETRIES)
+export const MAX_TEST_RETRIES = 1; // TEST phase: per-task max 1 retry
+export const MAX_REVIEW_CYCLES = 1; // REVIEW phase: per-task max 1 retry
+export const MAX_GLOBAL_RETRIES = 3; // TEST + REVIEW total per cycle → blocked
+export const MAX_RETRY_CODER_RUNS = 1; // Legacy compat (same as MAX_TEST_RETRIES)
 
 export const NETWORK_TIMEOUT_MS = 300_000;
 
@@ -94,6 +94,18 @@ export const AGENT_CONTAINER_LABEL_VALUE = 'agent';
 
 export const TASK_ID_PREFIX = 'TASK-';
 export const TASK_ID_PAD_LENGTH = 3;
+
+// ─── Spec Type Priority (for context builder sorting) ───────────────
+
+export const SPEC_TYPE_PRIORITY: Record<string, number> = {
+  constraint: 0,
+  decision: 1,
+  convention: 2,
+  context: 3,
+  intent: 4,
+  contract: 5,
+  change: 6,
+};
 
 // ─── Godot ───────────────────────────────────────────────────────────
 

@@ -4,6 +4,7 @@ import { app } from './app.js';
 import logger from './lib/logger.js';
 import { runMigrations } from './lib/migration-runner.js';
 import { seedKnowledge } from './lib/seed-knowledge.js';
+import { seedRooms } from './lib/seed-rooms.js';
 import { initSSE, stopSSE } from './services/sse-manager.js';
 import { startJobQueue, stopJobQueue } from './services/job-queue.js';
 import { getOrCreateControl } from './models/control.js';
@@ -38,6 +39,11 @@ async function main() {
   console.log('Seeding knowledge base...');
   await seedKnowledge();
   console.log('Knowledge base seeded');
+
+  // Seed rooms & specs from rooms/ directory (idempotent)
+  console.log('Seeding rooms...');
+  await seedRooms();
+  console.log('Rooms seeded');
 
   // Ensure control document exists
   await getOrCreateControl();

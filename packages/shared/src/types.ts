@@ -31,18 +31,19 @@ export type JobType =
   | 'apply-plan'
   | 'advance-cycle'
   | 'curate-inbox'
+  | 'curate-specs'
   | 'next-cycle'
   | 'reload'
   | 'cleanup-prs'
+  | 'plan-qa'
+  | 'plan-approval'
   | 'spawn-tester'
   | 'run-gut-tests'
   | 'run-integration-tests'
   | 'run-visual-tests'
   | 'run-prd-compliance'
   | 'create-fix-task'
-  | 'validate-assets'
-  | 'spawn-curator'
-  | 'spawn-reflect';
+  | 'validate-assets';
 export type JobStatus = 'pending' | 'active' | 'completed' | 'failed';
 export type JobPool = 'agent' | 'infra';
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
@@ -58,6 +59,7 @@ export type KnowledgeCategory =
 export type KnowledgeStatus = 'active' | 'processed' | 'archived';
 
 export type ControlMode = 'active' | 'paused' | 'killed';
+export type OperationMode = 'auto' | 'supervised' | 'manual';
 
 export type CIStatus = 'pending' | 'running' | 'passed' | 'failed';
 export type ReviewVerdict = 'approved' | 'changes-requested';
@@ -143,6 +145,15 @@ export interface ContextFeedback {
   useful: string[];
   missing: string[];
   unnecessary: string[];
+  useful_specs?: string[];
+  unnecessary_specs?: string[];
+}
+
+export interface ContextSnapshot {
+  specIds: string[];
+  roomIds: string[];
+  tokenCount: number;
+  truncated: string[];
 }
 
 export interface AgentOutput {
@@ -276,6 +287,66 @@ export interface KnowledgeFile {
   updatedAt: Date;
 }
 
+// ─── Rooms & Specs ──────────────────────────────────────────────────
+
+export type RoomType = 'project' | 'epic' | 'feature';
+export type RoomLifecycle = 'planning' | 'active' | 'stable' | 'archived';
+
+export interface Room {
+  _id: string;
+  name: string;
+  parent: string | null;
+  type: RoomType;
+  owner: string;
+  lifecycle: RoomLifecycle;
+  depends_on: string[];
+  contributors: string[];
+  path: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export type SpecType = 'intent' | 'decision' | 'constraint' | 'contract' | 'convention' | 'change' | 'context';
+export type SpecState = 'draft' | 'active' | 'archived';
+
+export interface SpecProvenance {
+  source_type: 'human' | 'prd_extraction' | 'codebase_extraction' | 'agent_sediment' | 'curator_review';
+  confidence: number;
+  source_ref?: string;
+  agentRunId?: string;
+  cycleId?: number;
+  cycle_tag?: string;
+}
+
+export interface SpecRelation {
+  target: string;
+  type: 'depends_on' | 'conflicts_with' | 'supersedes' | 'relates_to';
+}
+
+export interface SpecAnchor {
+  file: string;
+  symbol?: string;
+  line_range?: string;
+}
+
+export interface Spec {
+  _id: string;
+  roomId: string;
+  type: SpecType;
+  state: SpecState;
+  title: string;
+  summary: string;
+  detail: string;
+  provenance: SpecProvenance;
+  qualityScore: number;
+  lastReferencedAt?: Date;
+  relations: SpecRelation[];
+  anchors: SpecAnchor[];
+  tags: string[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // ─── Control ─────────────────────────────────────────────────────────
 
 export interface CycleOverride {
@@ -291,6 +362,7 @@ export interface Control {
   spentUsd: number;
   cycleOverrides: Record<string, CycleOverride>;
   autoApprovalCategories: string[];
+  operationMode?: OperationMode;
   updatedAt: Date;
 }
 
@@ -305,9 +377,17 @@ export interface PlanTask {
   blockedBy: number[];
 }
 
+export interface PlanQuestion {
+  id: string;
+  question: string;
+  options: Array<{ id: string; label: string }>;
+  default?: string;
+}
+
 export interface OrchestratorPlan {
   goal: string;
   tasks: PlanTask[];
+  questions?: PlanQuestion[];
 }
 
 export interface ReviewIssue {
@@ -315,6 +395,16 @@ export interface ReviewIssue {
   line?: number;
   severity: 'error' | 'warning' | 'info';
   description: string;
+}
+
+export interface SpecSediment {
+  roomId: string;
+  type: 'decision' | 'constraint' | 'context';
+  confidence: number;
+  title: string;
+  summary: string;
+  detail: string;
+  tags?: string[];
 }
 
 export interface AgentStructuredOutput {
@@ -328,6 +418,7 @@ export interface AgentStructuredOutput {
   reviewVerdict?: 'approved' | 'changes-requested';
   issues?: ReviewIssue[];
   suggestions?: string[];
+  specSediments?: SpecSediment[];
 }
 
 export interface RetryContext {
@@ -337,6 +428,8 @@ export interface RetryContext {
   reviewSuggestions?: string[];
   reviewDecisions?: string[];
   filesChanged?: string[];
+  humanAnswers?: Record<string, string>;
+  humanFeedback?: string;
 }
 
 // ─── API Response Types ──────────────────────────────────────────────
@@ -372,8 +465,10 @@ export type SSEEventType =
   | 'job:requires_approval'
   | 'job:failed'
   | 'review:ready'
+  | 'task:conflict_requeued'
   | 'system:spending_warning'
-  | 'system:reload_triggered';
+  | 'system:reload_triggered'
+  | 'system:control_updated';
 
 // ─── Godot-specific Types ───────────────────────────────────────────
 
