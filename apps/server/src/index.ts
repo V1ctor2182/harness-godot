@@ -14,18 +14,7 @@ import {
   recoverStaleTasks,
 } from './services/launcher/orphan-recovery.js';
 
-// ─── Startup Status (exported for health route) ─────────────────────
-
-let startupReady = false;
-let lastRecovery: {
-  orphansFound: number;
-  jobsFailed: number;
-  roomsSeeded: number;
-} | null = null;
-
-export function getStartupStatus() {
-  return { startupReady, lastRecovery };
-}
+import { setStartupStatus } from './lib/startup-status.js';
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
@@ -73,13 +62,13 @@ async function main() {
   await recoverStaleTasks();
 
   // Mark startup as ready
-  lastRecovery = {
+  const recoveryStats = {
     orphansFound: 0, // orphan recovery functions return void; count is logged internally
     jobsFailed: 0,
     roomsSeeded: roomResult?.roomsUpserted ?? 0,
   };
-  startupReady = true;
-  logger.info({ lastRecovery }, 'Startup recovery complete');
+  setStartupStatus(true, recoveryStats);
+  logger.info({ lastRecovery: recoveryStats }, 'Startup recovery complete');
 
   // Start SSE heartbeat
   initSSE();

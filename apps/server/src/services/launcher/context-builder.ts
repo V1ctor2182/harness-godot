@@ -557,7 +557,6 @@ export async function buildContext(params: {
     }
   }
 
-  // ─── Knowledge Selection: Room+Spec (primary) or KnowledgeFile (fallback) ───
   // ─── Room+Spec knowledge selection ─────────────────────────────────
   let contextSnapshot: ContextSnapshot | undefined;
 

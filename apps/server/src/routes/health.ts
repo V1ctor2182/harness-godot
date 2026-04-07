@@ -2,7 +2,7 @@ import { Router } from 'express';
 import mongoose from 'mongoose';
 import { isDockerAvailable } from '../lib/docker.js';
 import { asyncHandler } from '../lib/async-handler.js';
-import { getStartupStatus } from '../index.js';
+import { getStartupStatus } from '../lib/startup-status.js';
 
 const router = Router();
 
