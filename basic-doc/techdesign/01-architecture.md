@@ -762,9 +762,10 @@ godot-self-evolve-implementation-system/
   健康检查:
   ┌──────────────────────────────────────────────────────────────┐
   │ GET /api/health                                              │
-  │  检查: MongoDB 连接状态 + Docker daemon 可用性               │
-  │  返回: { status: "ok" | "degraded", uptime, checks: {...} } │
-  │  HTTP 200 = ok, 503 = degraded                              │
+  │  检查: MongoDB 连接 + Docker daemon + startupReady           │
+  │  返回: { status, uptime, startupReady, checks, lastRecovery }│
+  │  startupReady=false → 系统恢复中，不接受新 cycle             │
+  │  HTTP 200 = ok, 503 = degraded 或 recovering                │
   └──────────────────────────────────────────────────────────────┘
 
   日志:

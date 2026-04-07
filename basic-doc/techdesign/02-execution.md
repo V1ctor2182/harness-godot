@@ -1,6 +1,6 @@
 # Execution — Cycle、Container、Job Queue、Testing、SSE、Infra
 
-执行层的所有机制：Cycle (E1)、Container (E2)、Job Queue (E3)、Testing (E4)、SSE (E5)、Docker (E6)、错误恢复 (E7)、Harness 自测 (E8)。
+执行层的所有机制：Cycle (E1)、Container (E2)、Job Queue (E3)、Testing (E4)、SSE (E5)、Docker (E6)、错误恢复 (E7)、Harness 自测 (E8)、Auto Mode (E9)。
 
 ## E1. Cycle 状态机
 
@@ -201,15 +201,45 @@
   │ 02-05-integr  │      │ 按 topo 排序 │
   │ constraints   │      │ 逐个 merge:  │
   │ (.tscn 处理   │      │              │
-  │  topo 排序)   │      │ dry-run →    │
-  └───────────────┘      │ merge → next │
-                         │              │
-                         │ 冲突 →       │
-                         │ re-queue task│
+  │  topo 排序)   │      │ 1. dry-run   │
+  └───────────────┘      │ 2. pass →    │
+                         │    merge     │
+                         │ 3. conflict →│
+                         │    尝试解决  │
+                         │ 4. 解决不了→ │
+                         │    re-queue  │
                          │              │
                          │ 全部完成 →   │
                          │ RETROSPECT   │
                          └──────────────┘
+
+  Integrator 冲突处理流程:
+  ┌──────────────────────────────────────────────────────────┐
+  │ 对每个 PR (按 topo 排序):                                │
+  │                                                          │
+  │ Step 1: git merge --no-commit (dry-run)                  │
+  │   ├─ 无冲突 → git commit → PR merged → 下一个           │
+  │   └─ 有冲突 → Step 2                                    │
+  │                                                          │
+  │ Step 2: Integrator (LLM) 尝试自己解决冲突               │
+  │   读取冲突文件的 <<<< ==== >>>> markers                  │
+  │   理解两边改动的意图                                     │
+  │   尝试合并 → 跑 godot --headless --import 验证           │
+  │   ├─ 解决成功 + import 通过 → commit → merged            │
+  │   └─ 解决失败 (无法合并 / import 失败) → Step 3         │
+  │                                                          │
+  │ Step 3: re-queue task                                    │
+  │   task status → conflict-requeued                        │
+  │   SSE 事件: task:conflict_requeued                       │
+  │   Dashboard Tasks 页面显示 ⚠ 冲突标记 + 冲突文件列表    │
+  │   新 Coder spawn 在最新 main 上重写                      │
+  │   re-queue 最多 2 次 → 之后标记 blocked                  │
+  │                                                          │
+  │ 成本对比:                                                │
+  │   旧: 冲突 → re-queue → Coder $5 + Tester $5 + Review $5│
+  │   新: 冲突 → Integrator 自己解决 → $0 额外成本           │
+  │       (Integrator 反正已经在跑，解决冲突是它的工作)      │
+  └──────────────────────────────────────────────────────────┘
 
   ══ RETROSPECT ══════════════════════════════════════════════════
 
@@ -379,8 +409,8 @@
   │             │                          │ reject → retry coder     │
   ├─────────────┼──────────────────────────┼──────────────────────────┤
   │ INTEGRATE   │ approved PR branches     │ merged commits on main   │
-  │             │ + Room specs (via CB)    │ conflict → re-queue      │
-  │             │ + _tree.yaml 归属        │                          │
+  │             │ + Room specs (via CB)    │ conflict → LLM 尝试解决  │
+  │             │ + _tree.yaml 归属        │ → 解决不了 → re-queue    │
   ├─────────────┼──────────────────────────┼──────────────────────────┤
   │ RETROSPECT  │ merged PR diffs          │ new Specs (sediment)     │
   │             │ + Room/Spec data (via CB)│ → active / draft / 丢弃  │
@@ -430,6 +460,12 @@
   │ - Task prompt (.md)             │
   │ - Knowledge files (ranked)      │
   │ - Retry context (if retry)      │
+  │                                 │
+  │ → Save contextSnapshot on       │
+  │   AgentRun:                     │
+  │   { specIds, roomIds,           │
+  │     knowledgeFiles,             │
+  │     tokenCount, truncated }     │
   └──────────────┬──────────────────┘
                  ▼
   Step 2: CREATE
@@ -736,6 +772,11 @@
 ```
   Server 重启时按顺序执行:
   ┌──────────────────────────────────────────────────────────────┐
+  │ 0. control.startupReady = false                              │
+  │    GET /api/health 返回 { startupReady: false }              │
+  │    Dashboard 显示 "系统恢复中" banner                        │
+  │    禁止创建新 cycle 直到 ready                               │
+  │                                                              │
   │ 1. failInterruptedJobs()                                     │
   │    所有 status=active 的 jobs → 标记为 failed                │
   │    (server 崩溃时正在处理的 job 不可能完成)                   │
@@ -751,6 +792,12 @@
   │ 4. recoverStaleTasks()                                       │
   │    找到 in-progress/in-review 但 agent run 已终止的 tasks    │
   │    → 创建 retry 或 advance job                               │
+  │                                                              │
+  │ 5. control.startupReady = true                               │
+  │    recovery 摘要写入 DB:                                     │
+  │    { orphansFound, jobsFailed, tasksRecovered, spentRecalc } │
+  │    Dashboard Home 显示上次 recovery 摘要                     │
+  │    → 开始正常 poll loop                                      │
   └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -846,5 +893,127 @@
   │ ✗ Context Builder 选择逻辑无专门测试                        │
   │ ✗ Plan Validator constraint 覆盖不完整                      │
   └──────────────────────────────────────────────────────────────┘
+```
+
+## E9. Auto Mode
+
+```
+  ┌─────────────────────────────────────────────────────────────┐
+  │                    AUTO MODE — 无人值守运行                    │
+  └─────────────────────────────────────────────────────────────┘
+
+  目标: 系统能完全自动跑，每个"等人"的场景都有合理默认行为。
+  人可以随时介入 override，但不介入时系统不会卡死。
+
+  Dashboard Control 页面切换:
+  ┌──────────────────────────────────────────────────────────┐
+  │ Operation Mode: [Auto ▼]                                 │
+  │                                                          │
+  │   Auto     — 全自动，所有场景有默认行为，不等人          │
+  │   Supervised — 关键操作等人审批，其他自动                 │
+  │   Manual   — 所有操作都等人审批                          │
+  └──────────────────────────────────────────────────────────┘
+
+  ══ 每个场景的 Auto 默认行为 ═════════════════════════════════
+
+  ┌──────────────────────┬──────────────┬──────────────┬──────────────┐
+  │ 场景                  │ Auto         │ Supervised   │ Manual       │
+  ├──────────────────────┼──────────────┼──────────────┼──────────────┤
+  │ Job 审批              │ auto-approve │ 看 category: │ 全等人       │
+  │ (普通 job)           │              │ protected →  │              │
+  │                      │              │ 等人, 其他   │              │
+  │                      │              │ auto-approve │              │
+  ├──────────────────────┼──────────────┼──────────────┼──────────────┤
+  │ Job 审批              │ auto-approve │ 等人         │ 等人         │
+  │ (protected paths)    │ (信任 agent) │              │              │
+  ├──────────────────────┼──────────────┼──────────────┼──────────────┤
+  │ Plan review          │ reviewer     │ 等人确认     │ 等人确认     │
+  │ (Orchestrator plan)  │ approved →   │              │              │
+  │                      │ auto-approve │              │              │
+  │                      │ (跳过 human  │              │              │
+  │                      │  review)     │              │              │
+  ├──────────────────────┼──────────────┼──────────────┼──────────────┤
+  │ Plan questions       │ 用 default   │ 等人回答     │ 等人回答     │
+  │ (Orchestrator 问题)  │ answers      │              │              │
+  ├──────────────────────┼──────────────┼──────────────┼──────────────┤
+  │ Draft spec 确认      │ auto-archive │ 等人确认     │ 等人确认     │
+  │ (Curator conf       │ after 5      │              │              │
+  │  0.50-0.74)         │ cycles       │              │              │
+  ├──────────────────────┼──────────────┼──────────────┼──────────────┤
+  │ Rate limit           │ pause →      │ pause →      │ pause →      │
+  │                      │ 等 10 min →  │ 等人 unpause │ 等人 unpause │
+  │                      │ auto-resume  │              │              │
+  ├──────────────────────┼──────────────┼──────────────┼──────────────┤
+  │ Spending 80%         │ pause →      │ pause →      │ pause →      │
+  │                      │ 通知 Discord │ 等人决定     │ 等人决定     │
+  │                      │ 不 auto-     │              │              │
+  │                      │ resume (钱   │              │              │
+  │                      │ 的事要人管)  │              │              │
+  ├──────────────────────┼──────────────┼──────────────┼──────────────┤
+  │ Cycle 失败           │ auto-create  │ 等人审批     │ 等人审批     │
+  │ (all tasks failed)   │ next-cycle   │ next-cycle   │ next-cycle   │
+  │                      │ (retry 同    │              │              │
+  │                      │  milestone)  │              │              │
+  ├──────────────────────┼──────────────┼──────────────┼──────────────┤
+  │ Cycle 完成           │ auto-create  │ auto-create  │ 等人决定     │
+  │ → next cycle         │ next-cycle   │ next-cycle   │ 是否继续     │
+  └──────────────────────┴──────────────┴──────────────┴──────────────┘
+
+  ══ Auto Mode 安全边界 ══════════════════════════════════════
+
+  即使 Auto Mode，以下永远不会自动通过:
+  ┌──────────────────────────────────────────────────────────┐
+  │ • Spending 80% — 钱的决定必须人做                       │
+  │   auto-pause + Discord 通知，但不 auto-resume            │
+  │                                                          │
+  │ • per-task spending > $20 — 标记 blocked，不再 retry    │
+  │   单个 task 不能无限烧钱                                 │
+  │                                                          │
+  │ • MAX_GLOBAL_RETRIES = 4 — retry 上限仍然有效           │
+  │   auto mode 不会绕过 retry cap                          │
+  │                                                          │
+  │ • 连续 2 个 cycle 失败 → auto 降级为 supervised         │
+  │   可能有系统性问题，需要人看                             │
+  └──────────────────────────────────────────────────────────┘
+
+  ══ Rate Limit Auto-Resume ══════════════════════════════════
+
+  Auto Mode 下 rate limit 的恢复流程:
+  ┌──────────────────────────────────────────────────────────┐
+  │ rate limit detected                                      │
+  │   │                                                      │
+  │   ▼                                                      │
+  │ mode: paused                                             │
+  │ 记录: pausedAt = now, pauseReason = "rate_limit"         │
+  │   │                                                      │
+  │   ▼                                                      │
+  │ 等待 RATE_LIMIT_COOLDOWN_MS (default: 10 min)            │
+  │   │                                                      │
+  │   ▼                                                      │
+  │ auto-resume: mode = "running"                            │
+  │ Discord 通知: "系统已自动恢复 (rate limit cooldown)"     │
+  │   │                                                      │
+  │   ▼                                                      │
+  │ 如果再次 rate limit → cooldown × 2 (exponential backoff) │
+  │ 连续 3 次 rate limit → 不再 auto-resume，等人            │
+  │ Discord: "连续 rate limit，需人工检查"                   │
+  └──────────────────────────────────────────────────────────┘
+
+  ══ 配置 ════════════════════════════════════════════════════
+
+  ┌──────────────────────────────────────────────────────────┐
+  │ OPERATION_MODE=auto | supervised | manual                │
+  │                                                          │
+  │ # Auto mode 参数                                         │
+  │ RATE_LIMIT_COOLDOWN_MS=600000        # 10 min            │
+  │ RATE_LIMIT_MAX_AUTO_RESUME=3         # 连续 3 次后停     │
+  │ DRAFT_SPEC_AUTO_ARCHIVE_CYCLES=5     # 5 cycle 后清理    │
+  │ FAILED_CYCLE_AUTO_RETRY=true         # 失败后自动重来    │
+  │ CONSECUTIVE_FAIL_DOWNGRADE=2         # 连续失败降级阈值  │
+  │                                                          │
+  │ # 所有 mode 共享                                         │
+  │ DISCORD_WEBHOOK_URL=                 # 通知              │
+  │ SPENDING_CAP_USD=500                 # 预算上限          │
+  └──────────────────────────────────────────────────────────┘
 ```
 

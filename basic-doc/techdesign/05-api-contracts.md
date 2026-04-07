@@ -283,6 +283,8 @@ REST API 端点 (P1)、SSE 事件合约 (P2)、并发模型 (P3)、Authenticatio
   ├──────────────────────────┼──────────────────────────────────────────┤
   │ task:status_changed      │ { taskId, status }                       │
   ├──────────────────────────┼──────────────────────────────────────────┤
+  │ task:conflict_requeued   │ { taskId, conflictFiles[], attempt }     │
+  ├──────────────────────────┼──────────────────────────────────────────┤
   │ job:requires_approval    │ { jobId, type }                          │
   ├──────────────────────────┼──────────────────────────────────────────┤
   │ system:spending_warning  │ { action: 'paused'|'hard_cap',          │

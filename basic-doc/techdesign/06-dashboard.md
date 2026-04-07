@@ -12,8 +12,12 @@
   ┌──────────────────────────────────────────────────────────────┐
   │ 页面              │ 功能                                     │
   ├───────────────────┼──────────────────────────────────────────┤
-  │ Home              │ 系统状态总览 (active cycle, spending,    │
-  │                   │ agent 数, queue depth)                   │
+  │ Home              │ 系统状态总览:                              │
+  │                   │  active cycle, spending, agent 数        │
+  │                   │  pending approvals 数 (→ Jobs)           │
+  │                   │  draft specs 数 (→ Rooms)                │
+  │                   │  本 cycle 花费 vs 预算                   │
+  │                   │  startup recovery banner (如果恢复中)    │
   │                   │                                          │
   │ Cycles            │ Cycle 列表 + 详情                        │
   │                   │ 创建新 cycle (指定 milestone + goal)     │
@@ -22,6 +26,7 @@
   │                   │                                          │
   │ Agents            │ Agent run 列表 + 实时 stream 查看        │
   │                   │ SSE 订阅单个 agent 的 NDJSON 输出        │
+  │                   │ Context snapshot: 注入了哪些 specs/rooms │
   │                   │                                          │
   │ Tests             │ TestResult 列表 (L1-L4)                  │
   │                   │ Screenshot AI analysis 查看              │
@@ -31,10 +36,15 @@
   │ Jobs              │ Job queue 状态 + 审批操作                │
   │                   │                                          │
   │ Rooms             │ Room 树形浏览 + Spec 详情                │
+  │                   │ [Archive All Stale] 批量操作             │
+  │                   │ Spec 变更时间线                          │
   │                   │                                          │
   │ Review            │ Human review panel (PR 审批)             │
   │                   │                                          │
-  │ Analytics         │ Spending / Task 成功率 / Review 质量     │
+  │ Analytics         │ Spending (per-cycle + per-task breakdown) │
+  │                   │ Task 成功率 / Review 质量                │
+  │                   │ 失败原因 top 5 (error message 聚合)     │
+  │                   │ Spec 变更历史 (per-cycle 新增/改/删)    │
   │                   │                                          │
   │ Control           │ 系统模式 + 预算 + 审批策略               │
   └───────────────────┴──────────────────────────────────────────┘
@@ -95,12 +105,14 @@
   │  实时: SSE 订阅           └──────────────────┘              │
   │                                                              │
   │  SSE 事件驱动 UI 更新:                                       │
-  │  • agent:started       → Agents 页面刷新                    │
-  │  • agent:completed     → Tasks 状态更新                     │
-  │  • cycle:completed     → Cycles 页面刷新                    │
-  │  • task:status_changed → Tasks 列表更新                     │
-  │  • job:requires_approval → Jobs 页面弹通知                  │
-  │  • system:spending_warning → Control 页面告警               │
+  │  • agent:started          → Agents 页面刷新                 │
+  │  • agent:completed        → Tasks 状态更新                  │
+  │  • cycle:completed        → Cycles 页面刷新                 │
+  │  • task:status_changed    → Tasks 列表更新                  │
+  │  • task:conflict_requeued → Tasks 页面 ⚠ 冲突标记 +        │
+  │                              冲突文件列表 + attempt 次数    │
+  │  • job:requires_approval  → Jobs 页面弹通知                 │
+  │  • system:spending_warning→ Control 页面告警                │
   │                                                              │
   └──────────────────────────────────────────────────────────────┘
 ```
@@ -155,12 +167,16 @@
   ┌──────────────────────────────────────────────────────────────┐
   │  System Control                                              │
   │  ┌────────────────────────────────────────────────────────┐  │
-  │  │ Mode: [Running ▼]     ← dropdown: running/paused/killed│  │
+  │  │ System: [Running ▼]    ← running / paused / killed     │  │
+  │  │                                                        │  │
+  │  │ Operation: [Auto ▼]    ← auto / supervised / manual    │  │
+  │  │                                                        │  │
+  │  │  Auto       全自动，不等人 (spending 80% 除外)          │  │
+  │  │  Supervised 关键操作等人，其他自动                      │  │
+  │  │  Manual     所有操作等人                                │  │
   │  │                                                        │  │
   │  │ Spending: $142.50 / $500.00  ████████░░░░░░  28.5%     │  │
   │  │ Cap: [$500.00  ] [Update]                              │  │
-  │  │                                                        │  │
-  │  │ Auto-approval: [✓ spawn] [✓ test] [✓ review] [□ plan] │  │
   │  │                                                        │  │
   │  │ Message to agents: [________________________] [Send]   │  │
   │  └────────────────────────────────────────────────────────┘  │
