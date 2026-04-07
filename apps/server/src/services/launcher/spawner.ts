@@ -59,6 +59,7 @@ export async function spawnAgent(params: SpawnParams): Promise<string> {
     eventCount: 0,
     timeoutAt: new Date(Date.now() + timeoutMs),
     contextFiles: context.knowledgeFiles,
+    contextSnapshot: context.contextSnapshot,
   });
 
   // Update task status
@@ -303,9 +304,23 @@ export async function createFollowUpJobs(
   structuredOutput: import('@zombie-farm/shared').AgentStructuredOutput | undefined
 ): Promise<void> {
   if (role === 'orchestrator') {
-    // Orchestrator completed — apply its plan to create tasks
-    // advance-cycle is created by handleApplyPlan after tasks are created
-    await createJob('apply-plan', 'infra', { agentRunId, cycleId });
+    // Orchestrator completed — check for Q&A questions before applying plan
+    const plan = (structuredOutput as Record<string, unknown> | undefined)?.plan as
+      Record<string, unknown> | undefined;
+    const questions = plan?.questions as Array<Record<string, unknown>> | undefined;
+
+    if (questions && questions.length > 0) {
+      // Orchestrator has questions → create plan-qa job for human answers
+      // Do NOT proceed to plan validation until answers are provided
+      await createJob('plan-qa', 'infra', {
+        cycleId,
+        agentRunId,
+        questions,
+      }, { requiresApproval: true });
+    } else {
+      // No questions — proceed to plan validation + review
+      await createJob('apply-plan', 'infra', { agentRunId, cycleId });
+    }
   } else if (role === 'coder' && taskId) {
     // Coder completed — transition task based on whether it created a PR
     if (structuredOutput?.prNumber) {
@@ -430,8 +445,65 @@ export async function createFollowUpJobs(
 
     // Check if all tasks in this cycle's current phase are done/in-review
     await maybeAdvanceCycle(cycleId);
+  } else if (role === 'reviewer' && !taskId) {
+    // Plan-review reviewer (no taskId) — identify via [PLAN-REVIEW] marker
+    // in the AgentRun's taskPrompt (injected by handleApplyPlan via retryContext)
+    const run = await AgentRunModel.findById(agentRunId, { taskPrompt: 1 }).lean();
+    const taskPromptStr = (run?.taskPrompt as string) ?? '';
+    const isPlanReview = taskPromptStr.includes('[PLAN-REVIEW]');
+
+    if (isPlanReview) {
+      const reviewVerdict = structuredOutput?.reviewVerdict;
+
+      // Extract planAgentRunId from the taskPrompt marker
+      // handleApplyPlan injects 'planAgentRunId:xxx' in the retryContext.reviewDecisions
+      const planAgentRunIdMatch = taskPromptStr.match(/planAgentRunId:(\S+)/);
+      const planAgentRunId = planAgentRunIdMatch?.[1];
+
+      if (reviewVerdict === 'approved') {
+        // Plan review approved → create plan-approval job for human final approval
+        await createJob('plan-approval', 'infra', {
+          cycleId,
+          agentRunId: planAgentRunId ?? agentRunId,
+          planSummary: structuredOutput?.summary,
+        }, { requiresApproval: true });
+      } else {
+        // Plan review: changes-requested
+        // Count plan-review reviewer runs by checking taskPrompt for [PLAN-REVIEW] marker
+        const planReviewCount = await AgentRunModel.countDocuments({
+          cycleId,
+          role: 'reviewer',
+          taskId: { $exists: false },
+          taskPrompt: { $regex: '\\[PLAN-REVIEW\\]' },
+        });
+
+        if (planReviewCount <= 1) {
+          // First rejection → replan orchestrator with reviewer feedback
+          await createJob('spawn', 'agent', {
+            role: 'orchestrator',
+            cycleId,
+            retryContext: {
+              previousError: `Plan review rejected: ${structuredOutput?.summary ?? 'Changes requested'}`,
+              previousSummary: structuredOutput?.summary,
+              reviewIssues: structuredOutput?.issues,
+              reviewSuggestions: structuredOutput?.suggestions,
+            },
+          });
+        } else {
+          // Second rejection → force human approval with reviewer feedback
+          await createJob('plan-approval', 'infra', {
+            cycleId,
+            agentRunId: planAgentRunId ?? agentRunId,
+            planSummary: structuredOutput?.summary,
+            reviewerFeedback: structuredOutput?.summary,
+            reviewerIssues: structuredOutput?.issues,
+            forcedByReviewerRejection: true,
+          }, { requiresApproval: true });
+        }
+      }
+    }
   } else if (role === 'reviewer' && taskId) {
-    // Reviewer completed — check verdict from structured output field, fall back to scanning decisions
+    // Task-level reviewer — check verdict from structured output field, fall back to scanning decisions
     const reviewVerdict = structuredOutput?.reviewVerdict;
     const verdictFromDecisions = structuredOutput?.decisions?.find(
       (d) => d.toLowerCase().includes('approved') || d.toLowerCase().includes('changes-requested')

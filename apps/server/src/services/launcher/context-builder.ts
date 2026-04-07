@@ -1,23 +1,27 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { KnowledgeFileModel } from '../../models/knowledge-file.js';
+import { RoomModel } from '../../models/room.js';
+import { SpecModel } from '../../models/spec.js';
 import { AgentRunModel } from '../../models/agent-run.js';
 import { CycleModel } from '../../models/cycle.js';
 import { TaskModel } from '../../models/task.js';
 import { getOrCreateControl } from '../../models/control.js';
-import type { ContextFeedback, RetryContext } from '@zombie-farm/shared';
+import type { ContextFeedback, ContextSnapshot, RetryContext } from '@zombie-farm/shared';
 import {
   QUALITY_SCORE_USEFUL_DELTA,
   QUALITY_SCORE_UNNECESSARY_DELTA,
   QUALITY_SCORE_DECAY,
   QUALITY_SCORE_MIN,
   QUALITY_SCORE_MAX,
+  SPEC_TYPE_PRIORITY,
 } from '@zombie-farm/shared';
 
 interface AgentContext {
   systemPromptContent: string;
   taskPromptContent: string;
   knowledgeFiles: string[];
+  contextSnapshot?: ContextSnapshot;
 }
 
 // Bug #3 fix: Detect repo root via .git/ or project.godot instead of package.json only
@@ -231,22 +235,227 @@ function getTaskTypeNote(taskType: string, role: string): string | null {
  * Quality-score order is preserved within each tier (stable partition).
  * If keywords is empty the array is left unchanged.
  */
-function applyKeywordBoost<T extends { title: string; snippet?: string; content: string }>(
+function applyKeywordBoost<T extends { title: string; snippet?: string; summary?: string; content?: string; detail?: string }>(
   docs: T[],
   keywords: string[]
 ): void {
   if (keywords.length === 0) return;
-  const matchesTitleOrSnippet = (kf: { title: string; snippet?: string }): boolean =>
+  const matchesTitleOrSnippet = (kf: T): boolean =>
     keywords.some(
-      (kw) => kf.title.toLowerCase().includes(kw) || (kf.snippet?.toLowerCase() ?? '').includes(kw)
+      (kw) =>
+        kf.title.toLowerCase().includes(kw) ||
+        (kf.snippet?.toLowerCase() ?? '').includes(kw) ||
+        (kf.summary?.toLowerCase() ?? '').includes(kw)
     );
-  const matchesContentBody = (kf: { content: string }): boolean =>
-    keywords.some((kw) => kf.content.toLowerCase().substring(0, 500).includes(kw));
+  const matchesContentBody = (kf: T): boolean => {
+    const body = kf.content ?? kf.detail ?? '';
+    return keywords.some((kw) => body.toLowerCase().substring(0, 500).includes(kw));
+  };
   const tier1 = docs.filter(matchesTitleOrSnippet);
   const tier2 = docs.filter((kf) => !matchesTitleOrSnippet(kf) && matchesContentBody(kf));
   const tier3 = docs.filter((kf) => !matchesTitleOrSnippet(kf) && !matchesContentBody(kf));
   docs.length = 0;
   docs.push(...tier1, ...tier2, ...tier3);
+}
+
+// ─── Role → Harness Room mapping ────────────────────────────────────
+const ROLE_ROOM_MAP: Record<string, string> = {
+  orchestrator: '02-01-orchestrator',
+  coder: '02-02-coder',
+  tester: '02-03-tester',
+  reviewer: '02-04-reviewer',
+  integrator: '02-05-integrator',
+  curator: '02-06-curator',
+};
+
+const TOKEN_BUDGET = 8000;
+const CHARS_PER_TOKEN = 4;
+
+interface SpecWithMeta {
+  _id: string;
+  roomId: string;
+  type: string;
+  state: string;
+  title: string;
+  summary: string;
+  detail: string;
+  qualityScore: number;
+  tags: string[];
+}
+
+/**
+ * Select relevant Room specs for an agent context.
+ * Returns sorted, truncated specs within token budget + snapshot metadata.
+ */
+async function selectRoomSpecs(params: {
+  role: string;
+  taskId?: string;
+  task?: Record<string, unknown> | null;
+  cycleId: number;
+  cycleGoal?: string;
+}): Promise<{ specs: SpecWithMeta[]; snapshot: ContextSnapshot }> {
+  const { role, task, cycleGoal } = params;
+
+  // Step 1: Determine relevant rooms
+  const roomIds = new Set<string>();
+  roomIds.add('00-project-room');
+
+  // Role-specific harness room
+  const roleRoom = ROLE_ROOM_MAP[role];
+  if (roleRoom) roomIds.add(roleRoom);
+
+  // Task keyword matching against room names/IDs
+  if (task) {
+    const taskText = [
+      task.title as string ?? '',
+      task.description as string ?? '',
+      ...(task.acceptanceCriteria as string[] ?? []),
+    ].join(' ');
+    const keywords = extractKeywords(taskText);
+
+    if (keywords.length > 0) {
+      const allRooms = await RoomModel.find({}, { _id: 1, name: 1 }).lean();
+      for (const room of allRooms) {
+        const roomIdLower = (room._id as string).toLowerCase();
+        const roomNameLower = (room.name as string).toLowerCase();
+        for (const kw of keywords) {
+          if (roomIdLower.includes(kw) || roomNameLower.includes(kw)) {
+            roomIds.add(room._id as string);
+            break;
+          }
+        }
+      }
+    }
+
+    // GodotPlanTask.featureRooms direct include
+    const featureRooms = task.featureRooms as string[] | undefined;
+    if (featureRooms) {
+      for (const fr of featureRooms) roomIds.add(fr);
+    }
+
+    // GodotPlanTask.prdRefs → game rooms under 10-game-rooms
+    const prdRefs = task.prdRefs as string[] | undefined;
+    if (prdRefs && prdRefs.length > 0) {
+      roomIds.add('10-game-rooms');
+    }
+  }
+
+  // Orchestrator: also match rooms by cycle goal keywords
+  if (role === 'orchestrator' && cycleGoal) {
+    const goalKeywords = extractKeywords(cycleGoal);
+    if (goalKeywords.length > 0) {
+      const allRooms = await RoomModel.find({}, { _id: 1, name: 1 }).lean();
+      for (const room of allRooms) {
+        const roomIdLower = (room._id as string).toLowerCase();
+        const roomNameLower = (room.name as string).toLowerCase();
+        for (const kw of goalKeywords) {
+          if (roomIdLower.includes(kw) || roomNameLower.includes(kw)) {
+            roomIds.add(room._id as string);
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // Step 2: Collect specs + inheritance
+  const specMap = new Map<string, SpecWithMeta>();
+
+  // For each relevant room, get active specs
+  for (const roomId of roomIds) {
+    const specs = await SpecModel.find({ roomId, state: 'active' }).lean();
+    for (const s of specs) {
+      specMap.set(s._id as string, s as unknown as SpecWithMeta);
+    }
+  }
+
+  // Walk parent chains: collect constraint + convention specs from ancestors
+  const visitedParents = new Set<string>();
+  for (const roomId of roomIds) {
+    let currentId: string | null = roomId;
+    while (currentId) {
+      if (visitedParents.has(currentId)) break;
+      visitedParents.add(currentId);
+      const room = await RoomModel.findById(currentId, { parent: 1 }).lean();
+      if (!room || !room.parent) break;
+      currentId = room.parent as string;
+      // Collect only constraint and convention from ancestors (inheritance)
+      const inheritedSpecs = await SpecModel.find({
+        roomId: currentId,
+        state: 'active',
+        type: { $in: ['constraint', 'convention'] },
+      }).lean();
+      for (const s of inheritedSpecs) {
+        if (!specMap.has(s._id as string)) {
+          specMap.set(s._id as string, s as unknown as SpecWithMeta);
+        }
+      }
+    }
+  }
+
+  // Step 3: Sort by type priority, then keyword boost within each tier, then qualityScore
+  let sortedSpecs = Array.from(specMap.values());
+
+  // First: sort by type priority + qualityScore
+  sortedSpecs.sort((a, b) => {
+    const pa = SPEC_TYPE_PRIORITY[a.type] ?? 99;
+    const pb = SPEC_TYPE_PRIORITY[b.type] ?? 99;
+    if (pa !== pb) return pa - pb;
+    return (b.qualityScore ?? 0) - (a.qualityScore ?? 0);
+  });
+
+  // Then: apply keyword boost WITHIN each type tier (stable partition preserves
+  // the qualityScore order within each keyword-match tier)
+  if (task) {
+    const taskText = [
+      task.title as string ?? '',
+      task.description as string ?? '',
+      ...(task.acceptanceCriteria as string[] ?? []),
+    ].join(' ');
+    const keywords = extractKeywords(taskText);
+
+    // Group by type, boost within each group, reassemble
+    const typeGroups = new Map<string, SpecWithMeta[]>();
+    for (const spec of sortedSpecs) {
+      if (!typeGroups.has(spec.type)) typeGroups.set(spec.type, []);
+      typeGroups.get(spec.type)!.push(spec);
+    }
+    const boosted: SpecWithMeta[] = [];
+    // Iterate in type priority order
+    const typeOrder = [...typeGroups.keys()].sort(
+      (a, b) => (SPEC_TYPE_PRIORITY[a] ?? 99) - (SPEC_TYPE_PRIORITY[b] ?? 99)
+    );
+    for (const type of typeOrder) {
+      const group = typeGroups.get(type)!;
+      applyKeywordBoost(group, keywords);
+      boosted.push(...group);
+    }
+    sortedSpecs = boosted;
+  }
+
+  // Step 4: Truncate to token budget
+  let tokenCount = 0;
+  const accepted: SpecWithMeta[] = [];
+  const truncated: string[] = [];
+
+  for (const spec of sortedSpecs) {
+    const specTokens = Math.ceil((spec.detail?.length ?? 0) / CHARS_PER_TOKEN);
+    if (tokenCount + specTokens > TOKEN_BUDGET && spec.type !== 'constraint') {
+      truncated.push(spec._id);
+      continue;
+    }
+    tokenCount += specTokens;
+    accepted.push(spec);
+  }
+
+  const snapshot: ContextSnapshot = {
+    specIds: accepted.map((s) => s._id),
+    roomIds: Array.from(roomIds),
+    tokenCount,
+    truncated,
+  };
+
+  return { specs: accepted, snapshot };
 }
 
 export async function buildContext(params: {
@@ -363,84 +572,98 @@ export async function buildContext(params: {
     }
   }
 
-  // Select knowledge files
-  // Static bootstrap files are always included first from disk.
-  const staticFiles = ['boot.md', 'conventions.md', 'glossary.md'];
-  for (const file of staticFiles) {
-    const filePath = path.join(KNOWLEDGE_DIR, file);
-    if (fs.existsSync(filePath)) {
-      const content = fs.readFileSync(filePath, 'utf-8');
-      taskPromptParts.push(`\n---\n# Knowledge: ${file}\n${content}\n`);
-      knowledgeFiles.push(`knowledge/${file}`);
+  // ─── Knowledge Selection: Room+Spec (primary) or KnowledgeFile (fallback) ───
+  let contextSnapshot: ContextSnapshot | undefined;
+
+  const specCount = await SpecModel.countDocuments();
+  if (specCount > 0) {
+    // Primary path: Room-aware spec selection
+    // Determine cycle goal for orchestrator keyword matching
+    let cycleGoal: string | undefined;
+    if (role === 'orchestrator' && cycle) {
+      const PLACEHOLDER = 'Awaiting orchestrator plan';
+      if (cycle.goal !== PLACEHOLDER) {
+        cycleGoal = cycle.goal as string;
+      } else {
+        const recentCompleted = await CycleModel.findOne({ status: 'completed' })
+          .sort({ _id: -1 })
+          .lean();
+        cycleGoal = recentCompleted?.goal as string | undefined;
+      }
+    }
+
+    const { specs, snapshot } = await selectRoomSpecs({
+      role,
+      taskId,
+      task: task as Record<string, unknown> | null,
+      cycleId,
+      cycleGoal,
+    });
+
+    contextSnapshot = snapshot;
+
+    for (const spec of specs) {
+      taskPromptParts.push(`\n---\n# [${spec.type}] ${spec.title}\n${spec.detail}\n`);
+      knowledgeFiles.push(spec._id);
+    }
+
+    // Update lastReferencedAt for all injected specs
+    if (snapshot.specIds.length > 0) {
+      await SpecModel.updateMany(
+        { _id: { $in: snapshot.specIds } },
+        { $set: { lastReferencedAt: new Date() } }
+      );
+    }
+  } else {
+    // Fallback: KnowledgeFile-based selection (will be removed in M7)
+    const staticFiles = ['boot.md', 'conventions.md', 'glossary.md'];
+    for (const file of staticFiles) {
+      const filePath = path.join(KNOWLEDGE_DIR, file);
+      if (fs.existsSync(filePath)) {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        taskPromptParts.push(`\n---\n# Knowledge: ${file}\n${content}\n`);
+        knowledgeFiles.push(`knowledge/${file}`);
+      }
+    }
+
+    const baseFilter: Record<string, unknown> = {
+      status: 'active',
+      _id: { $nin: STATIC_KNOWLEDGE_IDS },
+    };
+    if (CODE_FOCUSED_ROLES.includes(role)) {
+      baseFilter['$or'] = [
+        { category: { $ne: 'retrospectives' } },
+        { qualityScore: { $gte: RETROSPECTIVE_MIN_QUALITY_SCORE } },
+      ];
+    }
+    const dynamicLimit =
+      taskId && CODE_FOCUSED_ROLES.includes(role)
+        ? DYNAMIC_KNOWLEDGE_LIMIT_TASK
+        : DYNAMIC_KNOWLEDGE_LIMIT_DEFAULT;
+
+    const dynamicKnowledge = await KnowledgeFileModel.find(baseFilter)
+      .sort({ qualityScore: -1 })
+      .limit(dynamicLimit)
+      .lean();
+
+    if (taskId && CODE_FOCUSED_ROLES.includes(role) && task) {
+      const keywords = extractKeywords(
+        `${task.title} ${task.description} ${task.acceptanceCriteria.join(' ')}`
+      );
+      applyKeywordBoost(dynamicKnowledge, keywords);
+    }
+
+    for (const kf of dynamicKnowledge) {
+      taskPromptParts.push(`\n---\n# Knowledge: ${kf.title}\n${kf.content}\n`);
+      knowledgeFiles.push(kf._id);
     }
   }
 
-  // Dynamic knowledge files sorted by quality score, excluding static files already injected above.
-  // For code-focused roles (coder, reviewer), retrospective-category files are excluded unless
-  // their qualityScore is high enough to justify the token cost.
-  const baseFilter: Record<string, unknown> = {
-    status: 'active',
-    _id: { $nin: STATIC_KNOWLEDGE_IDS },
-  };
-
-  if (CODE_FOCUSED_ROLES.includes(role)) {
-    baseFilter['$or'] = [
-      { category: { $ne: 'retrospectives' } },
-      { qualityScore: { $gte: RETROSPECTIVE_MIN_QUALITY_SCORE } },
-    ];
-  }
-
-  // Increase the selection pool for task-specific coder/reviewer runs so keyword
-  // boosting has more candidates to reorder within.
-  const dynamicLimit =
-    taskId && CODE_FOCUSED_ROLES.includes(role)
-      ? DYNAMIC_KNOWLEDGE_LIMIT_TASK
-      : DYNAMIC_KNOWLEDGE_LIMIT_DEFAULT;
-
-  const dynamicKnowledge = await KnowledgeFileModel.find(baseFilter)
-    .sort({ qualityScore: -1 })
-    .limit(dynamicLimit)
-    .lean();
-
-  // For task-specific coder/reviewer runs, promote knowledge files that contain
-  // task keywords.  Three tiers preserve quality-score order within each tier:
-  //   Tier 1 — keyword found in title or snippet
-  //   Tier 2 — keyword found in content body (first 500 chars) but not title/snippet
-  //   Tier 3 — no keyword match anywhere
-  if (taskId && CODE_FOCUSED_ROLES.includes(role) && task) {
-    const keywords = extractKeywords(
-      `${task.title} ${task.description} ${task.acceptanceCriteria.join(' ')}`
-    );
-    applyKeywordBoost(dynamicKnowledge, keywords);
-  }
-
-  // For orchestrator runs, apply the same three-tier keyword boost using the
-  // cycle goal as the keyword source.  The orchestrator gets the full dynamic
-  // pool re-ranked by goal relevance so that planning context surfaces first.
-  // When the cycle goal is still the placeholder ('Awaiting orchestrator plan'),
-  // fall back to the most recent completed cycle's goal for meaningful keywords.
-  // If no completed cycles exist yet, skip the boost (fall through to quality-score order).
+  // Fetch recent cycles for orchestrator (needed below regardless of spec/knowledge path)
   const recentCycles =
     role === 'orchestrator'
       ? await CycleModel.find({ status: 'completed' }).sort({ _id: -1 }).limit(3).lean()
       : [];
-
-  if (role === 'orchestrator' && cycle) {
-    const PLACEHOLDER = 'Awaiting orchestrator plan';
-    let keywordSource: string | null = cycle.goal;
-    if (cycle.goal === PLACEHOLDER) {
-      keywordSource = recentCycles.length > 0 ? recentCycles[0].goal : null;
-    }
-    if (keywordSource !== null) {
-      const keywords = extractKeywords(keywordSource);
-      applyKeywordBoost(dynamicKnowledge, keywords);
-    }
-  }
-
-  for (const kf of dynamicKnowledge) {
-    taskPromptParts.push(`\n---\n# Knowledge: ${kf.title}\n${kf.content}\n`);
-    knowledgeFiles.push(kf._id);
-  }
 
   // Add task branches for integrator
   if (role === 'integrator') {
@@ -582,6 +805,7 @@ export async function buildContext(params: {
     systemPromptContent,
     taskPromptContent: taskPromptParts.join(''),
     knowledgeFiles,
+    contextSnapshot,
   };
 }
 
@@ -592,8 +816,37 @@ export async function processContextFeedback(
   // Update AgentRun
   await AgentRunModel.updateOne({ _id: agentRunId }, { $set: { contextFeedback: feedback } });
 
-  // Update quality scores for referenced knowledge files
+  // Update quality scores for referenced Specs (Room+Spec system)
+  const allSpecs = [
+    ...new Set([...(feedback.useful_specs ?? []), ...(feedback.unnecessary_specs ?? [])]),
+  ];
 
+  for (const specId of allSpecs) {
+    const spec = await SpecModel.findById(specId);
+    if (!spec) continue;
+
+    let delta = 0;
+    if (feedback.useful_specs?.includes(specId)) delta += QUALITY_SCORE_USEFUL_DELTA;
+    if (feedback.unnecessary_specs?.includes(specId)) delta += QUALITY_SCORE_UNNECESSARY_DELTA;
+
+    const newScore = Math.max(
+      QUALITY_SCORE_MIN,
+      Math.min(QUALITY_SCORE_MAX, (spec.qualityScore ?? 0) * QUALITY_SCORE_DECAY + delta)
+    );
+
+    const updateFields: Record<string, unknown> = {
+      qualityScore: newScore,
+      lastReferencedAt: new Date(),
+      updatedAt: new Date(),
+    };
+    if (newScore <= QUALITY_SCORE_MIN) {
+      updateFields['state'] = 'archived';
+    }
+
+    await SpecModel.updateOne({ _id: specId }, { $set: updateFields });
+  }
+
+  // Update quality scores for referenced KnowledgeFiles (legacy, kept until M7)
   const allFiles = [...new Set([...feedback.useful, ...feedback.unnecessary])];
 
   for (const filePath of allFiles) {
@@ -620,22 +873,50 @@ export async function processContextFeedback(
     await KnowledgeFileModel.updateOne({ _id: filePath }, { $set: updateFields });
   }
 
-  // Create inbox entries for missing knowledge
+  // Create draft specs for missing knowledge (in best-matching room, or 00-project-room)
   for (const missing of feedback.missing) {
-    // Escape regex special chars to prevent invalid regex errors from agent-provided text
-    const escaped = missing.substring(0, 50).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const existingInbox = await KnowledgeFileModel.findOne({
-      category: 'inbox',
-      title: { $regex: escaped, $options: 'i' },
+    const keywords = extractKeywords(missing);
+    let bestRoom = '00-project-room';
+
+    if (keywords.length > 0) {
+      const allRooms = await RoomModel.find({}, { _id: 1, name: 1 }).lean();
+      for (const room of allRooms) {
+        const roomIdLower = (room._id as string).toLowerCase();
+        const roomNameLower = (room.name as string).toLowerCase();
+        if (keywords.some((kw) => roomIdLower.includes(kw) || roomNameLower.includes(kw))) {
+          bestRoom = room._id as string;
+          break;
+        }
+      }
+    }
+
+    const specId = `context-${bestRoom}-${Date.now().toString(36)}`;
+    const existingSpec = await SpecModel.findOne({
+      roomId: bestRoom,
+      title: { $regex: missing.substring(0, 50).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' },
+      state: { $ne: 'archived' },
     });
-    if (!existingInbox) {
-      await KnowledgeFileModel.create({
-        _id: `inbox/${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        category: 'inbox',
+
+    if (!existingSpec) {
+      await SpecModel.create({
+        _id: specId,
+        roomId: bestRoom,
+        type: 'context',
+        state: 'draft',
         title: missing,
-        snippet: missing.substring(0, 150),
-        content: `Agent reported missing knowledge: ${missing}\nSource run: ${agentRunId}`,
-        source: { type: 'agent', agentRunId },
+        summary: missing.substring(0, 150),
+        detail: `Agent reported missing knowledge: ${missing}\nSource run: ${agentRunId}`,
+        provenance: {
+          source_type: 'agent_sediment',
+          confidence: 0.3,
+          agentRunId,
+        },
+        tags: keywords,
+        relations: [],
+        anchors: [],
+        qualityScore: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
     }
   }

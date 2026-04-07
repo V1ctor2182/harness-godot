@@ -13,6 +13,18 @@ const contextFeedbackSchema = new Schema(
     useful: [String],
     missing: [String],
     unnecessary: [String],
+    useful_specs: [String],
+    unnecessary_specs: [String],
+  },
+  { _id: false }
+);
+
+const contextSnapshotSchema = new Schema(
+  {
+    specIds: [String],
+    roomIds: [String],
+    tokenCount: Number,
+    truncated: [String],
   },
   { _id: false }
 );
@@ -56,6 +68,7 @@ const agentRunSchema = new Schema({
   error: String,
   contextFiles: [String],
   contextFeedback: contextFeedbackSchema,
+  contextSnapshot: contextSnapshotSchema,
   output: agentOutputSchema,
   outputParseError: Boolean,
   outputValidationWarnings: [String],
