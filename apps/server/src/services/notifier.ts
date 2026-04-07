@@ -6,11 +6,18 @@ const DISCORD_WEBHOOK_URL = config.discordWebhookUrl;
 async function sendDiscord(content: string): Promise<void> {
   if (!DISCORD_WEBHOOK_URL) return;
   try {
-    await fetch(DISCORD_WEBHOOK_URL, {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5_000);
+    const res = await fetch(DISCORD_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content }),
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
+    if (!res.ok) {
+      logger.warn({ status: res.status }, '[notifier] Discord webhook returned non-OK status');
+    }
   } catch (err) {
     logger.error({ err }, '[notifier] Discord webhook failed');
   }
