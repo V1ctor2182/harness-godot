@@ -95,6 +95,10 @@ export const AGENT_CONTAINER_LABEL_VALUE = 'agent';
 export const TASK_ID_PREFIX = 'TASK-';
 export const TASK_ID_PAD_LENGTH = 3;
 
+// ─── Retry Backoff ──────────────────────────────────────────────────
+
+export const RETRY_BACKOFF_MS = [30_000, 120_000]; // 30s, 2min (2 tiers; DEFAULT_MAX_RETRIES=1)
+
 // ─── Spec Type Priority (for context builder sorting) ───────────────
 
 export const SPEC_TYPE_PRIORITY: Record<string, number> = {

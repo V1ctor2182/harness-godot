@@ -264,8 +264,24 @@ export async function spawnAgent(params: SpawnParams): Promise<string> {
       status: finalStatus,
     });
 
-    // Create follow-up jobs based on agent role and outcome
-    if (finalStatus === 'completed') {
+    // Error classification: permanent errors block the task without retry
+    if (captureResult.structuredOutput?.errorType === 'permanent' && taskId) {
+      await TaskModel.updateOne(
+        { _id: taskId },
+        {
+          $set: { status: 'blocked' },
+          $push: {
+            activityLog: {
+              timestamp: new Date(),
+              action: `Blocked: agent reported permanent error — ${captureResult.structuredOutput.summary ?? 'no details'}`,
+              agentRunId,
+            },
+          },
+        }
+      );
+      broadcast('task:status_changed', { taskId, status: 'blocked', cycleId });
+    } else if (finalStatus === 'completed') {
+      // Create follow-up jobs based on agent role and outcome
       await createFollowUpJobs(role, agentRunId, cycleId, taskId, captureResult.structuredOutput);
     }
 

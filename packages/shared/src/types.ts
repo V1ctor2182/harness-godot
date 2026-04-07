@@ -259,6 +259,7 @@ export interface Job {
   retryCount: number;
   maxRetries: number;
   error?: string;
+  notBefore?: Date;
   createdAt: Date;
   startedAt?: Date;
   completedAt?: Date;
@@ -419,6 +420,7 @@ export interface AgentStructuredOutput {
   issues?: ReviewIssue[];
   suggestions?: string[];
   specSediments?: SpecSediment[];
+  errorType?: 'permanent' | 'transient' | 'unknown';
 }
 
 export interface RetryContext {

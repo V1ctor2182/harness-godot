@@ -156,7 +156,10 @@ async function pollJobs(): Promise<void> {
           {
             status: 'pending',
             pool,
-            ...approvalFilter,
+            $and: [
+              approvalFilter,
+              { $or: [{ notBefore: { $exists: false } }, { notBefore: null }, { notBefore: { $lte: new Date() } }] },
+            ],
           },
           { $set: { status: 'active', startedAt: new Date() } },
           { sort: { createdAt: 1 }, returnDocument: 'after' }
@@ -233,9 +236,13 @@ async function processJob(
     const error = err instanceof Error ? err.message : String(err);
     const job = await JobModel.findById(jobId);
     if (job && job.retryCount < job.maxRetries) {
+      // Exponential backoff: delay increases with retry count
+      const { RETRY_BACKOFF_MS } = await import('@zombie-farm/shared');
+      const delay = RETRY_BACKOFF_MS[Math.min(job.retryCount, RETRY_BACKOFF_MS.length - 1)] ?? 30_000;
+      const notBefore = new Date(Date.now() + delay);
       await JobModel.updateOne(
         { _id: jobId },
-        { $set: { status: 'pending', error }, $inc: { retryCount: 1 } }
+        { $set: { status: 'pending', error, notBefore }, $inc: { retryCount: 1 } }
       );
     } else {
       await JobModel.updateOne(

@@ -47,6 +47,7 @@ const jobSchema = new Schema({
   maxRetries: { type: Number, default: 1 },
   error: String,
   failedReason: String,
+  notBefore: Date,
   createdAt: { type: Date, default: Date.now },
   startedAt: Date,
   completedAt: Date,

@@ -112,24 +112,46 @@ export async function waitForContainer(
   timeoutMs: number
 ): Promise<{ exitCode: number; timedOut: boolean }> {
   return new Promise((resolve) => {
+    let settled = false;
+    const settle = (result: { exitCode: number; timedOut: boolean }) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      clearInterval(healthCheck);
+      resolve(result);
+    };
+
     const timeout = setTimeout(async () => {
       try {
         await container.kill();
       } catch {
         /* container may have already exited */
       }
-      resolve({ exitCode: -1, timedOut: true });
+      settle({ exitCode: -1, timedOut: true });
     }, timeoutMs);
+
+    // Health check: detect containers that die without sending an exit event
+    const healthCheck = setInterval(async () => {
+      try {
+        const info = await container.inspect();
+        const status = info.State?.Status;
+        if (status && status !== 'running' && status !== 'created') {
+          const exitCode = info.State?.ExitCode ?? -1;
+          settle({ exitCode, timedOut: false });
+        }
+      } catch {
+        // Container may have been removed — treat as exited
+        settle({ exitCode: -1, timedOut: false });
+      }
+    }, 30_000);
 
     container
       .wait()
       .then((result) => {
-        clearTimeout(timeout);
-        resolve({ exitCode: result.StatusCode, timedOut: false });
+        settle({ exitCode: result.StatusCode, timedOut: false });
       })
       .catch(() => {
-        clearTimeout(timeout);
-        resolve({ exitCode: -1, timedOut: false });
+        settle({ exitCode: -1, timedOut: false });
       });
   });
 }
