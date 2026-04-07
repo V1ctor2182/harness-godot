@@ -45,7 +45,7 @@ export async function detectAndFailStaleJobs(): Promise<void> {
     if (!job.startedAt) continue;
 
     let timeoutMs: number;
-    if (job.type === 'spawn' || job.type === 'curate-inbox' || job.type === 'curate-specs') {
+    if (job.type === 'spawn' || job.type === 'curate-specs') {
       const role = (job.payload as Record<string, unknown>)?.['role'] as string | undefined;
       if (role === 'coder') timeoutMs = config.coderTimeoutMs;
       else if (role === 'orchestrator') timeoutMs = config.orchestratorTimeoutMs;
@@ -204,7 +204,6 @@ async function processJob(
       case 'advance-cycle':
         await handleAdvanceCycle(payload);
         break;
-      case 'curate-inbox':
       case 'curate-specs':
         await handleCurateSpecs(payload);
         break;

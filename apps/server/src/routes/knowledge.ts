@@ -1,10 +1,18 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { KnowledgeFileModel } from '../models/knowledge-file.js';
 import { NotFoundError } from '../lib/errors.js';
 import { asyncHandler } from '../lib/async-handler.js';
 
 const router = Router();
+
+// Deprecation: Knowledge API is superseded by Rooms + Specs API (/api/rooms, /api/specs)
+router.use((_req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('Deprecation', 'true');
+  res.setHeader('Sunset', '2026-06-01');
+  res.setHeader('Link', '</api/specs>; rel="successor-version"');
+  next();
+});
 
 const knowledgeCategoryEnum = z.enum([
   'skills',

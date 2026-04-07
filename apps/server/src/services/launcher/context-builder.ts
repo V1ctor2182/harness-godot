@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { KnowledgeFileModel } from '../../models/knowledge-file.js';
 import { RoomModel } from '../../models/room.js';
 import { SpecModel } from '../../models/spec.js';
 import { AgentRunModel } from '../../models/agent-run.js';
@@ -44,20 +43,6 @@ function findRepoRoot(): string {
 
 const REPO_ROOT = findRepoRoot();
 const AGENTS_DIR = path.join(REPO_ROOT, 'agents');
-const KNOWLEDGE_DIR = path.join(REPO_ROOT, 'knowledge');
-
-// MongoDB _id values for the static bootstrap files that are always injected from disk.
-// These are excluded from the dynamic knowledge query to prevent duplicates.
-export const STATIC_KNOWLEDGE_IDS = ['specs/boot.md', 'skills/conventions.md', 'specs/glossary.md'];
-
-// Roles that focus on code — retrospective knowledge files add token cost without relevance
-// unless they have demonstrated value (qualityScore >= RETROSPECTIVE_MIN_QUALITY_SCORE).
-const CODE_FOCUSED_ROLES = ['coder', 'reviewer'];
-const RETROSPECTIVE_MIN_QUALITY_SCORE = 3;
-
-// Default and boosted knowledge selection limits
-const DYNAMIC_KNOWLEDGE_LIMIT_DEFAULT = 10;
-const DYNAMIC_KNOWLEDGE_LIMIT_TASK = 15;
 
 // Common English stop words filtered out during keyword extraction
 const STOP_WORDS = new Set([
@@ -573,90 +558,44 @@ export async function buildContext(params: {
   }
 
   // ─── Knowledge Selection: Room+Spec (primary) or KnowledgeFile (fallback) ───
+  // ─── Room+Spec knowledge selection ─────────────────────────────────
   let contextSnapshot: ContextSnapshot | undefined;
 
-  const specCount = await SpecModel.countDocuments();
-  if (specCount > 0) {
-    // Primary path: Room-aware spec selection
-    // Determine cycle goal for orchestrator keyword matching
-    let cycleGoal: string | undefined;
-    if (role === 'orchestrator' && cycle) {
-      const PLACEHOLDER = 'Awaiting orchestrator plan';
-      if (cycle.goal !== PLACEHOLDER) {
-        cycleGoal = cycle.goal as string;
-      } else {
-        const recentCompleted = await CycleModel.findOne({ status: 'completed' })
-          .sort({ _id: -1 })
-          .lean();
-        cycleGoal = recentCompleted?.goal as string | undefined;
-      }
+  // Determine cycle goal for orchestrator keyword matching
+  let cycleGoal: string | undefined;
+  if (role === 'orchestrator' && cycle) {
+    const PLACEHOLDER = 'Awaiting orchestrator plan';
+    if (cycle.goal !== PLACEHOLDER) {
+      cycleGoal = cycle.goal as string;
+    } else {
+      const recentCompleted = await CycleModel.findOne({ status: 'completed' })
+        .sort({ _id: -1 })
+        .lean();
+      cycleGoal = recentCompleted?.goal as string | undefined;
     }
+  }
 
-    const { specs, snapshot } = await selectRoomSpecs({
-      role,
-      taskId,
-      task: task as Record<string, unknown> | null,
-      cycleId,
-      cycleGoal,
-    });
+  const { specs, snapshot } = await selectRoomSpecs({
+    role,
+    taskId,
+    task: task as Record<string, unknown> | null,
+    cycleId,
+    cycleGoal,
+  });
 
-    contextSnapshot = snapshot;
+  contextSnapshot = snapshot;
 
-    for (const spec of specs) {
-      taskPromptParts.push(`\n---\n# [${spec.type}] ${spec.title}\n${spec.detail}\n`);
-      knowledgeFiles.push(spec._id);
-    }
+  for (const spec of specs) {
+    taskPromptParts.push(`\n---\n# [${spec.type}] ${spec.title}\n${spec.detail}\n`);
+    knowledgeFiles.push(spec._id);
+  }
 
-    // Update lastReferencedAt for all injected specs
-    if (snapshot.specIds.length > 0) {
-      await SpecModel.updateMany(
-        { _id: { $in: snapshot.specIds } },
-        { $set: { lastReferencedAt: new Date() } }
-      );
-    }
-  } else {
-    // Fallback: KnowledgeFile-based selection (will be removed in M7)
-    const staticFiles = ['boot.md', 'conventions.md', 'glossary.md'];
-    for (const file of staticFiles) {
-      const filePath = path.join(KNOWLEDGE_DIR, file);
-      if (fs.existsSync(filePath)) {
-        const content = fs.readFileSync(filePath, 'utf-8');
-        taskPromptParts.push(`\n---\n# Knowledge: ${file}\n${content}\n`);
-        knowledgeFiles.push(`knowledge/${file}`);
-      }
-    }
-
-    const baseFilter: Record<string, unknown> = {
-      status: 'active',
-      _id: { $nin: STATIC_KNOWLEDGE_IDS },
-    };
-    if (CODE_FOCUSED_ROLES.includes(role)) {
-      baseFilter['$or'] = [
-        { category: { $ne: 'retrospectives' } },
-        { qualityScore: { $gte: RETROSPECTIVE_MIN_QUALITY_SCORE } },
-      ];
-    }
-    const dynamicLimit =
-      taskId && CODE_FOCUSED_ROLES.includes(role)
-        ? DYNAMIC_KNOWLEDGE_LIMIT_TASK
-        : DYNAMIC_KNOWLEDGE_LIMIT_DEFAULT;
-
-    const dynamicKnowledge = await KnowledgeFileModel.find(baseFilter)
-      .sort({ qualityScore: -1 })
-      .limit(dynamicLimit)
-      .lean();
-
-    if (taskId && CODE_FOCUSED_ROLES.includes(role) && task) {
-      const keywords = extractKeywords(
-        `${task.title} ${task.description} ${task.acceptanceCriteria.join(' ')}`
-      );
-      applyKeywordBoost(dynamicKnowledge, keywords);
-    }
-
-    for (const kf of dynamicKnowledge) {
-      taskPromptParts.push(`\n---\n# Knowledge: ${kf.title}\n${kf.content}\n`);
-      knowledgeFiles.push(kf._id);
-    }
+  // Update lastReferencedAt for all injected specs
+  if (snapshot.specIds.length > 0) {
+    await SpecModel.updateMany(
+      { _id: { $in: snapshot.specIds } },
+      { $set: { lastReferencedAt: new Date() } }
+    );
   }
 
   // Fetch recent cycles for orchestrator (needed below regardless of spec/knowledge path)
@@ -844,33 +783,6 @@ export async function processContextFeedback(
     }
 
     await SpecModel.updateOne({ _id: specId }, { $set: updateFields });
-  }
-
-  // Update quality scores for referenced KnowledgeFiles (legacy, kept until M7)
-  const allFiles = [...new Set([...feedback.useful, ...feedback.unnecessary])];
-
-  for (const filePath of allFiles) {
-    const kf = await KnowledgeFileModel.findById(filePath);
-    if (!kf) continue;
-
-    let delta = 0;
-    if (feedback.useful.includes(filePath)) delta += QUALITY_SCORE_USEFUL_DELTA;
-    if (feedback.unnecessary.includes(filePath)) delta += QUALITY_SCORE_UNNECESSARY_DELTA;
-
-    const newScore = Math.max(
-      QUALITY_SCORE_MIN,
-      Math.min(QUALITY_SCORE_MAX, (kf.qualityScore ?? 0) * QUALITY_SCORE_DECAY + delta)
-    );
-
-    const updateFields: Record<string, unknown> = {
-      qualityScore: newScore,
-      lastReferencedAt: new Date(),
-    };
-    if (newScore <= QUALITY_SCORE_MIN) {
-      updateFields['status'] = 'pruned';
-    }
-
-    await KnowledgeFileModel.updateOne({ _id: filePath }, { $set: updateFields });
   }
 
   // Create draft specs for missing knowledge (in best-matching room, or 00-project-room)

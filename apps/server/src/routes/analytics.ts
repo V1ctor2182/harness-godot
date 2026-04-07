@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { AgentRunModel } from '../models/agent-run.js';
 import { CycleModel } from '../models/cycle.js';
 import { TaskModel } from '../models/task.js';
+import { SpecModel } from '../models/spec.js';
 import { asyncHandler } from '../lib/async-handler.js';
 
 const router = Router();
@@ -76,6 +77,9 @@ router.get(
             done: 1,
             failed: 1,
             avgRetryCount: { $round: [{ $ifNull: ['$avgRetryCount', 0] }, 2] },
+            successRate: {
+              $cond: [{ $eq: ['$total', 0] }, 0, { $round: [{ $divide: ['$done', '$total'] }, 2] }],
+            },
           },
         },
       ]),
@@ -144,6 +148,68 @@ router.get(
     });
 
     res.json(result);
+  })
+);
+
+// Spec change history per cycle
+router.get(
+  '/specs',
+  asyncHandler(async (_req, res) => {
+    const byCycle = await SpecModel.aggregate([
+      { $match: { 'provenance.cycleId': { $exists: true } } },
+      {
+        $group: {
+          _id: '$provenance.cycleId',
+          created: { $sum: 1 },
+          active: { $sum: { $cond: [{ $eq: ['$state', 'active'] }, 1, 0] } },
+          draft: { $sum: { $cond: [{ $eq: ['$state', 'draft'] }, 1, 0] } },
+          archived: { $sum: { $cond: [{ $eq: ['$state', 'archived'] }, 1, 0] } },
+        },
+      },
+      { $sort: { _id: -1 } },
+      { $limit: 20 },
+      {
+        $project: {
+          _id: 0,
+          cycleId: '$_id',
+          created: 1,
+          active: 1,
+          draft: 1,
+          archived: 1,
+        },
+      },
+    ]);
+
+    res.json(byCycle);
+  })
+);
+
+// Spending per task
+router.get(
+  '/spending-by-task',
+  asyncHandler(async (_req, res) => {
+    const byTask = await AgentRunModel.aggregate([
+      { $match: { taskId: { $exists: true, $ne: null } } },
+      {
+        $group: {
+          _id: '$taskId',
+          totalCostUsd: { $sum: '$costUsd' },
+          runCount: { $sum: 1 },
+        },
+      },
+      { $sort: { totalCostUsd: -1 } },
+      { $limit: 50 },
+      {
+        $project: {
+          _id: 0,
+          taskId: '$_id',
+          totalCostUsd: { $round: ['$totalCostUsd', 2] },
+          runCount: 1,
+        },
+      },
+    ]);
+
+    res.json(byTask);
   })
 );
 

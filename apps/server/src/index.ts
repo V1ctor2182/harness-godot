@@ -14,6 +14,21 @@ import {
   recoverStaleTasks,
 } from './services/launcher/orphan-recovery.js';
 
+// ─── Startup Status (exported for health route) ─────────────────────
+
+let startupReady = false;
+let lastRecovery: {
+  orphansFound: number;
+  jobsFailed: number;
+  roomsSeeded: number;
+} | null = null;
+
+export function getStartupStatus() {
+  return { startupReady, lastRecovery };
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────
+
 function redactMongoUri(uri: string): string {
   try {
     const url = new URL(uri);
@@ -42,7 +57,7 @@ async function main() {
 
   // Seed rooms & specs from rooms/ directory (idempotent)
   console.log('Seeding rooms...');
-  await seedRooms();
+  const roomResult = await seedRooms();
   console.log('Rooms seeded');
 
   // Ensure control document exists
@@ -56,6 +71,15 @@ async function main() {
 
   // Recover tasks stuck in non-terminal states with terminated agent runs
   await recoverStaleTasks();
+
+  // Mark startup as ready
+  lastRecovery = {
+    orphansFound: 0, // orphan recovery functions return void; count is logged internally
+    jobsFailed: 0,
+    roomsSeeded: roomResult?.roomsUpserted ?? 0,
+  };
+  startupReady = true;
+  logger.info({ lastRecovery }, 'Startup recovery complete');
 
   // Start SSE heartbeat
   initSSE();
