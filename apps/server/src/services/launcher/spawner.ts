@@ -25,6 +25,7 @@ import type { ContainerHandle } from './container.js';
 import { captureStream, emitSystemEvent } from './stream-capture.js';
 import { broadcast } from '../sse-manager.js';
 import { createJob, persistRetryReviewIssues } from '../job-queue.js';
+import { notifySpendingWarning, notifyRateLimited } from '../notifier.js';
 import type { AgentRunStatus, RetryContext } from '@zombie-farm/shared';
 
 export interface SpawnParams {
@@ -150,6 +151,7 @@ export async function spawnAgent(params: SpawnParams): Promise<string> {
         reason: 'rate_limited',
       });
       broadcast('agent:completed', { agentRunId, role, cycleId, exitCode, costUsd: 0, status: finalStatus });
+      notifyRateLimited().catch(() => {});
 
       // Do NOT call createFollowUpJobs — no retry
       return agentRunId;
@@ -212,12 +214,14 @@ export async function spawnAgent(params: SpawnParams): Promise<string> {
       if (control?.spendingCapUsd) {
         const pct = control.spentUsd / control.spendingCapUsd;
         if (pct >= SPENDING_WARNING_THRESHOLD) {
+          const percentUsed = Math.round(pct * 100);
           broadcast('system:spending_warning', {
             spentUsd: control.spentUsd,
             spendingCapUsd: control.spendingCapUsd,
-            percentUsed: Math.round(pct * 100),
+            percentUsed,
             action: pct >= 1 ? 'hard_cap' : 'paused',
           });
+          notifySpendingWarning(percentUsed).catch(() => {});
           if (pct >= SPENDING_WARNING_THRESHOLD && pct < 1) {
             await ControlModel.updateOne({ _id: 'singleton' }, { $set: { mode: 'paused' } });
           }

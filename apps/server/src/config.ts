@@ -38,4 +38,6 @@ export const config = {
 
   agentEventTtlDays: envInt('AGENT_EVENT_TTL_DAYS', 30),
   jobRetentionDays: envInt('JOB_RETENTION_DAYS', 30),
+
+  discordWebhookUrl: env('DISCORD_WEBHOOK_URL', ''),
 } as const;

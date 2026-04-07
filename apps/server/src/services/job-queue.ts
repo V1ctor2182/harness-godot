@@ -9,6 +9,7 @@ import { spawnAgent } from './launcher/spawner.js';
 import { getCIStatus, closeStalePRs, validatePRBodyJSON } from './github.js';
 import { broadcast } from './sse-manager.js';
 import { logger } from '../lib/logger.js';
+import { notifyJobRequiresApproval, notifyCycleCompleted, notifyCycleFailed, notifyPlanQuestions } from './notifier.js';
 import { DEFAULT_MAX_RETRIES, MAX_RETRY_CODER_RUNS, RELOAD_TRIGGER_PATH } from '@zombie-farm/shared';
 import type { JobType, JobPool, TaskType, TaskPriority } from '@zombie-farm/shared';
 import {
@@ -551,6 +552,7 @@ export async function handleAdvanceCycle(payload: Record<string, unknown>): Prom
       { $set: { status: 'completed', completedAt, metrics } }
     );
     broadcast('cycle:completed', { cycleId, metrics });
+    notifyCycleCompleted(cycleId).catch(() => {});
 
     // Auto-generate retrospective knowledge file (idempotent via upsert).
     // Errors here are non-fatal — a failed upsert must not prevent the
@@ -584,6 +586,7 @@ export async function handleAdvanceCycle(payload: Record<string, unknown>): Prom
         { $set: { status: 'failed', completedAt: new Date(), metrics } }
       );
       broadcast('cycle:failed', { cycleId, previousPhase });
+      notifyCycleFailed(cycleId).catch(() => {});
       await createJob(
         'next-cycle',
         'infra',
@@ -1128,6 +1131,11 @@ export async function createJob(
       type,
       payload,
     });
+    notifyJobRequiresApproval(type, job._id.toString()).catch(() => {});
+    if (type === 'plan-qa') {
+      const pCycleId = (payload as Record<string, unknown>).cycleId as number | undefined;
+      if (pCycleId != null) notifyPlanQuestions(pCycleId).catch(() => {});
+    }
   }
 
   return job._id.toString();
