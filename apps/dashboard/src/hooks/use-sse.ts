@@ -78,6 +78,10 @@ export function useSSE({ url, onEvent, onError }: SSEOptions) {
         'job:failed',
         'review:ready',
         'system:spending_warning',
+        'system:reload_triggered',
+        'system:control_updated',
+        'task:created',
+        'task:conflict_requeued',
       ];
 
       for (const type of eventTypes) {

@@ -19,12 +19,15 @@ const MODE_BADGE: Record<ControlMode, string> = {
   killed: 'badge-failed',
 };
 
+type OperationMode = 'auto' | 'supervised' | 'manual';
+
 export interface ControlData {
   mode: ControlMode;
   spentUsd: number;
   spendingCapUsd?: number;
   humanMessage?: string;
   autoApprovalCategories: string[];
+  operationMode?: OperationMode;
 }
 
 async function patchControl(data: Partial<ControlData>): Promise<void> {
@@ -52,6 +55,10 @@ export default function ControlPanel({ initialControl }: { initialControl: Contr
   const [autoApprovalCategories, setAutoApprovalCategories] = useState<string[]>(
     initialControl.autoApprovalCategories
   );
+  const [operationMode, setOperationMode] = useState<OperationMode>(
+    initialControl.operationMode ?? 'supervised'
+  );
+  const [recentEvents, setRecentEvents] = useState<Array<{ type: string; data: unknown; timestamp: Date }>>([]);
 
   const refreshControl = useCallback(async () => {
     try {
@@ -59,6 +66,7 @@ export default function ControlPanel({ initialControl }: { initialControl: Contr
       setMode(data.mode);
       setSpentUsd(data.spentUsd);
       setLiveSpendingCapUsd(data.spendingCapUsd);
+      setOperationMode(data.operationMode ?? 'supervised');
     } catch {
       // silently ignore refresh errors — the panel still shows last known values
     }
@@ -66,10 +74,15 @@ export default function ControlPanel({ initialControl }: { initialControl: Contr
 
   useGlobalSSE(
     useCallback(
-      (eventType: string) => {
-        if (eventType === 'system:spending_warning') {
+      (eventType: string, data: unknown) => {
+        if (eventType === 'system:spending_warning' || eventType === 'system:control_updated') {
           void refreshControl();
         }
+        // Capture all events for the Recent Events Log
+        setRecentEvents((prev) => {
+          const next = [{ type: eventType, data, timestamp: new Date() }, ...prev];
+          return next.slice(0, 20);
+        });
       },
       [refreshControl]
     )
@@ -79,6 +92,7 @@ export default function ControlPanel({ initialControl }: { initialControl: Contr
   const [savingCap, setSavingCap] = useState(false);
   const [savingMessage, setSavingMessage] = useState(false);
   const [savingCategories, setSavingCategories] = useState(false);
+  const [savingOperationMode, setSavingOperationMode] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
@@ -136,6 +150,20 @@ export default function ControlPanel({ initialControl }: { initialControl: Contr
     setAutoApprovalCategories((prev) =>
       prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
     );
+  };
+
+  const handleOperationModeChange = async (newMode: OperationMode) => {
+    setSavingOperationMode(true);
+    setError(null);
+    try {
+      await patchControl({ operationMode: newMode } as Partial<ControlData>);
+      setOperationMode(newMode);
+      showSuccess('Operation mode updated');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to update operation mode');
+    } finally {
+      setSavingOperationMode(false);
+    }
   };
 
   const handleSaveCategories = async () => {
@@ -236,6 +264,39 @@ export default function ControlPanel({ initialControl }: { initialControl: Contr
         </CardContent>
       </Card>
 
+      {/* Operation Mode */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Operation Mode</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <fieldset disabled={savingOperationMode} className="space-y-2">
+            <legend className="text-xs text-muted-foreground mb-2">
+              Controls human participation level (independent of system mode above)
+            </legend>
+            {([
+              { value: 'auto' as OperationMode, desc: '— all operations auto-execute, only plan-qa needs human answers' },
+              { value: 'supervised' as OperationMode, desc: '— critical operations need human approval (default)' },
+              { value: 'manual' as OperationMode, desc: '— all spawn/plan jobs need human approval' },
+            ]).map(({ value, desc }) => (
+              <label key={value} className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="radio"
+                  name="operationMode"
+                  value={value}
+                  checked={operationMode === value}
+                  onChange={() => handleOperationModeChange(value)}
+                  className="accent-primary"
+                />
+                <span className="text-sm font-medium">{value}</span>
+                <span className="text-xs text-muted-foreground">{desc}</span>
+              </label>
+            ))}
+          </fieldset>
+          {savingOperationMode && <p className="text-xs text-muted-foreground mt-2">Saving…</p>}
+        </CardContent>
+      </Card>
+
       {/* Spending cap */}
       <Card>
         <CardHeader>
@@ -320,6 +381,50 @@ export default function ControlPanel({ initialControl }: { initialControl: Contr
           </Button>
         </CardContent>
       </Card>
+
+      {/* Recent Events Log */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Events</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="max-h-60 overflow-auto space-y-1">
+            {recentEvents.length === 0 ? (
+              <p className="text-xs text-muted-foreground py-4 text-center">
+                Waiting for events…
+              </p>
+            ) : (
+              recentEvents.map((event, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs py-0.5 border-b border-border/50 last:border-0">
+                  <span className="text-[10px] text-muted-foreground font-mono w-16 flex-shrink-0">
+                    {event.timestamp.toLocaleTimeString()}
+                  </span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-muted font-medium flex-shrink-0">
+                    {event.type}
+                  </span>
+                  <span className="text-muted-foreground truncate">
+                    {summarizeEvent(event.data)}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
+}
+
+function summarizeEvent(data: unknown): string {
+  if (!data || typeof data !== 'object') return '';
+  const d = data as Record<string, unknown>;
+  const parts: string[] = [];
+  if (d.cycleId != null) parts.push(`cycle:${d.cycleId}`);
+  if (d.taskId) parts.push(`task:${d.taskId}`);
+  if (d.agentRunId) parts.push(`agent:${String(d.agentRunId).slice(0, 12)}`);
+  if (d.role) parts.push(String(d.role));
+  if (d.status) parts.push(String(d.status));
+  if (d.type) parts.push(String(d.type));
+  if (d.reason) parts.push(String(d.reason));
+  return parts.join(' · ') || JSON.stringify(data).slice(0, 60);
 }

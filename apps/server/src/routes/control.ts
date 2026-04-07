@@ -4,6 +4,7 @@ import { getOrCreateControl, ControlModel } from '../models/control.js';
 import { AgentRunModel } from '../models/agent-run.js';
 import { killContainer } from '../services/launcher/container.js';
 import { asyncHandler } from '../lib/async-handler.js';
+import { broadcast } from '../services/sse-manager.js';
 
 const router = Router();
 
@@ -12,6 +13,7 @@ const patchControlSchema = z.object({
   humanMessage: z.string().optional(),
   spendingCapUsd: z.number().positive().optional(),
   autoApprovalCategories: z.array(z.string()).optional(),
+  operationMode: z.enum(['auto', 'supervised', 'manual']).optional(),
   cycleOverrides: z.record(z.unknown()).optional(),
 });
 
@@ -34,7 +36,7 @@ router.patch(
       return;
     }
 
-    const { mode, humanMessage, spendingCapUsd, autoApprovalCategories, cycleOverrides } =
+    const { mode, humanMessage, spendingCapUsd, autoApprovalCategories, operationMode, cycleOverrides } =
       parsed.data;
 
     const update: Record<string, unknown> = { updatedAt: new Date() };
@@ -43,6 +45,7 @@ router.patch(
     if (spendingCapUsd !== undefined) update.spendingCapUsd = spendingCapUsd;
     if (autoApprovalCategories !== undefined)
       update.autoApprovalCategories = autoApprovalCategories;
+    if (operationMode !== undefined) update.operationMode = operationMode;
     if (cycleOverrides !== undefined) update.cycleOverrides = cycleOverrides;
 
     await getOrCreateControl(); // Ensure it exists
@@ -51,6 +54,14 @@ router.patch(
       { $set: update },
       { new: true }
     );
+
+    // Broadcast control update so dashboards/event logs refresh
+    const controlObj = control?.toObject() as Record<string, unknown> | undefined;
+    broadcast('system:control_updated', {
+      mode: controlObj?.mode,
+      operationMode: controlObj?.operationMode,
+      updatedAt: controlObj?.updatedAt,
+    });
 
     // Handle kill mode
     if (mode === 'killed') {

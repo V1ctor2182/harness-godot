@@ -27,6 +27,11 @@ const controlSchema = new Schema({
     type: [String],
     default: ['feature', 'bug', 'chore', 'refactor', 'test'],
   },
+  operationMode: {
+    type: String,
+    enum: ['auto', 'supervised', 'manual'],
+    default: 'supervised',
+  },
   updatedAt: { type: Date, default: Date.now },
 });
 
