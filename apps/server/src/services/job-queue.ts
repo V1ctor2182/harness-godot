@@ -44,7 +44,7 @@ export async function detectAndFailStaleJobs(): Promise<void> {
     if (!job.startedAt) continue;
 
     let timeoutMs: number;
-    if (job.type === 'spawn' || job.type === 'curate-inbox') {
+    if (job.type === 'spawn' || job.type === 'curate-inbox' || job.type === 'curate-specs') {
       const role = (job.payload as Record<string, unknown>)?.['role'] as string | undefined;
       if (role === 'coder') timeoutMs = config.coderTimeoutMs;
       else if (role === 'orchestrator') timeoutMs = config.orchestratorTimeoutMs;
@@ -125,6 +125,30 @@ async function pollJobs(): Promise<void> {
     if (agentSlots > 0) pools.push({ pool: 'agent', slots: agentSlots });
     if (infraSlots > 0) pools.push({ pool: 'infra', slots: infraSlots });
 
+    // Build approval filter based on operationMode
+    const operationMode = (control.toObject() as Record<string, unknown>).operationMode as string | undefined;
+    let approvalFilter: Record<string, unknown>;
+
+    if (operationMode === 'auto') {
+      // Auto mode: claim all jobs EXCEPT plan-qa (which needs human /answer, not just approval)
+      approvalFilter = {
+        $or: [
+          { type: { $ne: 'plan-qa' } },
+          { type: 'plan-qa', approvalStatus: 'approved' },
+        ],
+      };
+    } else {
+      // Supervised (default) and manual: respect requiresApproval flag
+      // Manual mode enforces requiresApproval at job creation time (in createJob),
+      // so the poll filter is the same as supervised.
+      approvalFilter = {
+        $or: [
+          { requiresApproval: false },
+          { requiresApproval: true, approvalStatus: 'approved' },
+        ],
+      };
+    }
+
     for (const { pool, slots } of pools) {
       for (let i = 0; i < slots; i++) {
         // Find and claim a pending job
@@ -132,10 +156,7 @@ async function pollJobs(): Promise<void> {
           {
             status: 'pending',
             pool,
-            $or: [
-              { requiresApproval: false },
-              { requiresApproval: true, approvalStatus: 'approved' },
-            ],
+            ...approvalFilter,
           },
           { $set: { status: 'active', startedAt: new Date() } },
           { sort: { createdAt: 1 }, returnDocument: 'after' }
@@ -180,7 +201,17 @@ async function processJob(
         await handleAdvanceCycle(payload);
         break;
       case 'curate-inbox':
-        await handleCurateInbox(payload);
+      case 'curate-specs':
+        await handleCurateSpecs(payload);
+        break;
+      case 'plan-qa':
+        // No-op: plan-qa jobs are resolved via POST /api/jobs/:id/answer HTTP endpoint.
+        // They sit with requiresApproval=true until a human answers, then the endpoint
+        // marks them completed and re-spawns the orchestrator. If the job reaches here
+        // (approved but no answer), it's a no-op — the answer handler already processed it.
+        break;
+      case 'plan-approval':
+        await handlePlanApproval(payload);
         break;
       case 'next-cycle':
         await handleNextCycle(payload);
@@ -380,20 +411,20 @@ export async function handleWaitForCI(
   await JobModel.updateOne({ _id: jobId }, { $set: { status: 'pending' } });
 }
 
-export async function handleApplyPlan(payload: Record<string, unknown>): Promise<void> {
-  const agentRunId = payload['agentRunId'] as string;
-  const cycleId = payload['cycleId'] as number;
-
-  // Use non-lean query to get full document including strict:false fields
+/**
+ * Extract and validate the orchestrator plan from an AgentRun.
+ * Returns the parsed plan or throws.
+ */
+async function extractValidatedPlan(
+  agentRunId: string
+): Promise<{ goal: string; tasks: Array<Record<string, unknown>> }> {
   const run = await AgentRunModel.findById(agentRunId);
   if (!run) throw new Error(`Agent run ${agentRunId} not found`);
 
-  // Read plan from the structured output stored on AgentRun (schema is strict:false)
   const rawOutput = run.toObject().output as Record<string, unknown> | undefined;
   const planField = rawOutput?.plan;
 
   let plan: { goal: string; tasks: Array<Record<string, unknown>> } | undefined;
-
   if (planField && typeof planField === 'object') {
     plan = planField as { goal: string; tasks: Array<Record<string, unknown>> };
   }
@@ -403,13 +434,24 @@ export async function handleApplyPlan(payload: Record<string, unknown>): Promise
       'Could not extract plan from orchestrator output — ensure agent returned structured output with plan field'
     );
 
-  // Validate plan
   const errors = validatePlan(plan);
   if (errors.length > 0) {
     throw new Error(`Plan validation failed:\n${errors.join('\n')}`);
   }
 
-  // Create tasks
+  return plan;
+}
+
+/**
+ * Create tasks from a validated plan and advance the cycle.
+ * Called by handlePlanApproval after human approval, or directly by handleApplyPlan
+ * when plan review is skipped.
+ */
+export async function applyValidatedPlan(
+  agentRunId: string,
+  cycleId: number,
+  plan: { goal: string; tasks: Array<Record<string, unknown>> }
+): Promise<void> {
   const taskIds: string[] = [];
   const taskIdMap: Map<number, string> = new Map();
 
@@ -447,11 +489,42 @@ export async function handleApplyPlan(payload: Record<string, unknown>): Promise
     broadcast('task:created', { taskId: taskIds[i], cycleId, title });
   }
 
-  // Update cycle with the orchestrator's stated goal and the created task IDs
   await CycleModel.updateOne({ _id: cycleId }, { $set: { goal: plan.goal, tasks: taskIds } });
-
-  // Now that tasks exist, advance from plan → implement
   await createJob('advance-cycle', 'infra', { cycleId });
+}
+
+export async function handleApplyPlan(payload: Record<string, unknown>): Promise<void> {
+  const agentRunId = payload['agentRunId'] as string;
+  const cycleId = payload['cycleId'] as number;
+
+  // Validate plan
+  const plan = await extractValidatedPlan(agentRunId);
+
+  // Build a detailed plan summary for the reviewer's task prompt
+  const planDetail = plan.tasks.map((t, i) =>
+    `${i + 1}. [${t['type'] ?? 'feature'}] ${t['title']}\n   ${t['description'] ?? ''}\n   Blocked by: ${(t['blockedBy'] as number[])?.join(', ') || 'none'}`
+  ).join('\n');
+  const planSummary = `Goal: ${plan.goal}\n\nTasks (${plan.tasks.length}):\n${planDetail}`;
+
+  // Spawn a plan-review reviewer — inject plan via retryContext so buildContext
+  // includes it in the task prompt
+  await createJob('spawn', 'agent', {
+    role: 'reviewer',
+    cycleId,
+    retryContext: {
+      previousSummary: `[PLAN-REVIEW] Review this orchestrator plan for quality.\n\n${planSummary}`,
+      reviewDecisions: [`planAgentRunId:${agentRunId}`, `subRole:plan-review`],
+    },
+  });
+}
+
+export async function handlePlanApproval(payload: Record<string, unknown>): Promise<void> {
+  const agentRunId = payload['agentRunId'] as string;
+  const cycleId = payload['cycleId'] as number;
+
+  // Re-extract the plan (it was already validated in handleApplyPlan)
+  const plan = await extractValidatedPlan(agentRunId);
+  await applyValidatedPlan(agentRunId, cycleId, plan);
 }
 
 export async function handleAdvanceCycle(payload: Record<string, unknown>): Promise<void> {
@@ -536,26 +609,80 @@ export async function handleAdvanceCycle(payload: Record<string, unknown>): Prom
     // Merge all task branches into base branch
     await createJob('spawn', 'agent', { role: 'integrator', cycleId });
   } else if (nextPhase === 'retrospect') {
-    // Curate knowledge inbox
-    await createJob('curate-inbox', 'agent', { cycleId });
+    // Curate knowledge → extract spec sediments from cycle PRs
+    await createJob('curate-specs', 'agent', { cycleId });
   }
 }
 
-export async function handleCurateInbox(payload: Record<string, unknown>): Promise<void> {
+export async function handleCurateSpecs(payload: Record<string, unknown>): Promise<void> {
   const cycleId = payload['cycleId'] as number;
 
-  const { KnowledgeFileModel } = await import('../models/knowledge-file.js');
-  const inboxCount = await KnowledgeFileModel.countDocuments({
-    category: 'inbox',
-    status: 'active',
-  });
-  if (inboxCount > 0) {
-    await spawnAgent({ role: 'curator', cycleId, taskId: undefined });
+  // Spawn curator agent to extract spec sediments from cycle PRs
+  const agentRunId = await spawnAgent({ role: 'curator', cycleId, taskId: undefined });
+
+  // After curator completes, process spec sediments from its output
+  const { SpecModel } = await import('../models/spec.js');
+  const { RoomModel } = await import('../models/room.js');
+  const run = await AgentRunModel.findById(agentRunId);
+  const output = run?.toObject().output as Record<string, unknown> | undefined;
+  const sediments = output?.specSediments as Array<Record<string, unknown>> | undefined;
+
+  if (sediments && sediments.length > 0) {
+    let created = 0;
+    let discarded = 0;
+
+    for (const sediment of sediments) {
+      const confidence = (sediment.confidence as number) ?? 0;
+
+      if (confidence < 0.50) {
+        // Low confidence — discard
+        logger.info(
+          { title: sediment.title, confidence, cycleId },
+          '[curate-specs] Discarded low-confidence sediment'
+        );
+        discarded++;
+        continue;
+      }
+
+      const state = confidence >= 0.75 ? 'active' : 'draft';
+      const roomId = (sediment.roomId as string) ?? '00-project-room';
+      const specId = `${sediment.type ?? 'context'}-${roomId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 5)}`;
+
+      await SpecModel.create({
+        _id: specId,
+        roomId,
+        type: sediment.type ?? 'context',
+        state,
+        title: sediment.title ?? 'Untitled sediment',
+        summary: sediment.summary ?? '',
+        detail: sediment.detail ?? '',
+        provenance: {
+          source_type: 'agent_sediment',
+          confidence,
+          agentRunId,
+          cycleId,
+          cycle_tag: `cycle-${cycleId}`,
+        },
+        tags: (sediment.tags as string[]) ?? [],
+        relations: [],
+        anchors: [],
+        qualityScore: 0,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      // Update Room updatedAt
+      await RoomModel.updateOne({ _id: roomId }, { $set: { updatedAt: new Date() } });
+      created++;
+    }
+
+    logger.info(
+      { cycleId, created, discarded, total: sediments.length },
+      '[curate-specs] Spec sediment processing complete'
+    );
   }
 
   // Trigger reload before completing so containers pick up integrated code.
-  // This runs after the curator (not during integrator) to avoid orphaning
-  // the curator container when the server restarts.
   try {
     const fs = await import('node:fs/promises');
     const path = await import('node:path');
@@ -968,6 +1095,14 @@ export async function createJob(
   // Jobs that modify protected paths always require human approval
   if (type === 'apply-plan') {
     // Plans always require human review before task creation
+    requiresApproval = true;
+  }
+
+  // Manual mode: force approval on all non-infrastructure jobs
+  const INFRA_EXEMPT_TYPES: string[] = ['advance-cycle', 'wait-for-ci', 'reload', 'cleanup-prs', 'next-cycle'];
+  const control2 = await getOrCreateControl();
+  const opMode = (control2.toObject() as Record<string, unknown>).operationMode as string | undefined;
+  if (opMode === 'manual' && !INFRA_EXEMPT_TYPES.includes(type)) {
     requiresApproval = true;
   }
 
