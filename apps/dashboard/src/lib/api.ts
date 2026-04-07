@@ -91,7 +91,112 @@ export const api = {
   getControl: () => request<unknown>('/control'),
   updateControl: (data: Record<string, unknown>) =>
     request<unknown>('/control', { method: 'PATCH', body: JSON.stringify(data) }),
+
+  // Rooms
+  listRooms: (params?: { parent?: string; lifecycle?: string; type?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.parent) qs.set('parent', params.parent);
+    if (params?.lifecycle) qs.set('lifecycle', params.lifecycle);
+    if (params?.type) qs.set('type', params.type);
+    return request<RoomTreeNode[]>(`/rooms?${qs}`);
+  },
+  getRoomTree: () => request<RoomTreeNode[]>('/rooms/tree'),
+  getRoom: (id: string) => request<unknown>(`/rooms/${id}`),
+
+  // Specs
+  listSpecs: (params?: { roomId?: string; type?: string; state?: string; tags?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.roomId) qs.set('roomId', params.roomId);
+    if (params?.type) qs.set('type', params.type);
+    if (params?.state) qs.set('state', params.state);
+    if (params?.tags) qs.set('tags', params.tags);
+    return request<SpecItem[]>(`/specs?${qs}`);
+  },
+  createSpec: (data: Record<string, unknown>) =>
+    request<SpecItem>('/specs', { method: 'POST', body: JSON.stringify(data) }),
+  updateSpec: (id: string, data: Record<string, unknown>) =>
+    request<SpecItem>(`/specs/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  archiveStaleSpecs: (roomId: string) =>
+    request<{ archived: number }>('/specs/archive-stale', {
+      method: 'POST',
+      body: JSON.stringify({ roomId }),
+    }),
+
+  // Tests
+  listTests: (params?: { taskId?: string; cycleId?: number; layer?: string; status?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.taskId) qs.set('taskId', params.taskId);
+    if (params?.cycleId) qs.set('cycleId', String(params.cycleId));
+    if (params?.layer) qs.set('layer', params.layer);
+    if (params?.status) qs.set('status', params.status);
+    return request<TestResultItem[]>(`/tests?${qs}`);
+  },
+
+  // Jobs (answer)
+  answerJob: (id: string, answers: Record<string, string>, feedback?: string) =>
+    request<unknown>(`/jobs/${id}/answer`, {
+      method: 'POST',
+      body: JSON.stringify({ answers, feedback }),
+    }),
 };
+
+// ─── Room & Spec types ──────────────────────────────────────────────
+
+export interface RoomTreeNode {
+  _id: string;
+  name: string;
+  type: string;
+  owner: string;
+  lifecycle: string;
+  path: string;
+  specCount: { total: number; draft: number };
+  children: RoomTreeNode[];
+}
+
+export interface SpecItem {
+  _id: string;
+  roomId: string;
+  type: string;
+  state: string;
+  title: string;
+  summary: string;
+  detail: string;
+  provenance: {
+    source_type: string;
+    confidence: number;
+    source_ref?: string;
+    cycle_tag?: string;
+  };
+  qualityScore: number;
+  lastReferencedAt?: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TestResultItem {
+  _id: string;
+  taskId: string;
+  cycleId: number;
+  agentRunId: string;
+  layer: string;
+  status: string;
+  totalTests: number;
+  passed: number;
+  failed: number;
+  durationMs: number;
+  failures: Array<{
+    testName: string;
+    assertion: string;
+    expected?: string;
+    actual?: string;
+    file?: string;
+    line?: number;
+  }>;
+  createdAt: string;
+}
+
+// ─── Analytics types ────────────────────────────────────────────────
 
 export interface SpendingByCycle {
   cycleId: number;
