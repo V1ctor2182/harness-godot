@@ -391,9 +391,7 @@ export default function CycleDetailPage() {
                           ) : null}
                         </TableCell>
                         <TableCell>
-                          <Link href={`/tasks/${t._id}`} className="text-primary hover:underline">
-                            {t._id}
-                          </Link>
+                          <span className="font-mono text-xs">{t._id}</span>
                         </TableCell>
                         <TableCell className="max-w-[320px] truncate">{t.title}</TableCell>
                         <TableCell>
@@ -463,9 +461,7 @@ export default function CycleDetailPage() {
                   return (
                     <TableRow key={t._id}>
                       <TableCell>
-                        <Link href={`/tasks/${t._id}`} className="text-primary hover:underline">
-                          {t._id}
-                        </Link>
+                        <span className="font-mono text-xs">{t._id}</span>
                       </TableCell>
                       <TableCell className="max-w-[320px] truncate">{t.title}</TableCell>
                       <TableCell>
@@ -504,9 +500,7 @@ export default function CycleDetailPage() {
                 {agentRuns.map((r) => (
                   <TableRow key={r._id}>
                     <TableCell>
-                      <Link href={`/agents/${r._id}`} className="text-primary hover:underline">
-                        {r._id.slice(0, 16)}
-                      </Link>
+                      <span className="font-mono text-xs">{r._id.slice(0, 16)}</span>
                     </TableCell>
                     <TableCell>{r.role}</TableCell>
                     <TableCell>

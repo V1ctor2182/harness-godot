@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
 
 import { api } from '@/lib/api';
 import { useAgentSSE } from '@/hooks/use-sse';
@@ -42,13 +41,10 @@ interface AgentOutput {
   decisions?: string[];
   branch?: string;
   prNumber?: number;
-  // Reviewer fields
   reviewVerdict?: 'approved' | 'changes-requested';
   issues?: ReviewIssue[];
   suggestions?: string[];
-  // Orchestrator fields
   plan?: OrchestratorPlan;
-  // Context feedback
   contextFeedback?: ContextFeedback;
 }
 
@@ -101,8 +97,7 @@ function EventContent({ type, data }: { type: string; data: Record<string, unkno
   if (type === 'completion') {
     return (
       <div className="text-success">
-        Completed — ${(data.costUsd as number)?.toFixed(2)} —{' '}
-        {((data.durationMs as number) / 1000).toFixed(0)}s
+        Completed — ${(data.costUsd as number)?.toFixed(2)} — {((data.durationMs as number) / 1000).toFixed(0)}s
       </div>
     );
   }
@@ -131,24 +126,18 @@ function StructuredOutputPanel({ role, output }: { role: string; output: AgentOu
         <CardTitle>Structured Output</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 font-mono text-sm">
-        {/* Summary — shown for coder, integrator, and orchestrator */}
         {output.summary && role !== 'reviewer' && (
           <div>
-            <div className="text-muted-foreground text-xs uppercase tracking-wide mb-1">
-              Summary
-            </div>
+            <div className="text-muted-foreground text-xs uppercase tracking-wide mb-1">Summary</div>
             <p className="font-sans">{output.summary}</p>
           </div>
         )}
 
-        {/* Reviewer: verdict + issues + suggestions */}
         {role === 'reviewer' && (
           <>
             {output.reviewVerdict && (
               <div>
-                <div className="text-muted-foreground text-xs uppercase tracking-wide mb-1">
-                  Verdict
-                </div>
+                <div className="text-muted-foreground text-xs uppercase tracking-wide mb-1">Verdict</div>
                 <span
                   className={`badge ${output.reviewVerdict === 'approved' ? 'badge-completed' : 'badge-failed'}`}
                 >
@@ -158,9 +147,7 @@ function StructuredOutputPanel({ role, output }: { role: string; output: AgentOu
             )}
             {output.summary && (
               <div>
-                <div className="text-muted-foreground text-xs uppercase tracking-wide mb-1">
-                  Summary
-                </div>
+                <div className="text-muted-foreground text-xs uppercase tracking-wide mb-1">Summary</div>
                 <p className="font-sans">{output.summary}</p>
               </div>
             )}
@@ -174,9 +161,7 @@ function StructuredOutputPanel({ role, output }: { role: string; output: AgentOu
                     <li key={i} className="flex items-start gap-2">
                       <SeverityBadge severity={issue.severity} />
                       <span className="text-accent">{issue.file}</span>
-                      {issue.line !== undefined && (
-                        <span className="text-muted-foreground">:{issue.line}</span>
-                      )}
+                      {issue.line !== undefined && <span className="text-muted-foreground">:{issue.line}</span>}
                       <span className="font-sans text-muted-foreground">— {issue.description}</span>
                     </li>
                   ))}
@@ -198,24 +183,19 @@ function StructuredOutputPanel({ role, output }: { role: string; output: AgentOu
           </>
         )}
 
-        {/* Coder: branch + prNumber + filesChanged */}
         {role === 'coder' && (
           <>
             {(output.branch ?? output.prNumber) && (
               <div className="flex gap-4">
                 {output.branch && (
                   <div>
-                    <div className="text-muted-foreground text-xs uppercase tracking-wide mb-1">
-                      Branch
-                    </div>
+                    <div className="text-muted-foreground text-xs uppercase tracking-wide mb-1">Branch</div>
                     <span className="text-accent">{output.branch}</span>
                   </div>
                 )}
                 {output.prNumber && (
                   <div>
-                    <div className="text-muted-foreground text-xs uppercase tracking-wide mb-1">
-                      PR
-                    </div>
+                    <div className="text-muted-foreground text-xs uppercase tracking-wide mb-1">PR</div>
                     <span className="text-accent">#{output.prNumber}</span>
                   </div>
                 )}
@@ -238,7 +218,6 @@ function StructuredOutputPanel({ role, output }: { role: string; output: AgentOu
           </>
         )}
 
-        {/* Orchestrator: plan goal + task count */}
         {role === 'orchestrator' && output.plan && (
           <div>
             <div className="text-muted-foreground text-xs uppercase tracking-wide mb-1">Plan</div>
@@ -247,14 +226,13 @@ function StructuredOutputPanel({ role, output }: { role: string; output: AgentOu
                 <span className="text-muted-foreground">Goal:</span> {output.plan.goal}
               </div>
               <div>
-                <span className="text-muted-foreground">Tasks:</span> {output.plan.tasks.length}{' '}
-                task{output.plan.tasks.length !== 1 ? 's' : ''}
+                <span className="text-muted-foreground">Tasks:</span> {output.plan.tasks.length} task
+                {output.plan.tasks.length !== 1 ? 's' : ''}
               </div>
             </div>
           </div>
         )}
 
-        {/* Decisions — shown for all roles */}
         {output.decisions && output.decisions.length > 0 && (
           <div>
             <div className="text-muted-foreground text-xs uppercase tracking-wide mb-1">
@@ -268,18 +246,13 @@ function StructuredOutputPanel({ role, output }: { role: string; output: AgentOu
           </div>
         )}
 
-        {/* Context feedback summary */}
         {contextFeedback && (
           <div>
-            <div className="text-muted-foreground text-xs uppercase tracking-wide mb-1">
-              Context Feedback
-            </div>
+            <div className="text-muted-foreground text-xs uppercase tracking-wide mb-1">Context Feedback</div>
             <div className="flex gap-4 font-sans text-xs">
               <span className="text-success">{contextFeedback.useful.length} useful</span>
               <span className="text-destructive">{contextFeedback.missing.length} missing</span>
-              <span className="text-muted-foreground">
-                {contextFeedback.unnecessary.length} unnecessary
-              </span>
+              <span className="text-muted-foreground">{contextFeedback.unnecessary.length} unnecessary</span>
             </div>
           </div>
         )}
@@ -288,19 +261,22 @@ function StructuredOutputPanel({ role, output }: { role: string; output: AgentOu
   );
 }
 
-export default function AgentDetailPage() {
-  const params = useParams();
-  const id = params.id as string;
+export interface AgentDetailProps {
+  agentRunId: string;
+  eventScrollHeight?: string;
+}
+
+export function AgentDetail({ agentRunId, eventScrollHeight = '600px' }: AgentDetailProps) {
   const [run, setRun] = useState<AgentRun | null>(null);
   const [events, setEvents] = useState<AgentEvent[]>([]);
   const [liveText, setLiveText] = useState('');
 
   useEffect(() => {
-    api.getAgentRun(id).then((r) => setRun(r as AgentRun));
-    api.getAgentEvents(id).then((e) => setEvents(e as AgentEvent[]));
-  }, [id]);
+    api.getAgentRun(agentRunId).then((r) => setRun(r as AgentRun));
+    api.getAgentEvents(agentRunId).then((e) => setEvents(e as AgentEvent[]));
+  }, [agentRunId]);
 
-  const { connected } = useAgentSSE(id, (type, data) => {
+  const { connected } = useAgentSSE(agentRunId, (type, data) => {
     if (type === 'agent:text_delta') {
       setLiveText((prev) => prev + ((data as { text: string }).text ?? ''));
     } else if (type === 'agent:text') {
@@ -333,9 +309,9 @@ export default function AgentDetailPage() {
       ]);
     } else if (type === 'agent:completed') {
       const payload = data as { agentRunId: string };
-      if (payload.agentRunId === id) {
+      if (payload.agentRunId === agentRunId) {
         setLiveText('');
-        api.getAgentRun(id).then((r) => setRun(r as AgentRun));
+        api.getAgentRun(agentRunId).then((r) => setRun(r as AgentRun));
       }
     }
   });
@@ -343,40 +319,40 @@ export default function AgentDetailPage() {
   if (!run) return <div className="pt-4 text-muted-foreground">Loading...</div>;
 
   return (
-    <div className="pt-4 space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold truncate">{run._id}</h1>
+        <h1 className="text-lg font-bold truncate">{run._id}</h1>
         <div className="flex items-center gap-2">
           <StatusBadge status={run.status} />
           {connected && <LiveDot />}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Card>
           <CardHeader className="pb-0">
-            <CardTitle className="text-sm text-muted-foreground font-normal">Role</CardTitle>
+            <CardTitle className="text-xs text-muted-foreground font-normal">Role</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-semibold">{run.role}</div>
+            <div className="text-base font-semibold">{run.role}</div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-0">
-            <CardTitle className="text-sm text-muted-foreground font-normal">Cost</CardTitle>
+            <CardTitle className="text-xs text-muted-foreground font-normal">Cost</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-semibold">
+            <div className="text-base font-semibold">
               ${run.costUsd?.toFixed(2) ?? '\u2014'} / ${run.budgetUsd}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-0">
-            <CardTitle className="text-sm text-muted-foreground font-normal">Duration</CardTitle>
+            <CardTitle className="text-xs text-muted-foreground font-normal">Duration</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-semibold">
+            <div className="text-base font-semibold">
               {run.durationMs ? `${(run.durationMs / 1000).toFixed(0)}s` : 'Running...'}
             </div>
           </CardContent>
@@ -401,7 +377,7 @@ export default function AgentDetailPage() {
           <CardTitle>Event Stream ({events.length} events)</CardTitle>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[600px]">
+          <ScrollArea style={{ height: eventScrollHeight }}>
             <div className="space-y-0">
               {events.map((e) => (
                 <div key={e._id} className="py-1.5 border-b border-border">

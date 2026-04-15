@@ -643,7 +643,6 @@ export async function createFollowUpJobs(
       await createJob('spawn', 'agent', { role: 'reviewer', taskId, cycleId });
     } else {
       // Tests failed → retry Coder with test failure context
-      const task = await TaskModel.findById(taskId).lean();
       const testRetries = await AgentRunModel.countDocuments({ taskId, role: 'tester' });
 
       if (testRetries >= (await import('@zombie-farm/shared')).MAX_TEST_RETRIES) {

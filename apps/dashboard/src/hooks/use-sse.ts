@@ -82,6 +82,9 @@ export function useSSE({ url, onEvent, onError }: SSEOptions) {
         'system:control_updated',
         'task:created',
         'task:conflict_requeued',
+        'inbox:new',
+        'inbox:resolved',
+        'milestone:updated',
       ];
 
       for (const type of eventTypes) {

@@ -1,18 +1,10 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from '@/components/ui/table';
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
 import { StatusBadge } from '@/components/status-badge';
 import { useGlobalSSE } from '@/hooks/use-sse';
 
@@ -52,9 +44,13 @@ interface AgentRun {
   createdAt?: string;
 }
 
-export default function TaskDetailPage() {
-  const params = useParams();
-  const id = params.id as string;
+export interface TaskDetailProps {
+  taskId: string;
+  /** Called when user clicks an agent run link (e.g. to swap drawer content). Falls back to navigation if unset. */
+  onSelectAgentRun?: (agentRunId: string) => void;
+}
+
+export function TaskDetail({ taskId, onSelectAgentRun }: TaskDetailProps) {
   const [task, setTask] = useState<Task | null>(null);
   const [runs, setRuns] = useState<AgentRun[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -63,74 +59,75 @@ export default function TaskDetailPage() {
 
   const fetchTask = useCallback(() => {
     api
-      .getTask(id)
+      .getTask(taskId)
       .then((t) => setTask(t as Task))
       .catch((e) => setError((e as Error).message));
-  }, [id]);
+  }, [taskId]);
 
   useEffect(() => {
     fetchTask();
-    api.listAgentRuns({ taskId: id }).then((r) => setRuns(r as AgentRun[]));
-  }, [id, fetchTask]);
+    api.listAgentRuns({ taskId }).then((r) => setRuns(r as AgentRun[]));
+  }, [taskId, fetchTask]);
 
   const handleRetry = useCallback(async () => {
     setRetrying(true);
     setRetryError(null);
     try {
-      await api.retryTask(id);
+      await api.retryTask(taskId);
       setTask((prev) => (prev ? { ...prev, status: 'backlog' } : prev));
     } catch (e) {
       setRetryError((e as Error).message);
     } finally {
       setRetrying(false);
     }
-  }, [id]);
+  }, [taskId]);
 
   useGlobalSSE(
     useCallback(
       (eventType: string, data: unknown) => {
         if (eventType === 'task:status_changed') {
-          const event = data as {
-            taskId: string;
-            status?: string;
-            prNumber?: number;
-            prUrl?: string;
-          };
-          if (event.taskId === id) {
+          const event = data as { taskId: string };
+          if (event.taskId === taskId) {
             fetchTask();
           }
         }
       },
-      [id, fetchTask]
+      [taskId, fetchTask]
     )
   );
 
   if (error) {
     return (
-      <div className="pt-4">
-        <Card className="border-destructive">
-          <CardHeader>
-            <CardTitle className="text-destructive">Error</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>{error}</p>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="border-destructive">
+        <CardHeader>
+          <CardTitle className="text-destructive">Error</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>{error}</p>
+        </CardContent>
+      </Card>
     );
   }
 
-  if (!task) return <div className="pt-4 text-muted-foreground">Loading...</div>;
+  if (!task) return <div className="text-muted-foreground">Loading...</div>;
 
-  const mostRecentRun = runs.length > 0 ? runs[runs.length - 1] : null;
+  const agentLink = (runId: string) =>
+    onSelectAgentRun ? (
+      <button onClick={() => onSelectAgentRun(runId)} className="hover:underline text-left">
+        {runId}
+      </button>
+    ) : (
+      <Link href={`/cycles/${task.cycleId}?agent=${runId}`} className="hover:underline">
+        {runId}
+      </Link>
+    );
 
   return (
-    <div className="pt-4">
-      {/* Header */}
-      <div className="mb-4 flex items-center justify-between">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
         <div>
           <div className="mb-1 text-xs text-muted-foreground">{task._id}</div>
-          <h1 className="text-2xl font-bold">{task.title}</h1>
+          <h1 className="text-lg font-bold">{task.title}</h1>
         </div>
         <div className="flex flex-col items-end gap-2">
           <StatusBadge status={task.status} />
@@ -147,22 +144,21 @@ export default function TaskDetailPage() {
         </div>
       </div>
 
-      {/* Meta fields */}
-      <div className="mb-4 grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-3 gap-3">
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="text-xs uppercase tracking-wider text-muted-foreground">Type</div>
             <div className="mt-1 font-medium">{task.type}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="text-xs uppercase tracking-wider text-muted-foreground">Priority</div>
             <div className="mt-1 font-medium">{task.priority}</div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="p-4">
+          <CardContent className="p-3">
             <div className="text-xs uppercase tracking-wider text-muted-foreground">Cycle</div>
             <div className="mt-1 font-medium">
               <Link href={`/cycles/${task.cycleId}`} className="hover:underline">
@@ -173,26 +169,24 @@ export default function TaskDetailPage() {
         </Card>
       </div>
 
-      {/* Description */}
       {task.description && (
-        <Card className="mb-4">
+        <Card>
           <CardHeader>
             <CardTitle>Description</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="whitespace-pre-wrap">{task.description}</p>
+            <p className="whitespace-pre-wrap text-sm">{task.description}</p>
           </CardContent>
         </Card>
       )}
 
-      {/* Acceptance Criteria */}
       {task.acceptanceCriteria && task.acceptanceCriteria.length > 0 && (
-        <Card className="mb-4">
+        <Card>
           <CardHeader>
             <CardTitle>Acceptance Criteria</CardTitle>
           </CardHeader>
           <CardContent>
-            <ol className="list-decimal space-y-1 pl-6">
+            <ol className="list-decimal space-y-1 pl-6 text-sm">
               {task.acceptanceCriteria.map((criterion, i) => (
                 <li key={i}>{criterion}</li>
               ))}
@@ -201,28 +195,15 @@ export default function TaskDetailPage() {
         </Card>
       )}
 
-      {/* Additional details */}
-      <Card className="mb-4">
+      <Card>
         <CardHeader>
           <CardTitle>Details</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {task.assignedTo && (
-              <div className="flex items-baseline gap-4">
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                  Assigned To
-                </span>
-                <Link href={`/agents/${task.assignedTo}`} className="hover:underline">
-                  {task.assignedTo}
-                </Link>
-              </div>
-            )}
+          <div className="space-y-3 text-sm">
             {task.branch && (
               <div className="flex items-baseline gap-4">
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                  Branch
-                </span>
+                <span className="text-xs uppercase tracking-wider text-muted-foreground">Branch</span>
                 <code className="rounded bg-muted px-1.5 py-0.5 text-xs">{task.branch}</code>
               </div>
             )}
@@ -230,12 +211,7 @@ export default function TaskDetailPage() {
               <div className="flex items-baseline gap-4">
                 <span className="text-xs uppercase tracking-wider text-muted-foreground">PR</span>
                 {task.prUrl ? (
-                  <a
-                    href={task.prUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:underline"
-                  >
+                  <a href={task.prUrl} target="_blank" rel="noopener noreferrer" className="hover:underline">
                     #{task.prNumber}
                   </a>
                 ) : (
@@ -245,46 +221,21 @@ export default function TaskDetailPage() {
             )}
             {task.ciStatus && (
               <div className="flex items-baseline gap-4">
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                  CI Status
-                </span>
+                <span className="text-xs uppercase tracking-wider text-muted-foreground">CI Status</span>
                 <StatusBadge status={task.ciStatus} />
-              </div>
-            )}
-            {task.blockedBy && task.blockedBy.length > 0 && (
-              <div className="flex items-baseline gap-4">
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                  Blocked By
-                </span>
-                <span>
-                  {task.blockedBy.map((dep, i) => (
-                    <span key={dep}>
-                      <Link href={`/tasks/${dep}`} className="hover:underline">
-                        {dep}
-                      </Link>
-                      {i < (task.blockedBy?.length ?? 0) - 1 && ', '}
-                    </span>
-                  ))}
-                </span>
               </div>
             )}
             {task.reviewVerdict && (
               <div className="flex items-baseline gap-4">
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                  Review Verdict
-                </span>
-                <span
-                  className={`badge ${task.reviewVerdict === 'approved' ? 'badge-active' : 'badge-paused'}`}
-                >
+                <span className="text-xs uppercase tracking-wider text-muted-foreground">Review Verdict</span>
+                <span className={`badge ${task.reviewVerdict === 'approved' ? 'badge-active' : 'badge-paused'}`}>
                   {task.reviewVerdict === 'approved' ? 'Approved' : 'Changes Requested'}
                 </span>
               </div>
             )}
             {task.retryCount != null && task.retryCount > 0 && (
               <div className="flex items-baseline gap-4">
-                <span className="text-xs uppercase tracking-wider text-muted-foreground">
-                  Retries
-                </span>
+                <span className="text-xs uppercase tracking-wider text-muted-foreground">Retries</span>
                 <span>
                   Retried {task.retryCount} {task.retryCount === 1 ? 'time' : 'times'}
                 </span>
@@ -294,9 +245,8 @@ export default function TaskDetailPage() {
         </CardContent>
       </Card>
 
-      {/* Activity Log */}
       {task.activityLog && task.activityLog.length > 0 && (
-        <Card className="mb-4">
+        <Card>
           <CardHeader>
             <CardTitle>Activity Log</CardTitle>
           </CardHeader>
@@ -323,54 +273,38 @@ export default function TaskDetailPage() {
         </Card>
       )}
 
-      {/* Agent Runs */}
       <Card>
         <CardHeader>
           <CardTitle>Agent Runs ({runs.length})</CardTitle>
         </CardHeader>
         <CardContent>
           {runs.length === 0 ? (
-            <div className="text-muted-foreground">No agent runs yet.</div>
+            <div className="text-muted-foreground text-sm">No agent runs yet.</div>
           ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Cost</TableHead>
-                    <TableHead>Duration</TableHead>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Cost</TableHead>
+                  <TableHead>Duration</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {runs.map((run) => (
+                  <TableRow key={run._id}>
+                    <TableCell>{agentLink(run._id)}</TableCell>
+                    <TableCell>{run.role}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={run.status} />
+                    </TableCell>
+                    <TableCell>${run.costUsd?.toFixed(2) ?? '---'}</TableCell>
+                    <TableCell>{run.durationMs ? `${(run.durationMs / 1000).toFixed(0)}s` : '---'}</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {runs.map((run) => (
-                    <TableRow key={run._id}>
-                      <TableCell>
-                        <Link href={`/agents/${run._id}`} className="hover:underline">
-                          {run._id}
-                        </Link>
-                      </TableCell>
-                      <TableCell>{run.role}</TableCell>
-                      <TableCell>
-                        <StatusBadge status={run.status} />
-                      </TableCell>
-                      <TableCell>${run.costUsd?.toFixed(2) ?? '---'}</TableCell>
-                      <TableCell>
-                        {run.durationMs ? `${(run.durationMs / 1000).toFixed(0)}s` : '---'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-              {mostRecentRun && (
-                <div className="mt-3">
-                  <Link href={`/agents/${mostRecentRun._id}`} className="hover:underline">
-                    View most recent run &rarr;
-                  </Link>
-                </div>
-              )}
-            </>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>

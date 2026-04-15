@@ -347,8 +347,8 @@ export default function Dashboard() {
                 </span>
                 <span className="ml-1 text-sm text-muted-foreground">awaiting review</span>
                 <div className="mt-1">
-                  <Link href="/jobs" className="text-xs text-primary hover:underline">
-                    View jobs →
+                  <Link href="/inbox" className="text-xs text-primary hover:underline">
+                    Open Inbox →
                   </Link>
                 </div>
               </div>
@@ -356,8 +356,8 @@ export default function Dashboard() {
               <div>
                 <span className="text-sm text-muted-foreground">None pending</span>
                 <div className="mt-1">
-                  <Link href="/jobs" className="text-xs text-primary hover:underline">
-                    View jobs →
+                  <Link href="/inbox" className="text-xs text-primary hover:underline">
+                    Open Inbox →
                   </Link>
                 </div>
               </div>
