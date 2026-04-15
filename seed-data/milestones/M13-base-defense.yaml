@@ -1,0 +1,19 @@
+id: M13
+name: 基地防御与入侵
+description: |
+  Base Defense & Raids. 人类开始反击:入侵事件、防御建筑、实时农场战斗
+  迫使玩家做出战略布局。
+goals:
+  - 人类反攻事件
+  - 防御建筑
+  - 实时农场战斗
+  - 战略布局
+features:
+  - RaidManager
+  - DefenseBuildings
+  - FarmBattleMode
+dependsOn:
+  - M11
+  - M12
+estimatedWeeks: 2
+order: 13

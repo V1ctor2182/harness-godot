@@ -1,20 +1,52 @@
 spec_id: "intent-07-01-live-stream-001"
 type: intent
-state: draft
+state: active
 intent:
-  summary: "SSE-driven real-time agent thinking process display"
+  summary: "SSE-driven real-time observation: Cycle Team pipeline, per-agent drawers, live events log"
   detail: |
-    SSE 驱动的 agent 实时思考过程展示。Global event stream 和 per-agent filtered stream，tool calls 和 reasoning steps 结构化渲染。
-constraints: []
+    Live observation surface for the harness team:
+     - Team Pipeline (Cycle detail page) shows 6 role slots grouping
+       agent runs. Multi-instance roles (coder/tester/reviewer/integrator)
+       stack with a ×N badge and cumulative cost/duration. Single-instance
+       roles (orchestrator/curator) show a single card.
+     - Running cards pulse; failed cards border red; arrows between slots
+       color by upstream activity.
+     - Clicking a card opens an Agent drawer (Sheet primitive) driven by
+       ?agent=<role> query param. Inside the drawer the reused
+       AgentDetail component streams NDJSON via useAgentSSE with
+       exponential backoff reconnect.
+     - The global SSE hook (useGlobalSSE) is the single event bus;
+       its event type list was extended with inbox:new / inbox:resolved /
+       milestone:updated for Phase 2+3.
+     - Events Log footer on Cycle page keeps the last 400 events as a
+       collapsible tail.
+constraints:
+  - "Do not hardcode agent roles outside ROLE_ORDER in cycle page"
+  - "AgentDetail component must not read URL params — always take id via props"
 indexing:
   type: intent
   priority: high
   layer: feature
   domain: "live-stream"
-  tags: [SSE, real-time, event-stream, tool-calls, reasoning]
+  tags: [SSE, real-time, team-pipeline, agent-drawer, event-stream]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
-relations: []
-anchors: []
+  confidence: 0.95
+  source_ref: "c0f4043 Phase 2 Cycle Team view"
+  cycle_tag: "dashboard-redesign-2026-04-15"
+relations:
+  - target: "intent-07-dashboard-001"
+    type: "depends_on"
+anchors:
+  - file: "apps/dashboard/src/app/cycles/[id]/page.tsx"
+    symbol: "CycleDetailPage"
+  - file: "apps/dashboard/src/app/cycles/[id]/page.tsx"
+    symbol: "TeamPipeline"
+  - file: "apps/dashboard/src/app/cycles/[id]/page.tsx"
+    symbol: "AgentCard"
+  - file: "apps/dashboard/src/components/agent-detail.tsx"
+    symbol: "AgentDetail"
+  - file: "apps/dashboard/src/hooks/use-sse.ts"
+    symbol: "useGlobalSSE"
+  - file: "apps/dashboard/src/hooks/use-sse.ts"
+    symbol: "useAgentSSE"

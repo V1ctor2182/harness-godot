@@ -1,0 +1,21 @@
+id: M2
+name: 僵尸生活与管理
+description: |
+  Zombie Life & Management. 让收获的僵尸从"资源"变成"有生命的角色":
+  漫游、属性、玩家互动、情感连接。
+goals:
+  - 僵尸自由漫游
+  - 随机命名
+  - 个体属性
+  - 玩家互动(F键)
+  - 抚摸机制
+  - HUD 显示
+features:
+  - ZombieEntity scene
+  - NameGenerator
+  - StatsPanel UI
+  - PettingSystem
+dependsOn:
+  - M1
+estimatedWeeks: 2
+order: 2

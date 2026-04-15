@@ -2,9 +2,9 @@ room:
   id: "07-02-review-panel"
   name: "审查面板"
   parent: "07-dashboard"
-  lifecycle: planning
+  lifecycle: active
   created_at: "2026-04-05"
-  updated_at: "2026-04-05"
+  updated_at: "2026-04-15"
   owner: frontend
   contributors: []
   prompt_test:

@@ -1,20 +1,47 @@
 spec_id: "intent-07-02-review-panel-001"
 type: intent
-state: draft
+state: active
 intent:
-  summary: "Side-by-side PR diff and agent reasoning with review actions"
+  summary: "Unified Inbox — all human-in-the-loop decisions in one mail-style view"
   detail: |
-    Structured PR diff + agent reasoning 并排展示，支持 approve/reject/request-changes 操作。展示 coder 的 context feedback 和 reviewer 的 severity-graded issues。
-constraints: []
+    The "review panel" concept has been generalized into a unified Inbox
+    that aggregates every item waiting on a human:
+     - job approvals (requiresApproval=true)
+     - plan Q&A (Orchestrator questions)
+     - plan review (approve / request changes)
+     - PR gate (reviewVerdict pending for in-review tasks)
+     - draft specs (Curator 0.50-0.74)
+     - next-cycle decisions (all tasks failed)
+    The page is a two-pane mail client: left list with type tabs +
+    urgency highlighting + j/k keyboard nav; right detail pane with
+    per-type forms (ApprovalForm, PlanQAForm, PlanReviewForm, PRGateForm,
+    DraftSpecForm). A single resolve endpoint dispatches to existing
+    Job/Spec/Task handlers — no new collection, just a view-model.
+    Top-nav bell shows unread count via useInboxBadge, refreshing on
+    SSE events (inbox:new / inbox:resolved / job:requires_approval).
+constraints:
+  - "Inbox items must be derived at query time from existing Job/Spec/Task — never stored in their own collection"
+  - "resolve endpoint must delegate to the same handlers as /api/jobs/:id/approve|reject|answer to avoid duplicating approval logic"
 indexing:
   type: intent
   priority: high
   layer: feature
-  domain: "review-panel"
-  tags: [PR-diff, review, approve, reject, protected-paths]
+  domain: "inbox"
+  tags: [inbox, approval, plan-qa, pr-gate, draft-spec, mail-client]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
-relations: []
-anchors: []
+  confidence: 0.95
+  source_ref: "c0f4043 Phase 2 Inbox page + backend"
+  cycle_tag: "dashboard-redesign-2026-04-15"
+relations:
+  - target: "intent-07-dashboard-001"
+    type: "depends_on"
+  - target: "contract-07-dashboard-api-inbox-001"
+    type: "depends_on"
+anchors:
+  - file: "apps/dashboard/src/app/inbox/page.tsx"
+    symbol: "InboxPage"
+  - file: "apps/dashboard/src/hooks/use-inbox-badge.ts"
+    symbol: "useInboxBadge"
+  - file: "apps/server/src/routes/inbox.ts"
+    symbol: "loadInboxItems"

@@ -1,0 +1,18 @@
+id: M7
+name: 玩家等级与技能树
+description: |
+  Player Level & Skill Tree. 玩家自己开始成长:获得经验、解锁建筑、点出
+  三大分支技能(战斗/经济/死灵)。
+goals:
+  - 经验值系统
+  - 建筑解锁
+  - 3 分支技能树(战斗/经济/死灵)
+  - 9 技能
+features:
+  - PlayerProgression autoload
+  - SkillTreeUI
+  - XPManager
+dependsOn:
+  - M5
+estimatedWeeks: 2
+order: 7

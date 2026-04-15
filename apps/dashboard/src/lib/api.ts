@@ -139,6 +139,24 @@ export const api = {
       body: JSON.stringify({ answers, feedback }),
     }),
 
+  // Milestones
+  listMilestones: () => request<MilestoneItem[]>('/milestones'),
+  getMilestone: (id: string) =>
+    request<MilestoneDetail>(`/milestones/${encodeURIComponent(id)}`),
+  syncMilestones: () =>
+    request<{ upserted: number; source: string | null }>('/milestones/sync', { method: 'POST' }),
+
+  // Assets
+  listAssets: (params?: { category?: string; milestone?: string; status?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.category) qs.set('category', params.category);
+    if (params?.milestone) qs.set('milestone', params.milestone);
+    if (params?.status) qs.set('status', params.status);
+    return request<AssetSpec[]>(`/assets?${qs}`);
+  },
+  getAssetMetadata: (assetId: string) =>
+    request<AssetMetadata>(`/assets/${encodeURIComponent(assetId)}/metadata`),
+
   // Inbox
   listInbox: (params?: { type?: string; cycleId?: number }) => {
     const qs = new URLSearchParams();
@@ -154,6 +172,73 @@ export const api = {
       body: JSON.stringify(body),
     }),
 };
+
+// ─── Milestone types ────────────────────────────────────────────────
+
+export interface MilestoneItem {
+  _id: string;
+  name: string;
+  description?: string;
+  goals: string[];
+  features: string[];
+  dependsOn: string[];
+  estimatedWeeks: number;
+  status: 'planned' | 'active' | 'completed' | 'blocked';
+  cycles: number[];
+  startedAt?: string;
+  completedAt?: string;
+  totalCostUsd: number;
+  lastSyncedAt?: string;
+  order: number;
+}
+
+export interface MilestoneCycleDetail {
+  _id: number;
+  goal: string;
+  phase: string;
+  status: string;
+  metrics?: { totalCostUsd?: number; tasksCompleted?: number; tasksFailed?: number };
+}
+
+export interface MilestoneDetail extends MilestoneItem {
+  cyclesDetail: MilestoneCycleDetail[];
+  specs: Array<{ _id: string; title: string; type: string; state: string }>;
+}
+
+// ─── Asset types ────────────────────────────────────────────────────
+
+export type AssetStatus = 'planned' | 'placeholder' | 'replaced' | 'final';
+
+export interface AssetFileMeta {
+  relPath: string;
+  sizeBytes: number;
+  sha256?: string;
+  width?: number;
+  height?: number;
+  hframes?: number;
+  duration?: number;
+  modifiedAt?: string;
+}
+
+export interface AssetSpec {
+  assetId: string;
+  category: string;
+  subcategory?: string;
+  name: string;
+  type: 'texture' | 'audio' | 'spriteframes' | 'font' | 'theme' | 'shader' | 'particles' | 'unknown';
+  spec?: string;
+  milestone?: string;
+  priority?: 'high' | 'medium' | 'low';
+  status: AssetStatus;
+  file?: AssetFileMeta;
+}
+
+export interface AssetMetadata {
+  assetId: string;
+  file?: AssetFileMeta;
+  history: Array<{ commit: string; date: string; message: string }>;
+  usedIn: string[];
+}
 
 // ─── Inbox types ────────────────────────────────────────────────────
 

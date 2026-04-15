@@ -1,0 +1,63 @@
+spec_id: "contract-07-dashboard-api-assets-001"
+type: contract
+state: active
+contract:
+  summary: "/api/assets — list, file streaming, metadata"
+  detail: |
+    Endpoints:
+
+    GET /api/assets                     query ?category=&milestone=&status=
+      → AssetSpec[]
+
+    GET /api/assets/:assetId/file        streams bytes, MIME by ext,
+                                         Cache-Control: public max-age=60
+                                         security: path must be under
+                                         gameRepo/assets/; symlinks rejected
+
+    GET /api/assets/:assetId/metadata    → { assetId, file, history[], usedIn[] }
+                                         (history + usedIn placeholder for now)
+
+    POST /api/assets/rescan              → { scanned: number }
+                                         bypasses 30s LRU cache
+
+    Shape:
+      AssetSpec = {
+        assetId: string,                 // category.subcategory.name
+        category, subcategory?, name,
+        type: 'texture'|'audio'|'spriteframes'|'font'|'theme'|'shader'|'particles'|'unknown',
+        spec?, milestone?, priority?: 'high'|'medium'|'low',
+        status: 'planned'|'placeholder'|'replaced'|'final',
+        file?: {
+          relPath, sizeBytes, sha256?, width?, height?, modifiedAt?, hframes?, duration?,
+        },
+      }
+
+    Security contract (MUST hold):
+      1. assetId MUST match ^[a-z0-9_]+(\.[a-z0-9_]+)+$
+      2. resolved path MUST startsWith gameRepo/assets/
+      3. symlinks MUST be rejected (lstat check)
+constraints:
+  - "Never serve a file that resolves outside gameRepo/assets/"
+  - "Never follow symlinks"
+  - "planned status means file is absent — /file MUST return 404"
+indexing:
+  type: contract
+  priority: high
+  layer: epic
+  domain: "assets"
+  tags: [api, rest, assets, file-streaming, contract, security]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.95
+  source_ref: "df90143 apps/server/src/routes/assets.ts"
+  cycle_tag: "dashboard-redesign-2026-04-15"
+relations:
+  - target: "decision-07-dashboard-dynamic-assets-001"
+    type: "relates_to"
+anchors:
+  - file: "apps/server/src/routes/assets.ts"
+  - file: "apps/server/src/lib/asset-scanner.ts"
+  - file: "apps/dashboard/src/lib/api.ts"
+    symbol: "listAssets"
+  - file: "apps/dashboard/src/lib/api.ts"
+    symbol: "getAssetMetadata"

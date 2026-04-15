@@ -5,6 +5,7 @@ import logger from './lib/logger.js';
 import { runMigrations } from './lib/migration-runner.js';
 import { seedKnowledge } from './lib/seed-knowledge.js';
 import { seedRooms } from './lib/seed-rooms.js';
+import { seedMilestones } from './lib/seed-milestones.js';
 import { initSSE, stopSSE } from './services/sse-manager.js';
 import { startJobQueue, stopJobQueue } from './services/job-queue.js';
 import { getOrCreateControl } from './models/control.js';
@@ -48,6 +49,11 @@ async function main() {
   console.log('Seeding rooms...');
   const roomResult = await seedRooms();
   console.log('Rooms seeded');
+
+  // Seed milestones from game repo or local seed-data/ (idempotent)
+  console.log('Seeding milestones...');
+  await seedMilestones();
+  console.log('Milestones seeded');
 
   // Ensure control document exists
   await getOrCreateControl();

@@ -1,0 +1,56 @@
+spec_id: "decision-07-dashboard-dynamic-milestones-001"
+type: decision
+state: active
+decision:
+  summary: "Milestones are synced from yaml (game repo preferred, seed-data fallback) — never hardcoded"
+  detail: |
+    Design decision for milestone data source:
+     - New MilestoneModel mirrors cycle.ts with static yaml fields +
+       runtime-written status/cycles/totalCostUsd/lastSyncedAt.
+     - seed-milestones.ts resolves the yaml directory with precedence:
+       1. $GAME_REPO_LOCAL_PATH/milestones/*.yaml (canonical, once game
+          repo owns the roadmap)
+       2. harness-system/seed-data/milestones/*.yaml (bootstrap shipped
+          with harness-system for local dev without game repo checkout)
+     - Upsert happens at server startup (after seedRooms) and on demand
+       via POST /api/milestones/sync.
+     - Dashboard /milestones page uses ↻ Sync button to trigger rescan
+       without restart.
+  rationale: |
+    Dashboard source previously contained a hardcoded MILESTONES array
+    of 16 entries specific to zombie-farm-godot. Pointing the harness at
+    a different game would require code changes. yaml + sync decouples
+    the observability tool from the specific product.
+constraints:
+  - "Dashboard source must not enumerate milestone ids"
+  - "Milestone yaml must stay single source of truth for static fields"
+  - "Runtime writes (status, cycles, totalCostUsd) must never overwrite yaml-owned fields"
+indexing:
+  type: decision
+  priority: high
+  layer: epic
+  domain: "milestones"
+  tags: [milestones, yaml, sync, game-repo, bootstrap]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.95
+  source_ref: "df90143 Phase 3 Milestones"
+  cycle_tag: "dashboard-redesign-2026-04-15"
+relations:
+  - target: "intent-07-dashboard-001"
+    type: "depends_on"
+  - target: "contract-07-dashboard-api-milestones-001"
+    type: "relates_to"
+anchors:
+  - file: "apps/server/src/models/milestone.ts"
+    symbol: "MilestoneModel"
+  - file: "apps/server/src/lib/seed-milestones.ts"
+    symbol: "seedMilestones"
+  - file: "apps/server/src/lib/seed-milestones.ts"
+    symbol: "resolveMilestonesDir"
+  - file: "apps/server/src/routes/milestones.ts"
+  - file: "apps/server/src/config.ts"
+    symbol: "gameRepoLocalPath"
+  - file: "seed-data/milestones"
+  - file: "apps/dashboard/src/app/milestones/page.tsx"
+    symbol: "MilestonesPage"

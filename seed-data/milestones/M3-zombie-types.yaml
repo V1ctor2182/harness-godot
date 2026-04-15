@@ -1,0 +1,18 @@
+id: M3
+name: 多种僵尸与种子系统
+description: |
+  Zombie Types & Seed System. 引入策略维度:不同种子长出不同类型的僵尸,
+  玩家需要在种植前做出选择。
+goals:
+  - 4 类僵尸(行尸/飞僵/力士/吐客)
+  - 种子背包 UI
+  - 种植前选种
+  - 类型特化属性
+features:
+  - SeedInventory autoload
+  - SeedSelectionUI
+  - ZombieType enum
+dependsOn:
+  - M2
+estimatedWeeks: 2
+order: 3

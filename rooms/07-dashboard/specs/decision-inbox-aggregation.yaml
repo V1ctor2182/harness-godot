@@ -1,0 +1,53 @@
+spec_id: "decision-07-dashboard-inbox-aggregation-001"
+type: decision
+state: active
+decision:
+  summary: "Inbox is a view-model aggregated over Job/Spec/Task — no new collection"
+  detail: |
+    Design decision for the Inbox backend:
+     - GET /api/inbox builds an InboxItem[] at query time via a union
+       query across existing collections:
+         * Jobs with requiresApproval=true + approvalStatus=pending
+         * Jobs with type in {plan-qa, plan-approval, next-cycle} + approvalStatus=pending
+         * Specs with state=draft
+         * Tasks with status=in-review + prNumber + no reviewVerdict
+     - No MongoDB model for InboxItem.
+     - resolve endpoint dispatches by item id prefix (job:/spec:/task:) to
+       the existing Job/Spec/Task mutation paths — reuses
+       approve/reject/answer/activate/archive logic rather than
+       duplicating it.
+     - SSE broadcasts inbox:new + inbox:resolved on resolve; dashboard
+       badge also refreshes on job:requires_approval for compatibility.
+  rationale: |
+    Storing an InboxItem collection would create write-path duplication
+    and sync drift (agent creates a Job → we'd also have to create an
+    InboxItem). The view-model approach keeps a single source of truth
+    and makes the feature nearly zero-write on the hot path.
+constraints:
+  - "No write path may create an InboxItem directly — derive from existing docs"
+  - "resolve handler must never fork approval logic; always delegate"
+indexing:
+  type: decision
+  priority: high
+  layer: epic
+  domain: "inbox"
+  tags: [inbox, view-model, union-query, sse, mongodb]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.95
+  source_ref: "c0f4043 Phase 2 Inbox backend"
+  cycle_tag: "dashboard-redesign-2026-04-15"
+relations:
+  - target: "intent-07-02-review-panel-001"
+    type: "depends_on"
+  - target: "contract-07-dashboard-api-inbox-001"
+    type: "relates_to"
+anchors:
+  - file: "apps/server/src/routes/inbox.ts"
+    symbol: "loadInboxItems"
+  - file: "apps/server/src/routes/inbox.ts"
+    symbol: "jobToItem"
+  - file: "apps/server/src/routes/inbox.ts"
+    symbol: "specToItem"
+  - file: "apps/server/src/routes/inbox.ts"
+    symbol: "taskToPRGateItem"

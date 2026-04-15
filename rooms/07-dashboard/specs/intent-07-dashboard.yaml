@@ -1,20 +1,52 @@
 spec_id: "intent-07-dashboard-001"
 type: intent
-state: draft
+state: active
 intent:
-  summary: "Real-time observability dashboard for human reviewers"
+  summary: "Observability dashboard for the harness team — Bento home, Cycle Team pipeline, unified Inbox, dynamic Milestones/Assets"
   detail: |
-    Next.js 实时可观测面板，让 human reviewer 高效做决策。展示 cycle progress、agent reasoning、test results、spending metrics。
-constraints: []
+    Next.js dashboard focused on observing the AI engineering team. Core
+    principles:
+     - Cycle is the center of gravity — agents, tasks, tests collapse into
+       a per-cycle Team View.
+     - Harness vs Product layers strictly separated: no hardcoded game
+       milestones, asset lists, or test layer enums in dashboard source.
+       Milestones sync from yaml, assets scan from a filesystem, test
+       layer grouping is runtime-derived.
+     - 5 main nav items + 2 tool icons (Inbox bell, Settings gear) instead
+       of the old 12-page navigation.
+     - Home is a 12-column Bento grid of live tiles with a popup-preview /
+       maximize-to-route interaction pattern.
+     - Inbox unifies all human-in-the-loop decisions as a single
+       view-model aggregated over Job/Spec/Task — no dedicated
+       /jobs, /review, /drafts pages.
+    See basic-doc/techdesign/06-dashboard.md for the full design.
+constraints:
+  - "No product-specific enums (L1-L4, M0-M15, 'zombie', etc.) in dashboard source"
+  - "All pages must stay functional when backend features are partially available"
 indexing:
   type: intent
   priority: high
   layer: epic
   domain: "dashboard"
-  tags: [nextjs, SSE, real-time, observability]
+  tags: [nextjs, SSE, real-time, observability, bento, popup-preview]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
+  confidence: 0.95
+  source_ref: "b30c751..df90143 dashboard redesign"
+  cycle_tag: "dashboard-redesign-2026-04-15"
 relations: []
-anchors: []
+anchors:
+  - file: "apps/dashboard/src/app/layout.tsx"
+  - file: "apps/dashboard/src/app/page.tsx"
+    symbol: "HomePage"
+  - file: "apps/dashboard/src/components/app-shell.tsx"
+    symbol: "AppShell"
+  - file: "apps/dashboard/src/components/top-nav.tsx"
+    symbol: "TopNav"
+  - file: "apps/dashboard/src/components/settings-drawer.tsx"
+    symbol: "SettingsDrawer"
+  - file: "apps/dashboard/src/components/popup-preview.tsx"
+    symbol: "PopupPreview"
+  - file: "apps/dashboard/src/hooks/use-popup.tsx"
+    symbol: "PopupProvider"
+  - file: "basic-doc/techdesign/06-dashboard.md"

@@ -1,0 +1,55 @@
+spec_id: "contract-07-dashboard-api-milestones-001"
+type: contract
+state: active
+contract:
+  summary: "/api/milestones — yaml-synced roadmap endpoints"
+  detail: |
+    Endpoints:
+
+    GET /api/milestones                 → MilestoneItem[], sorted by order
+    GET /api/milestones/:id             → MilestoneDetail (+ cyclesDetail + specs)
+    POST /api/milestones/sync           → { upserted, source }
+                                           broadcasts milestone:updated
+
+    Shape:
+      MilestoneItem = {
+        _id: string,              // "M8"
+        name, description,
+        goals: string[], features: string[], dependsOn: string[],
+        estimatedWeeks: number, order: number,
+        status: 'planned'|'active'|'completed'|'blocked',
+        cycles: number[],
+        startedAt?, completedAt?,
+        totalCostUsd: number,
+        lastSyncedAt: Date,
+      }
+
+      MilestoneDetail = MilestoneItem & {
+        cyclesDetail: CycleLite[],
+        specs: { _id, title, type, state }[],
+      }
+constraints:
+  - "Static fields (name/description/goals/features/dependsOn/estimatedWeeks/order) are yaml-owned — runtime writes MUST NOT touch them"
+  - "Runtime fields (status/cycles/totalCostUsd) are server-owned — yaml MUST NOT set them"
+indexing:
+  type: contract
+  priority: high
+  layer: epic
+  domain: "milestones"
+  tags: [api, rest, milestones, contract]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.95
+  source_ref: "df90143 apps/server/src/routes/milestones.ts"
+  cycle_tag: "dashboard-redesign-2026-04-15"
+relations:
+  - target: "decision-07-dashboard-dynamic-milestones-001"
+    type: "relates_to"
+anchors:
+  - file: "apps/server/src/routes/milestones.ts"
+  - file: "apps/server/src/models/milestone.ts"
+    symbol: "MilestoneModel"
+  - file: "apps/dashboard/src/lib/api.ts"
+    symbol: "listMilestones"
+  - file: "apps/dashboard/src/lib/api.ts"
+    symbol: "getMilestone"

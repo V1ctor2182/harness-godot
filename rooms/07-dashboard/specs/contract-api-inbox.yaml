@@ -1,0 +1,62 @@
+spec_id: "contract-07-dashboard-api-inbox-001"
+type: contract
+state: active
+contract:
+  summary: "/api/inbox — unified pending-human-action endpoint"
+  detail: |
+    Endpoints:
+
+    GET /api/inbox                  query ?type=<InboxItemType>&cycleId=<n>
+      → InboxItem[]
+
+    GET /api/inbox/count             → { count: number }
+
+    GET /api/inbox/:id               → InboxItem
+
+    POST /api/inbox/:id/resolve
+      body: { action: 'approve'|'reject'|'answer'|'activate_spec'|'archive_spec',
+              reason?: string,
+              answers?: Record<string, string>,
+              feedback?: string }
+      → { status: 'resolved', id }
+      side-effects:
+        * dispatches to the existing Job/Spec/Task mutation handler
+        * broadcasts inbox:resolved + inbox:new SSE events
+
+    Shape:
+      InboxItem = {
+        id: string,          // "job:<_id>" | "spec:<_id>" | "task:<_id>"
+        type: 'approval' | 'plan_qa' | 'plan_review' | 'pr_gate'
+            | 'draft_spec' | 'next_cycle',
+        source: { kind: 'job'|'spec'|'task', refId, cycleId?, taskId?, agentRunId? },
+        title: string,
+        preview: string,
+        urgency: 'low' | 'normal' | 'urgent',
+        status: 'unread' | 'read',
+        payload: Record<string, unknown>,
+        createdAt: Date,
+        readAt?: Date,
+      }
+constraints:
+  - "id format MUST be '<kind>:<refId>' so resolve can route without a DB lookup on the id alone"
+  - "Breaking this contract requires bumping both server and dashboard in the same commit"
+indexing:
+  type: contract
+  priority: high
+  layer: epic
+  domain: "inbox"
+  tags: [api, rest, inbox, contract]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.95
+  source_ref: "c0f4043 apps/server/src/routes/inbox.ts"
+  cycle_tag: "dashboard-redesign-2026-04-15"
+relations:
+  - target: "decision-07-dashboard-inbox-aggregation-001"
+    type: "relates_to"
+anchors:
+  - file: "apps/server/src/routes/inbox.ts"
+  - file: "apps/dashboard/src/lib/api.ts"
+    symbol: "listInbox"
+  - file: "apps/dashboard/src/lib/api.ts"
+    symbol: "resolveInbox"

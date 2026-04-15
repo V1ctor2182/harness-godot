@@ -1,1 +1,52 @@
-milestones: []
+lifecycle: active
+completion: 75
+milestones:
+  - id: home-bento-grid
+    name: "Home rewritten as 12-col Bento grid with 10 live tiles"
+    status: completed
+    completed_at: "2026-04-14"
+    commit: c0f4043
+  - id: bento-popup-preview
+    name: "PopupProvider + PopupPreview primitive with maximize drill-down"
+    status: completed
+    completed_at: "2026-04-14"
+    commit: c0f4043
+  - id: dynamic-milestones-tile
+    name: "MilestonesTile + /milestones page on dynamic yaml sync"
+    status: completed
+    completed_at: "2026-04-15"
+    commit: df90143
+  - id: dynamic-assets-tile
+    name: "AssetsTile + /assets page with real filesystem previews"
+    status: completed
+    completed_at: "2026-04-15"
+    commit: df90143
+  - id: fail-reasons-analytics
+    name: "Fail reasons top-5 tile (groups agent error first lines)"
+    status: completed
+    completed_at: "2026-04-14"
+    commit: c0f4043
+  - id: analytics-drilldown-popups
+    name: "Richer drill-down popups for Spending / Tests / Fail reasons"
+    status: pending
+commits:
+  - hash: "c0f4043"
+    date: "2026-04-14"
+    message: "feat(dashboard): Phase 2 — Home Bento, Cycle Team view, Inbox"
+    files_changed: 1
+    specs_affected:
+      - intent-07-03-analytics-001 (draft → active, folded into Home Bento)
+    milestones_affected:
+      - home-bento-grid (→ completed)
+      - bento-popup-preview (→ completed)
+      - fail-reasons-analytics (→ completed)
+  - hash: "df90143"
+    date: "2026-04-15"
+    message: "feat(dashboard): Phase 3 — dynamic Milestones + Assets with real previews"
+    files_changed: 5
+    specs_affected:
+      - decision-07-dashboard-dynamic-milestones-001 (new)
+      - decision-07-dashboard-dynamic-assets-001 (new)
+    milestones_affected:
+      - dynamic-milestones-tile (→ completed)
+      - dynamic-assets-tile (→ completed)

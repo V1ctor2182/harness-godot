@@ -1,0 +1,20 @@
+id: M4
+name: 自动战斗系统
+description: |
+  Auto Combat System. 第一个重大游戏性分支:玩家可以选派僵尸队伍去外部
+  目标战斗,解锁世界地图层级。
+goals:
+  - 世界地图(3 目标)
+  - 编队界面
+  - 自动战斗
+  - 永久死亡
+  - 胜利奖励
+features:
+  - WorldMap scene
+  - SquadBuilder UI
+  - BattleScene
+  - CombatManager
+dependsOn:
+  - M3
+estimatedWeeks: 3
+order: 4

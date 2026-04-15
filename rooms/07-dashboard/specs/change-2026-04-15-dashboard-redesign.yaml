@@ -1,0 +1,98 @@
+spec_id: "change-2026-04-15-dashboard-redesign-001"
+type: change
+state: active
+change:
+  summary: "Dashboard redesign — Phase 1-3 delivered (slim nav, Bento home, Cycle Team view, unified Inbox, dynamic Milestones + Assets)"
+  detail: |
+    Three commits shipping the dashboard redesign documented in
+    basic-doc/techdesign/06-dashboard.md.
+
+    ── Phase 1 (b30c751) ─────────────────────────────────────────────
+    refactor(dashboard): slim nav, settings drawer, extract detail components
+      - Deleted 10 dead routes: /agents, /tasks, /tests, /analytics,
+        /jobs, /review, /milestones, /assets, /knowledge, /control
+      - Extracted /agents/[id] and /tasks/[id] page bodies into reusable
+        AgentDetail and TaskDetail components (Phase 2 drops them into
+        drawers)
+      - New UI primitives: Dialog + Sheet (shadcn-flavored wrappers on
+        existing radix-ui meta-package)
+      - Rewrote layout.tsx → TopNav (5 nav items + 🔔 Inbox bell +
+        ⚙ Settings gear with ⌘, shortcut)
+      - SettingsDrawer wraps existing ControlPanel as a right-side Sheet
+      - useInboxBadge hook polls /api/inbox/count with graceful 0 fallback
+
+    ── Phase 2 (c0f4043) ─────────────────────────────────────────────
+    feat(dashboard): Home Bento, Cycle Team view, Inbox
+      - Home rewritten as a 12-col Bento grid with 10 tiles, each with
+        [Open ↗] (popup) and [⛶] (maximize) buttons
+      - PopupPreview primitive + PopupProvider context + usePopup()
+      - Cycle Team view: 6 role slots (multi-instance cards with ×N
+        badge, running pulse, failed red border, arrow connectors);
+        Tasks panel with per-task test summary; Tests panel with dynamic
+        layer grouping; Events Log footer; Agent + Task drawers driven
+        by ?agent= / ?task= query params
+      - Inbox page: two-pane mail view with type tabs
+        (All / Approvals / Plan Q&A / Plan Review / PR Gate / Drafts /
+         Next-cycle), per-type forms, j/k keyboard nav
+      - Backend /api/inbox: union query over Job/Spec/Task, no new
+        collection. Single resolve endpoint dispatches to existing
+        handlers
+      - SSE event list extended with inbox:new / inbox:resolved /
+        milestone:updated
+
+    ── Phase 3 (df90143) ─────────────────────────────────────────────
+    feat(dashboard): dynamic Milestones + Assets with real previews
+      - New MilestoneModel + seed-milestones.ts (yaml source with game
+        repo preferred, seed-data/ fallback). 16 M0-M15 yaml files
+        committed under seed-data/milestones/
+      - New routes/milestones.ts (list, detail with joined cycles + specs,
+        manual sync)
+      - /milestones page: colored roadmap bar + list + detail modal
+      - New asset-scanner.ts: filesystem scan of GAME_REPO_LOCAL_PATH/
+        assets/** with PNG dimension read (no deps), sha256, symlink
+        rejection, path confinement. 30s LRU cache
+      - seed-data/assets/planned-assets.json (58 entries bootstrapped
+        from old hardcoded list)
+      - /api/assets + /api/assets/:id/file streaming + /metadata + /rescan
+      - /assets page: live previews (textures as pixelated <img>,
+        audio as native <audio>, fonts via dynamic @font-face)
+      - Home bento MilestonesTile + AssetsTile now fetch real data
+      - New GAME_REPO_LOCAL_PATH env var (optional — falls back to
+        seed-data/ for local dev)
+
+  impact: |
+    - Dashboard now contains zero product-specific enums. Pointing
+      GAME_REPO_LOCAL_PATH at a different game project works with no
+      code changes.
+    - Navigation shrunk from 12 pages to 5 nav items + 2 tool icons.
+    - Single unified review queue replaces the old Jobs + Review pair.
+    - 22 files created, 10 routes deleted, ~4600 lines added / ~3900
+      lines removed net across Phase 1-3.
+indexing:
+  type: change
+  priority: high
+  layer: epic
+  domain: "dashboard"
+  tags: [phase-1, phase-2, phase-3, redesign, bento, inbox, milestones, assets]
+provenance:
+  source_type: human
+  confidence: 1.0
+  source_ref: "b30c751..df90143"
+  cycle_tag: "dashboard-redesign-2026-04-15"
+relations:
+  - target: "intent-07-dashboard-001"
+    type: "relates_to"
+  - target: "intent-07-01-live-stream-001"
+    type: "relates_to"
+  - target: "intent-07-02-review-panel-001"
+    type: "relates_to"
+  - target: "intent-07-03-analytics-001"
+    type: "relates_to"
+anchors:
+  - file: "basic-doc/techdesign/06-dashboard.md"
+  - file: "apps/dashboard/src/app"
+  - file: "apps/dashboard/src/components"
+  - file: "apps/server/src/routes/inbox.ts"
+  - file: "apps/server/src/routes/milestones.ts"
+  - file: "apps/server/src/routes/assets.ts"
+  - file: "seed-data"

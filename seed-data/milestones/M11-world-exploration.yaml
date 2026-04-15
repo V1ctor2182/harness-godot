@@ -1,0 +1,21 @@
+id: M11
+name: 世界地图与PvE探索
+description: |
+  World Map & PvE Exploration. 打开世界:3 个探索区域、副本、NPC、
+  被动资源生成、征服追踪 —— 玩家开始向外扩张。
+goals:
+  - 3 个探索区域
+  - 副本(3-5 房间)
+  - NPC 系统
+  - 被动资源生成
+  - 征服追踪
+features:
+  - ExplorationScene
+  - DungeonGenerator
+  - NPCSystem
+  - TerritoryManager
+dependsOn:
+  - M4
+  - M7
+estimatedWeeks: 3.5
+order: 11

@@ -1,0 +1,61 @@
+[
+  { "assetId": "sprite.characters.player", "category": "sprite", "subcategory": "characters", "name": "player", "type": "texture", "spec": "32x32, 4 hframes (walk)", "milestone": "M0", "priority": "high" },
+  { "assetId": "tilemap.farm_ground", "category": "tilemap", "subcategory": "farm", "name": "farm_ground", "type": "texture", "spec": "16x16 tileset, seamless", "milestone": "M0", "priority": "high" },
+  { "assetId": "audio_bgm.farm", "category": "audio_bgm", "subcategory": "scenes", "name": "farm", "type": "audio", "spec": "OGG, loop, 60-180s, calm chiptune", "milestone": "M0", "priority": "medium" },
+
+  { "assetId": "sprite.environment.soil_plot", "category": "sprite", "subcategory": "environment", "name": "soil_plot", "type": "texture", "spec": "32x32, 3 states (empty/planted/ready)", "milestone": "M1", "priority": "high" },
+  { "assetId": "sprite.items.seed_generic", "category": "sprite", "subcategory": "items", "name": "seed_generic", "type": "texture", "spec": "16x16", "milestone": "M1", "priority": "high" },
+  { "assetId": "animation.zombie_grow", "category": "animation", "subcategory": "spriteframes", "name": "zombie_grow", "type": "spriteframes", "spec": "5 stages, 32x32 each", "milestone": "M1", "priority": "high" },
+  { "assetId": "audio_sfx.plant", "category": "audio_sfx", "subcategory": "farming", "name": "plant", "type": "audio", "spec": "WAV, <0.5s, dirt sound", "milestone": "M1", "priority": "medium" },
+  { "assetId": "audio_sfx.water", "category": "audio_sfx", "subcategory": "farming", "name": "water", "type": "audio", "spec": "WAV, <0.5s, splash", "milestone": "M1", "priority": "medium" },
+  { "assetId": "audio_sfx.harvest", "category": "audio_sfx", "subcategory": "farming", "name": "harvest", "type": "audio", "spec": "WAV, <1s, ascending scale", "milestone": "M1", "priority": "high" },
+
+  { "assetId": "sprite.characters.zombie_base", "category": "sprite", "subcategory": "characters", "name": "zombie_base", "type": "texture", "spec": "32x32, 4 hframes (idle walk)", "milestone": "M2", "priority": "high" },
+  { "assetId": "ui.panels.stats_panel", "category": "ui", "subcategory": "panels", "name": "stats_panel", "type": "texture", "spec": "200x300, semi-transparent", "milestone": "M2", "priority": "medium" },
+  { "assetId": "audio_sfx.pet", "category": "audio_sfx", "subcategory": "farming", "name": "pet", "type": "audio", "spec": "WAV, <0.5s, happy sound", "milestone": "M2", "priority": "low" },
+
+  { "assetId": "sprite.characters.zombie_shambler", "category": "sprite", "subcategory": "characters", "name": "zombie_shambler", "type": "texture", "spec": "32x32, 4 hframes, blue tint", "milestone": "M3", "priority": "high" },
+  { "assetId": "sprite.characters.zombie_runner", "category": "sprite", "subcategory": "characters", "name": "zombie_runner", "type": "texture", "spec": "32x32, 4 hframes, green tint", "milestone": "M3", "priority": "high" },
+  { "assetId": "sprite.characters.zombie_brute", "category": "sprite", "subcategory": "characters", "name": "zombie_brute", "type": "texture", "spec": "32x48, 4 hframes, large", "milestone": "M3", "priority": "high" },
+  { "assetId": "sprite.characters.zombie_spitter", "category": "sprite", "subcategory": "characters", "name": "zombie_spitter", "type": "texture", "spec": "32x32, 4 hframes, purple tint", "milestone": "M3", "priority": "high" },
+  { "assetId": "sprite.items.seed_shambler", "category": "sprite", "subcategory": "items", "name": "seed_shambler", "type": "texture", "spec": "16x16, blue", "milestone": "M3", "priority": "medium" },
+  { "assetId": "sprite.items.seed_runner", "category": "sprite", "subcategory": "items", "name": "seed_runner", "type": "texture", "spec": "16x16, green", "milestone": "M3", "priority": "medium" },
+  { "assetId": "sprite.items.seed_brute", "category": "sprite", "subcategory": "items", "name": "seed_brute", "type": "texture", "spec": "16x16, red", "milestone": "M3", "priority": "medium" },
+  { "assetId": "sprite.items.seed_spitter", "category": "sprite", "subcategory": "items", "name": "seed_spitter", "type": "texture", "spec": "16x16, purple", "milestone": "M3", "priority": "medium" },
+  { "assetId": "ui.panels.seed_inventory", "category": "ui", "subcategory": "panels", "name": "seed_inventory", "type": "texture", "spec": "300x400 grid panel", "milestone": "M3", "priority": "high" },
+
+  { "assetId": "sprite.characters.enemy_villager", "category": "sprite", "subcategory": "characters", "name": "enemy_villager", "type": "texture", "spec": "32x32, 4 hframes, human", "milestone": "M4", "priority": "high" },
+  { "assetId": "sprite.characters.enemy_soldier", "category": "sprite", "subcategory": "characters", "name": "enemy_soldier", "type": "texture", "spec": "32x32, 4 hframes, armored", "milestone": "M4", "priority": "high" },
+  { "assetId": "sprite.characters.enemy_archer", "category": "sprite", "subcategory": "characters", "name": "enemy_archer", "type": "texture", "spec": "32x32, 4 hframes, ranged", "milestone": "M4", "priority": "medium" },
+  { "assetId": "ui.panels.squad_builder", "category": "ui", "subcategory": "panels", "name": "squad_builder", "type": "texture", "spec": "400x300 drag-drop panel", "milestone": "M4", "priority": "high" },
+  { "assetId": "audio_sfx.attack_melee", "category": "audio_sfx", "subcategory": "combat", "name": "attack_melee", "type": "audio", "spec": "WAV, <0.3s, short high-freq", "milestone": "M4", "priority": "high" },
+  { "assetId": "audio_sfx.attack_ranged", "category": "audio_sfx", "subcategory": "combat", "name": "attack_ranged", "type": "audio", "spec": "WAV, <0.5s, whoosh", "milestone": "M4", "priority": "medium" },
+  { "assetId": "audio_sfx.zombie_death", "category": "audio_sfx", "subcategory": "combat", "name": "zombie_death", "type": "audio", "spec": "WAV, <1s, thud+fade", "milestone": "M4", "priority": "high" },
+  { "assetId": "audio_bgm.battle", "category": "audio_bgm", "subcategory": "combat", "name": "battle", "type": "audio", "spec": "OGG, loop, 60-120s, intense chiptune", "milestone": "M4", "priority": "high" },
+
+  { "assetId": "sprite.buildings.grave_plot", "category": "sprite", "subcategory": "buildings", "name": "grave_plot", "type": "texture", "spec": "64x96", "milestone": "M5", "priority": "high" },
+  { "assetId": "sprite.buildings.blood_well", "category": "sprite", "subcategory": "buildings", "name": "blood_well", "type": "texture", "spec": "64x96", "milestone": "M5", "priority": "high" },
+  { "assetId": "sprite.buildings.bone_mill", "category": "sprite", "subcategory": "buildings", "name": "bone_mill", "type": "texture", "spec": "64x96", "milestone": "M5", "priority": "high" },
+  { "assetId": "sprite.buildings.mausoleum", "category": "sprite", "subcategory": "buildings", "name": "mausoleum", "type": "texture", "spec": "64x96", "milestone": "M5", "priority": "medium" },
+  { "assetId": "ui.icons.resource_dark_coins", "category": "ui", "subcategory": "icons", "name": "resource_dark_coins", "type": "texture", "spec": "16x16", "milestone": "M5", "priority": "high" },
+  { "assetId": "ui.icons.resource_bones", "category": "ui", "subcategory": "icons", "name": "resource_bones", "type": "texture", "spec": "16x16", "milestone": "M5", "priority": "high" },
+  { "assetId": "ui.icons.resource_rotten_wood", "category": "ui", "subcategory": "icons", "name": "resource_rotten_wood", "type": "texture", "spec": "16x16", "milestone": "M5", "priority": "medium" },
+  { "assetId": "ui.icons.resource_blood_water", "category": "ui", "subcategory": "icons", "name": "resource_blood_water", "type": "texture", "spec": "16x16", "milestone": "M5", "priority": "medium" },
+  { "assetId": "audio_sfx.build", "category": "audio_sfx", "subcategory": "farming", "name": "build", "type": "audio", "spec": "WAV, <1s, hammer", "milestone": "M5", "priority": "medium" },
+  { "assetId": "audio_sfx.coin", "category": "audio_sfx", "subcategory": "ui", "name": "coin", "type": "audio", "spec": "WAV, <0.3s, ching", "milestone": "M5", "priority": "medium" },
+
+  { "assetId": "vfx.particles.quality_bronze", "category": "vfx", "subcategory": "particles", "name": "quality_bronze", "type": "texture", "spec": "8x8, brown glow", "milestone": "M6", "priority": "low" },
+  { "assetId": "vfx.particles.quality_silver", "category": "vfx", "subcategory": "particles", "name": "quality_silver", "type": "texture", "spec": "8x8, silver shimmer", "milestone": "M6", "priority": "low" },
+  { "assetId": "vfx.particles.quality_gold", "category": "vfx", "subcategory": "particles", "name": "quality_gold", "type": "texture", "spec": "8x8, gold sparkle", "milestone": "M6", "priority": "medium" },
+  { "assetId": "vfx.particles.quality_iridium", "category": "vfx", "subcategory": "particles", "name": "quality_iridium", "type": "texture", "spec": "8x8, rainbow glow", "milestone": "M6", "priority": "medium" },
+
+  { "assetId": "sprite.buildings.mutation_lab", "category": "sprite", "subcategory": "buildings", "name": "mutation_lab", "type": "texture", "spec": "64x96", "milestone": "M8", "priority": "high" },
+  { "assetId": "vfx.particles.mutation_glow", "category": "vfx", "subcategory": "particles", "name": "mutation_glow", "type": "texture", "spec": "16x16, green pulse", "milestone": "M8", "priority": "medium" },
+  { "assetId": "audio_sfx.mutation_success", "category": "audio_sfx", "subcategory": "farming", "name": "mutation_success", "type": "audio", "spec": "WAV, <1s, magical ascend", "milestone": "M8", "priority": "medium" },
+  { "assetId": "audio_sfx.mutation_fail", "category": "audio_sfx", "subcategory": "farming", "name": "mutation_fail", "type": "audio", "spec": "WAV, <0.5s, fizzle", "milestone": "M8", "priority": "low" },
+
+  { "assetId": "ui.fonts.main", "category": "ui", "subcategory": "fonts", "name": "main", "type": "font", "spec": "Pixel font, sizes [12,16,24,32]", "milestone": "M15", "priority": "high" },
+  { "assetId": "ui.themes.default", "category": "ui", "subcategory": "themes", "name": "default", "type": "theme", "spec": "Dark theme, Chinese xianxia style", "milestone": "M15", "priority": "high" },
+  { "assetId": "audio_sfx.ui_click", "category": "audio_sfx", "subcategory": "ui", "name": "ui_click", "type": "audio", "spec": "WAV, <0.1s, soft tap", "milestone": "M15", "priority": "low" },
+  { "assetId": "audio_sfx.ui_hover", "category": "audio_sfx", "subcategory": "ui", "name": "ui_hover", "type": "audio", "spec": "WAV, <0.1s, subtle", "milestone": "M15", "priority": "low" }
+]

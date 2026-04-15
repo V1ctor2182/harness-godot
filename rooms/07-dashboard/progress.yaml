@@ -1,1 +1,61 @@
-milestones: []
+lifecycle: active
+completion: 70
+milestones:
+  - id: dashboard-redesign-phase-1
+    name: "Phase 1 — slim navigation + settings drawer + detail extraction"
+    status: completed
+    completed_at: "2026-04-14"
+    commit: b30c751
+  - id: dashboard-redesign-phase-2
+    name: "Phase 2 — Home Bento + Cycle Team view + unified Inbox"
+    status: completed
+    completed_at: "2026-04-14"
+    commit: c0f4043
+  - id: dashboard-redesign-phase-3
+    name: "Phase 3 — dynamic Milestones + Assets with real previews"
+    status: completed
+    completed_at: "2026-04-15"
+    commit: df90143
+  - id: dashboard-auto-clone-game-repo
+    name: "Auto-clone game repo on startup (game-repo-sync.ts)"
+    status: pending
+  - id: dashboard-asset-history-usedin
+    name: "Asset metadata: git log history + grep usedIn references"
+    status: pending
+  - id: dashboard-milestone-auto-complete
+    name: "Milestone auto-complete hook on cycle completion"
+    status: pending
+commits:
+  - hash: "b30c751"
+    date: "2026-04-14"
+    message: "refactor(dashboard): Phase 1 — slim nav, settings drawer, extract detail components"
+    files_changed: 24
+    specs_affected: []
+    milestones_affected:
+      - dashboard-redesign-phase-1 (→ completed)
+  - hash: "c0f4043"
+    date: "2026-04-14"
+    message: "feat(dashboard): Phase 2 — Home Bento, Cycle Team view, Inbox"
+    files_changed: 12
+    specs_affected: []
+    milestones_affected:
+      - dashboard-redesign-phase-2 (→ completed)
+  - hash: "df90143"
+    date: "2026-04-15"
+    message: "feat(dashboard): Phase 3 — dynamic Milestones + Assets with real previews"
+    files_changed: 30
+    specs_affected:
+      - intent-07-dashboard-001 (draft → active, anchors added)
+      - intent-07-01-live-stream-001 (draft → active, anchors added)
+      - intent-07-02-review-panel-001 (draft → active, scope expanded to Inbox)
+      - intent-07-03-analytics-001 (draft → active, folded into Home Bento)
+      - decision-07-dashboard-bento-popup-001 (new)
+      - decision-07-dashboard-inbox-aggregation-001 (new)
+      - decision-07-dashboard-dynamic-milestones-001 (new)
+      - decision-07-dashboard-dynamic-assets-001 (new)
+      - contract-07-dashboard-api-inbox-001 (new)
+      - contract-07-dashboard-api-milestones-001 (new)
+      - contract-07-dashboard-api-assets-001 (new)
+      - change-2026-04-15-dashboard-redesign-001 (new)
+    milestones_affected:
+      - dashboard-redesign-phase-3 (→ completed)

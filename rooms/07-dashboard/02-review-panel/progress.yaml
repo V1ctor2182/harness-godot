@@ -1,1 +1,35 @@
-milestones: []
+lifecycle: active
+completion: 70
+milestones:
+  - id: unified-inbox-page
+    name: "Inbox page: two-pane layout + type tabs + per-type forms + j/k nav"
+    status: completed
+    completed_at: "2026-04-14"
+    commit: c0f4043
+  - id: inbox-backend-union-query
+    name: "Backend /api/inbox union query over Job/Spec/Task (no new collection)"
+    status: completed
+    completed_at: "2026-04-14"
+    commit: c0f4043
+  - id: inbox-sse-badge
+    name: "useInboxBadge hook with SSE-driven refresh"
+    status: completed
+    completed_at: "2026-04-14"
+    commit: c0f4043
+  - id: pr-gate-diff-view
+    name: "Inline PR diff inside PR Gate form (currently links out to GitHub)"
+    status: pending
+  - id: inbox-defer-persistence
+    name: "Persist Defer state across sessions (currently in-memory only)"
+    status: pending
+commits:
+  - hash: "c0f4043"
+    date: "2026-04-14"
+    message: "feat(dashboard): Phase 2 — Home Bento, Cycle Team view, Inbox"
+    files_changed: 4
+    specs_affected:
+      - intent-07-02-review-panel-001 (draft → active, scope expanded to Inbox)
+    milestones_affected:
+      - unified-inbox-page (→ completed)
+      - inbox-backend-union-query (→ completed)
+      - inbox-sse-badge (→ completed)

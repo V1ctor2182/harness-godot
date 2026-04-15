@@ -1,0 +1,20 @@
+id: M5
+name: 资源经济与建造系统
+description: |
+  Resources & Building. 引入经济循环:从战斗/采集获得资源,消耗资源建造
+  设施,形成长期投资反馈。
+goals:
+  - 4 种资源
+  - 可采集资源点
+  - 建造模式
+  - 4 初始建筑
+  - 种子商店
+features:
+  - ResourceManager
+  - BuildMode
+  - ShopUI
+  - Buildings system
+dependsOn:
+  - M4
+estimatedWeeks: 2.5
+order: 5

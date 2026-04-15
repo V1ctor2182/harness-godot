@@ -1,0 +1,19 @@
+id: M10
+name: 天气与日夜循环
+description: |
+  Weather & Day/Night. 世界本身开始变化:30 分钟日夜循环、5 种天气、
+  夜间加速、睡眠跳过 —— 时间成为资源。
+goals:
+  - 30 分钟日夜
+  - 5 种天气
+  - 夜间加速
+  - 日夜 UI 时钟
+  - 睡眠跳过
+features:
+  - TimeManager
+  - WeatherSystem
+  - DayNightCycle
+dependsOn:
+  - M5
+estimatedWeeks: 1
+order: 10

@@ -1,11 +1,10 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo, type ReactNode } from 'react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ExternalLink, Maximize2 } from 'lucide-react';
 
-import { api, type InboxItem, type TestResultItem } from '@/lib/api';
+import { api, type InboxItem, type TestResultItem, type MilestoneItem, type AssetSpec } from '@/lib/api';
 import { useGlobalSSE } from '@/hooks/use-sse';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -119,19 +118,26 @@ export default function HomePage() {
   const [roomTree, setRoomTree] = useState<RoomTreeLite[]>([]);
   const [tests, setTests] = useState<TestResultItem[]>([]);
   const [events, setEvents] = useState<LiveEvent[]>([]);
+  const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
+  const [assets, setAssets] = useState<AssetSpec[]>([]);
 
   const refreshAll = useCallback(async () => {
     try {
-      const [cyclesData, controlData, inboxData, rooms] = await Promise.all([
-        api.listCycles() as Promise<CycleLite[]>,
-        api.getControl() as Promise<ControlLite>,
-        api.listInbox().catch(() => [] as InboxItem[]),
-        api.getRoomTree().catch(() => [] as RoomTreeLite[]),
-      ]);
+      const [cyclesData, controlData, inboxData, rooms, milestonesData, assetsData] =
+        await Promise.all([
+          api.listCycles() as Promise<CycleLite[]>,
+          api.getControl() as Promise<ControlLite>,
+          api.listInbox().catch(() => [] as InboxItem[]),
+          api.getRoomTree().catch(() => [] as RoomTreeLite[]),
+          api.listMilestones().catch(() => [] as MilestoneItem[]),
+          api.listAssets().catch(() => [] as AssetSpec[]),
+        ]);
       setCycles(cyclesData);
       setControl(controlData);
       setInbox(inboxData);
       setRoomTree(rooms);
+      setMilestones(milestonesData);
+      setAssets(assetsData);
     } catch {
       // ignore — individual widgets handle their own empty state
     }
@@ -366,20 +372,42 @@ export default function HomePage() {
           )}
         </BentoTile>
 
-        {/* Milestones — 3×1 (placeholder, Phase 3) */}
+        {/* Milestones — 3×1 */}
         <BentoTile
           title="Milestones"
           spanClass="col-span-12 md:col-span-3 row-span-1"
           onMaximize={() => router.push('/milestones')}
         >
-          <div className="text-xs text-muted-foreground">
-            Dynamic sync lands in Phase 3.
-            <div className="mt-1">
-              <Link href="/milestones" className="text-primary hover:underline">
-                Open →
-              </Link>
+          {milestones.length === 0 ? (
+            <div className="text-xs text-muted-foreground">No milestones synced yet.</div>
+          ) : (
+            <div className="space-y-1">
+              {(() => {
+                const done = milestones.filter((m) => m.status === 'completed').length;
+                const active = milestones.filter((m) => m.status === 'active');
+                const nextPlanned = milestones.find((m) => m.status === 'planned');
+                return (
+                  <>
+                    <div className="text-xs">
+                      <span className="text-success">✔ {done}</span>
+                      <span className="mx-2 text-muted-foreground">/</span>
+                      <span className="text-muted-foreground">{milestones.length}</span>
+                    </div>
+                    {active.length > 0 && (
+                      <div className="text-[10px] text-primary truncate">
+                        ● {active[0]._id} {active[0].name}
+                      </div>
+                    )}
+                    {nextPlanned && (
+                      <div className="text-[10px] text-muted-foreground truncate">
+                        next: {nextPlanned._id}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
             </div>
-          </div>
+          )}
         </BentoTile>
 
         {/* Rooms — 3×1 */}
@@ -430,13 +458,42 @@ export default function HomePage() {
           </div>
         </BentoTile>
 
-        {/* Assets — 4×1 placeholder (Phase 3) */}
+        {/* Assets — 4×1 */}
         <BentoTile
           title="Assets"
           spanClass="col-span-12 md:col-span-4 row-span-1"
           onMaximize={() => router.push('/assets')}
         >
-          <div className="text-xs text-muted-foreground">Real file previews land in Phase 3.</div>
+          {assets.length === 0 ? (
+            <div className="text-xs text-muted-foreground">No assets loaded.</div>
+          ) : (
+            <div className="space-y-1">
+              {(() => {
+                const total = assets.length;
+                const placeholder = assets.filter((a) => a.status === 'placeholder').length;
+                const replaced = assets.filter((a) => a.status === 'replaced').length;
+                const final = assets.filter((a) => a.status === 'final').length;
+                const planned = assets.filter((a) => a.status === 'planned').length;
+                return (
+                  <>
+                    <div className="text-xs flex items-center gap-3">
+                      <span className="text-success">● {final}</span>
+                      <span className="text-blue-400">◑ {replaced}</span>
+                      <span className="text-yellow-400">◐ {placeholder}</span>
+                      <span className="text-muted-foreground">○ {planned}</span>
+                      <span className="ml-auto text-muted-foreground text-[10px]">/ {total}</span>
+                    </div>
+                    <div className="flex h-1 rounded overflow-hidden">
+                      {final > 0 && <div className="bg-success" style={{ flex: final }} />}
+                      {replaced > 0 && <div className="bg-blue-400" style={{ flex: replaced }} />}
+                      {placeholder > 0 && <div className="bg-yellow-400" style={{ flex: placeholder }} />}
+                      {planned > 0 && <div className="bg-muted" style={{ flex: planned }} />}
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          )}
         </BentoTile>
 
         {/* Tests — 4×1 */}

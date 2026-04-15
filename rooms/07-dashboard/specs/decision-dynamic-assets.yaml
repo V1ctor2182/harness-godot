@@ -1,0 +1,58 @@
+spec_id: "decision-07-dashboard-dynamic-assets-001"
+type: decision
+state: active
+decision:
+  summary: "Assets come from a filesystem scan merged with a seed JSON — no hardcoded asset list"
+  detail: |
+    Design decision for the assets preview system:
+     - asset-scanner.ts walks $GAME_REPO_LOCAL_PATH/assets/** (rejecting
+       symlinks and enforcing strict path confinement), maps paths to
+       asset ids via conventional prefixes (sprites/ → sprite,
+       audio/sfx/ → audio_sfx, etc.), computes sha256 and PNG dimensions
+       without external deps.
+     - Result is merged with seed-data/assets/planned-assets.json:
+       matched files → status='placeholder' (or 'final' / 'replaced' once
+       lifecycle tracking ships), unmatched planned → 'planned', extra
+       files not in planned list → included anyway.
+     - 30s LRU cache; /api/assets/rescan POST forces bust.
+     - /api/assets/:id/file streams bytes with MIME sniffing;
+       Content-Type derived from extension; Cache-Control public max-age=60.
+     - Dashboard /assets page renders textures as pixelated <img>,
+       audio as native <audio>, fonts via dynamic @font-face, others as
+       dashed placeholders.
+  rationale: |
+    Old Assets page was 328 lines of hardcoded PLANNED_ASSETS. Users
+    couldn't see whether files actually existed in the game repo, and
+    adding an asset meant editing dashboard source. Filesystem scan +
+    seed fallback delivers real previews and drops the product coupling.
+constraints:
+  - "assetId must match ^[a-z0-9_]+(\\.[a-z0-9_]+)+$"
+  - "Resolved file path MUST start with gameRepo/assets/ (security)"
+  - "Symlinks MUST be rejected (security)"
+indexing:
+  type: decision
+  priority: high
+  layer: epic
+  domain: "assets"
+  tags: [assets, filesystem-scan, seed-json, preview, security]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.95
+  source_ref: "df90143 Phase 3 Assets"
+  cycle_tag: "dashboard-redesign-2026-04-15"
+relations:
+  - target: "intent-07-dashboard-001"
+    type: "depends_on"
+  - target: "contract-07-dashboard-api-assets-001"
+    type: "relates_to"
+anchors:
+  - file: "apps/server/src/lib/asset-scanner.ts"
+    symbol: "scanAssets"
+  - file: "apps/server/src/lib/asset-scanner.ts"
+    symbol: "resolveAssetFilePath"
+  - file: "apps/server/src/lib/asset-scanner.ts"
+    symbol: "pathToAssetId"
+  - file: "apps/server/src/routes/assets.ts"
+  - file: "seed-data/assets/planned-assets.json"
+  - file: "apps/dashboard/src/app/assets/page.tsx"
+    symbol: "AssetsPage"

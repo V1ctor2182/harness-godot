@@ -1,20 +1,40 @@
 spec_id: "intent-07-03-analytics-001"
 type: intent
-state: draft
+state: active
 intent:
-  summary: "Aggregated cycle metrics, spending charts, and test result views"
+  summary: "Analytics folded into Home Bento — spending, tests, fail reasons, active cycle status"
   detail: |
-    Cycle metrics、spending charts、milestone progress 和 test results 聚合视图。Goal coverage 计算、retry breakdown、first-pass review rate。
-constraints: []
+    The standalone /analytics page is gone. All analytics are tiles on
+    the Home Bento grid:
+     - Spending tile: current vs cap, stacked color by usage ratio
+     - Tests tile (active cycle): dynamic layer grouping from
+       api.listTests, no L1-L4 enum
+     - Fail reasons tile: top-5 agent run errors, grouped by first line
+     - Recent Cycles tile: last 4 cycles with status + cost
+     - Milestones tile: real sync state (done/total + active + next)
+     - Assets tile: status stacked bar from api.listAssets
+     - Events stream footer: live SSE tail shared across every tile
+    Every tile exposes [Open ↗] (popup) and [⛶] (maximize) buttons using
+    the PopupProvider + PopupPreview primitives.
+constraints:
+  - "No analytics page — tiles must live on Home"
+  - "Test layer grouping must be dynamic (groupBy result.layer)"
 indexing:
   type: intent
   priority: high
   layer: feature
   domain: "analytics"
-  tags: [metrics, spending, goal-coverage, retry-breakdown, review-rate]
+  tags: [bento, home, spending, tests, fail-reasons, popup-preview]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
-relations: []
-anchors: []
+  confidence: 0.95
+  source_ref: "c0f4043 Phase 2 Home Bento"
+  cycle_tag: "dashboard-redesign-2026-04-15"
+relations:
+  - target: "intent-07-dashboard-001"
+    type: "depends_on"
+anchors:
+  - file: "apps/dashboard/src/app/page.tsx"
+    symbol: "HomePage"
+  - file: "apps/dashboard/src/app/page.tsx"
+    symbol: "BentoTile"

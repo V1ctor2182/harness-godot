@@ -1,1 +1,32 @@
-milestones: []
+lifecycle: active
+completion: 80
+milestones:
+  - id: team-pipeline-view
+    name: "Cycle Team view with 6-role horizontal pipeline"
+    status: completed
+    completed_at: "2026-04-14"
+    commit: c0f4043
+  - id: agent-drawer-integration
+    name: "Agent drawer driven by ?agent= query param, reuses AgentDetail"
+    status: completed
+    completed_at: "2026-04-14"
+    commit: c0f4043
+  - id: events-log-footer
+    name: "Collapsible SSE events log on Cycle page"
+    status: completed
+    completed_at: "2026-04-14"
+    commit: c0f4043
+  - id: cycle-events-ring-buffer-tuning
+    name: "Tune events log ring size (currently 400) based on memory profile"
+    status: pending
+commits:
+  - hash: "c0f4043"
+    date: "2026-04-14"
+    message: "feat(dashboard): Phase 2 — Home Bento, Cycle Team view, Inbox"
+    files_changed: 3
+    specs_affected:
+      - intent-07-01-live-stream-001 (draft → active, anchors added)
+    milestones_affected:
+      - team-pipeline-view (→ completed)
+      - agent-drawer-integration (→ completed)
+      - events-log-footer (→ completed)

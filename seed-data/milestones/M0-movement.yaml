@@ -1,0 +1,18 @@
+id: M0
+name: 移动与农场场景
+description: |
+  Player Movement & Farm Scene. 建立最基础的操作体验:角色可移动、摄像机跟随、
+  农场场景加载,并保证 60fps 稳定运行。
+goals:
+  - WASD 移动
+  - 摄像机跟随
+  - 碰撞检测
+  - 边界检测
+  - 60fps 稳定
+features:
+  - CharacterBody2D Player
+  - Camera2D smoothing
+  - Farm scene
+dependsOn: []
+estimatedWeeks: 1
+order: 0

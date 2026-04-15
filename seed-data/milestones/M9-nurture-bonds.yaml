@@ -1,0 +1,20 @@
+id: M9
+name: 养护与羁绊
+description: |
+  Nurture & Bonds. 把单体僵尸变成有关系网的群体:心情、喂食、羁绊组合带来
+  情感与数值的双重反馈。
+goals:
+  - 心情系统
+  - 喂食机制
+  - 衰变系统
+  - 地窖存储
+  - 7 种羁绊
+features:
+  - MoodSystem
+  - FeedingSystem
+  - DecayManager
+  - BondSystem
+dependsOn:
+  - M2
+estimatedWeeks: 2.25
+order: 9

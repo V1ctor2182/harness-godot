@@ -1,0 +1,45 @@
+spec_id: "decision-07-dashboard-bento-popup-001"
+type: decision
+state: active
+decision:
+  summary: "Home is a 12-column Bento grid with popup-preview + maximize drill-down"
+  detail: |
+    Design decision for Home page layout:
+     - 12-column CSS Grid, auto-rows-[120px], responsive breakpoints
+     - Each bento tile is a self-contained <BentoTile> with span + title
+       + optional [Open ↗] (popup) and [⛶] (maximize) buttons
+     - Popup is a centered Radix Dialog (min(90vw, 1200px) × min(85vh, 800px))
+       with lazy-loaded preview body — smaller scope than full page
+     - Keyboard: ESC closes, F or ⌘↑ maximizes to the underlying route
+     - Popup state lives in a global PopupProvider (React context),
+       accessible from any component via usePopup()
+     - At most 1 popup open at a time; clicking a new bento replaces it
+  rationale: |
+    The old dashboard had 12 separate top-level pages. Users couldn't
+    see the team's state at a glance. Bento gives one-screen overview
+    with graceful drill-down that preserves context (popup) or commits
+    to focused work (maximize).
+constraints: []
+indexing:
+  type: decision
+  priority: high
+  layer: epic
+  domain: "dashboard"
+  tags: [bento, popup, dialog, home, navigation]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.95
+  source_ref: "c0f4043 Phase 2 Home Bento"
+  cycle_tag: "dashboard-redesign-2026-04-15"
+relations:
+  - target: "intent-07-dashboard-001"
+    type: "depends_on"
+anchors:
+  - file: "apps/dashboard/src/app/page.tsx"
+    symbol: "BentoTile"
+  - file: "apps/dashboard/src/components/popup-preview.tsx"
+    symbol: "PopupPreview"
+  - file: "apps/dashboard/src/components/popup-renderers.tsx"
+  - file: "apps/dashboard/src/hooks/use-popup.tsx"
+    symbol: "PopupProvider"
+  - file: "apps/dashboard/src/components/ui/dialog.tsx"

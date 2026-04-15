@@ -18,6 +18,8 @@ import roomsRouter from './routes/rooms.js';
 import specsRouter from './routes/specs.js';
 import testsRouter from './routes/tests.js';
 import inboxRouter from './routes/inbox.js';
+import milestonesRouter from './routes/milestones.js';
+import assetsRouter from './routes/assets.js';
 
 const app = express();
 
@@ -42,6 +44,8 @@ app.use('/api/rooms', roomsRouter);
 app.use('/api/specs', specsRouter);
 app.use('/api/tests', testsRouter);
 app.use('/api/inbox', inboxRouter);
+app.use('/api/milestones', milestonesRouter);
+app.use('/api/assets', assetsRouter);
 
 // Error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

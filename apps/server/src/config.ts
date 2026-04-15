@@ -40,4 +40,7 @@ export const config = {
   jobRetentionDays: envInt('JOB_RETENTION_DAYS', 30),
 
   discordWebhookUrl: env('DISCORD_WEBHOOK_URL', ''),
+
+  // Game repo (for milestones + assets dynamic sync, Phase 3)
+  gameRepoLocalPath: env('GAME_REPO_LOCAL_PATH', ''),
 } as const;

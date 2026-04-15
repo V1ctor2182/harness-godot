@@ -1,0 +1,21 @@
+id: M8
+name: 突变与僵尸进化
+description: |
+  Mutations & Evolution. 深度养成:僵尸可以通过突变获得新能力,融合出
+  更强的后代,挖掘隐藏基因。
+goals:
+  - 突变实验室
+  - 4 种突变
+  - 催化剂系统
+  - 僵尸融合
+  - 隐藏基因
+features:
+  - MutationLab scene
+  - MutationManager
+  - FusionSystem
+  - GeneSystem
+dependsOn:
+  - M3
+  - M5
+estimatedWeeks: 2.5
+order: 8
