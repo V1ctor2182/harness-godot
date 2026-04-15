@@ -553,6 +553,32 @@ export async function handleAdvanceCycle(payload: Record<string, unknown>): Prom
     broadcast('cycle:completed', { cycleId, metrics });
     notifyCycleCompleted(cycleId).catch(() => {});
 
+    // Per-cycle decay: apply QUALITY_SCORE_DECAY to ALL active specs.
+    // Specs that are frequently useful regain score via processContextFeedback;
+    // unused specs gradually sink and eventually auto-archive at QUALITY_SCORE_MIN.
+    try {
+      const { SpecModel } = await import('../models/spec.js');
+      const { QUALITY_SCORE_DECAY: decay, QUALITY_SCORE_MIN: minScore } = await import('@zombie-farm/shared');
+
+      // Bulk decay: multiply all active spec scores by 0.95
+      await SpecModel.updateMany(
+        { state: 'active', qualityScore: { $gt: minScore } },
+        [{ $set: { qualityScore: { $multiply: ['$qualityScore', decay] }, updatedAt: new Date() } }]
+      );
+
+      // Auto-archive specs that dropped to or below minimum
+      const archived = await SpecModel.updateMany(
+        { state: 'active', qualityScore: { $lte: minScore } },
+        { $set: { state: 'archived', updatedAt: new Date() } }
+      );
+
+      if (archived.modifiedCount > 0) {
+        logger.info({ cycleId, archived: archived.modifiedCount }, '[cycle-decay] Auto-archived low-score specs');
+      }
+    } catch (err) {
+      logger.error({ err, cycleId }, 'Per-cycle spec decay failed — non-fatal, continuing');
+    }
+
     // Auto-generate retrospective knowledge file (idempotent via upsert).
     // Errors here are non-fatal — a failed upsert must not prevent the
     // next-cycle job from being created (which would stall the system).
