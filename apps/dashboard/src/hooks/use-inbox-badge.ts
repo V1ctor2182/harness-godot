@@ -2,28 +2,19 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useGlobalSSE } from './use-sse';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
+import { api } from '@/lib/api';
 
 /**
- * Returns the count of unread / pending Inbox items for the top-nav badge.
- *
- * Phase 1 stub: polls `/api/inbox/count`; if that endpoint doesn't exist yet
- * (Phase 2 adds it), we silently fall back to 0. SSE event `inbox:new`
- * triggers a refetch once the backend is wired.
+ * Returns the count of pending Inbox items for the top-nav badge. Refetches
+ * on inbox:new / inbox:resolved / job:requires_approval SSE events.
  */
 export function useInboxBadge(): { count: number; refresh: () => void } {
   const [count, setCount] = useState(0);
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/inbox/count`);
-      if (!res.ok) {
-        setCount(0);
-        return;
-      }
-      const data = (await res.json()) as { count?: number };
-      setCount(typeof data.count === 'number' ? data.count : 0);
+      const data = await api.getInboxCount();
+      setCount(data.count);
     } catch {
       setCount(0);
     }

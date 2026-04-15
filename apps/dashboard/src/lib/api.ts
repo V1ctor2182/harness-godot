@@ -138,7 +138,58 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ answers, feedback }),
     }),
+
+  // Inbox
+  listInbox: (params?: { type?: string; cycleId?: number }) => {
+    const qs = new URLSearchParams();
+    if (params?.type) qs.set('type', params.type);
+    if (params?.cycleId) qs.set('cycleId', String(params.cycleId));
+    return request<InboxItem[]>(`/inbox?${qs}`);
+  },
+  getInboxCount: () => request<{ count: number }>('/inbox/count'),
+  getInboxItem: (id: string) => request<InboxItem>(`/inbox/${encodeURIComponent(id)}`),
+  resolveInbox: (id: string, body: InboxResolveBody) =>
+    request<{ status: string; id: string }>(`/inbox/${encodeURIComponent(id)}/resolve`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
 };
+
+// ─── Inbox types ────────────────────────────────────────────────────
+
+export type InboxItemType =
+  | 'approval'
+  | 'plan_qa'
+  | 'plan_review'
+  | 'pr_gate'
+  | 'draft_spec'
+  | 'next_cycle';
+
+export interface InboxItem {
+  id: string;
+  type: InboxItemType;
+  source: {
+    kind: 'job' | 'spec' | 'task';
+    refId: string;
+    cycleId?: number;
+    taskId?: string;
+    agentRunId?: string;
+  };
+  title: string;
+  preview: string;
+  urgency: 'low' | 'normal' | 'urgent';
+  status: 'unread' | 'read';
+  payload: Record<string, unknown>;
+  createdAt: string;
+  readAt?: string;
+}
+
+export interface InboxResolveBody {
+  action: 'approve' | 'reject' | 'answer' | 'activate_spec' | 'archive_spec';
+  reason?: string;
+  answers?: Record<string, string>;
+  feedback?: string;
+}
 
 // ─── Room & Spec types ──────────────────────────────────────────────
 

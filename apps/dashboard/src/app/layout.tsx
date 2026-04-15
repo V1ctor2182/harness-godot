@@ -1,5 +1,5 @@
 import './globals.css';
-import { TopNav } from '@/components/top-nav';
+import { AppShell } from '@/components/app-shell';
 
 const projectName = process.env.NEXT_PUBLIC_PROJECT_NAME ?? 'AI Team';
 
@@ -12,8 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <TopNav projectName={projectName} />
-        <main className="max-w-[1400px] mx-auto p-4">{children}</main>
+        <AppShell projectName={projectName}>{children}</AppShell>
       </body>
     </html>
   );

@@ -17,6 +17,7 @@ import analyticsRouter from './routes/analytics.js';
 import roomsRouter from './routes/rooms.js';
 import specsRouter from './routes/specs.js';
 import testsRouter from './routes/tests.js';
+import inboxRouter from './routes/inbox.js';
 
 const app = express();
 
@@ -40,6 +41,7 @@ app.use('/api/analytics', analyticsRouter);
 app.use('/api/rooms', roomsRouter);
 app.use('/api/specs', specsRouter);
 app.use('/api/tests', testsRouter);
+app.use('/api/inbox', inboxRouter);
 
 // Error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
