@@ -167,13 +167,6 @@ tree:
         lifecycle: planning
         path: "rooms/09-spending"
 
-      - id: 10-game-rooms
-        name: "游戏 Feature Rooms"
-        type: epic
-        owner: fullstack
-        lifecycle: planning
-        path: "rooms/10-game-rooms"
-
       - id: 11-data-layer
         name: "数据层"
         type: epic

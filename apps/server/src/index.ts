@@ -50,7 +50,7 @@ async function main() {
   const roomResult = await seedRooms();
   console.log('Rooms seeded');
 
-  // Seed milestones from game repo or local seed-data/ (idempotent)
+  // Seed milestones from $GAME_REPO_LOCAL_PATH/.harness/milestones/ (idempotent)
   console.log('Seeding milestones...');
   await seedMilestones();
   console.log('Milestones seeded');

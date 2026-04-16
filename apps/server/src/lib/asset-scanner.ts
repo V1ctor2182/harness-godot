@@ -56,9 +56,24 @@ interface PlannedAsset {
 
 // ─── Constants ──────────────────────────────────────────────────────
 
-const PROJECT_ROOT = path.join(__dirname, '..', '..', '..', '..');
-const SEED_ASSETS = path.join(PROJECT_ROOT, 'seed-data', 'assets');
-const PLANNED_FILE = path.join(SEED_ASSETS, 'planned-assets.json');
+/**
+ * The planned-assets manifest is project-owned (Phase B of the decoupling
+ * plan). We read it from the configured project repo; if no project is
+ * configured or the file is absent, the scanner returns an empty planned
+ * list and only surfaces whatever it finds on disk.
+ *
+ * Lookup order inside gameRepoLocalPath:
+ *   1. .harness/assets-planned.json   (canonical, Phase B+)
+ *   2. assets-planned.json            (legacy, one release of grace)
+ */
+function plannedAssetsCandidates(): string[] {
+  const base = config.gameRepoLocalPath;
+  if (!base) return [];
+  return [
+    path.join(base, '.harness', 'assets-planned.json'),
+    path.join(base, 'assets-planned.json'),
+  ];
+}
 
 // assetId format: <category>.<subcategory>.<name> (dots ok in name)
 const ASSET_ID_REGEX = /^[a-z0-9_]+(\.[a-z0-9_]+)+$/;
@@ -88,13 +103,16 @@ const CACHE_TTL_MS = 30_000;
 // ─── Helpers ────────────────────────────────────────────────────────
 
 async function loadPlanned(): Promise<PlannedAsset[]> {
-  try {
-    const raw = await fs.readFile(PLANNED_FILE, 'utf8');
-    return JSON.parse(raw) as PlannedAsset[];
-  } catch (e) {
-    logger.warn({ err: e }, '[assetScanner] failed to load planned-assets.json');
-    return [];
+  for (const candidate of plannedAssetsCandidates()) {
+    try {
+      const raw = await fs.readFile(candidate, 'utf8');
+      return JSON.parse(raw) as PlannedAsset[];
+    } catch {
+      // try next candidate
+    }
   }
+  logger.info('[assetScanner] no planned-assets.json found in project repo — continuing with scan-only');
+  return [];
 }
 
 function detectType(ext: string): AssetType {

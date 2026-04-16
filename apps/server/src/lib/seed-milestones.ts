@@ -6,11 +6,6 @@ import { MilestoneModel } from '../models/milestone.js';
 import { config } from '../config.js';
 import { logger } from './logger.js';
 
-// The harness-system repo root (same trick as seed-rooms.ts):
-//   local dev: apps/server/src/lib/ → ../../../.. = project root
-//   Docker:    apps/server/dist/lib/ → ../../../.. = /app
-const PROJECT_ROOT = path.join(__dirname, '..', '..', '..', '..');
-
 interface MilestoneYaml {
   id: string;
   name: string;
@@ -25,30 +20,30 @@ interface MilestoneYaml {
 /**
  * Resolve the directory to read milestone yaml files from.
  *
- * Preference order:
- *  1. `$GAME_REPO_LOCAL_PATH/milestones/` — canonical source once the game
- *     repo owns the roadmap.
- *  2. `<harness-root>/seed-data/milestones/` — bootstrap source shipped with
- *     harness-system so local dev works without cloning the game repo.
+ * The project repo owns milestones: harness reads from
+ * `$GAME_REPO_LOCAL_PATH/.harness/milestones/` first. For one release cycle
+ * we also honour the legacy `$GAME_REPO_LOCAL_PATH/milestones/` location so
+ * projects that predate the .harness/ convention keep working.
+ *
+ * If no project is configured or no milestones exist, the harness runs in
+ * zero-milestone mode (dashboard shows empty state). There is no longer a
+ * harness-local fallback — Phase B of the decoupling plan removed it.
  */
 async function resolveMilestonesDir(): Promise<string | null> {
   const gameRepo = config.gameRepoLocalPath;
-  if (gameRepo) {
-    const gameRepoDir = path.join(gameRepo, 'milestones');
-    try {
-      const stat = await fs.stat(gameRepoDir);
-      if (stat.isDirectory()) return gameRepoDir;
-    } catch {
-      // fall through
-    }
-  }
+  if (!gameRepo) return null;
 
-  const seedDir = path.join(PROJECT_ROOT, 'seed-data', 'milestones');
-  try {
-    const stat = await fs.stat(seedDir);
-    if (stat.isDirectory()) return seedDir;
-  } catch {
-    return null;
+  const candidates = [
+    path.join(gameRepo, '.harness', 'milestones'),
+    path.join(gameRepo, 'milestones'),
+  ];
+  for (const dir of candidates) {
+    try {
+      const stat = await fs.stat(dir);
+      if (stat.isDirectory()) return dir;
+    } catch {
+      // try next candidate
+    }
   }
   return null;
 }
