@@ -1,0 +1,48 @@
+project:
+  id: zombie-farm
+  name: Zombie Farm
+  description: >
+    Zombie farming and cultivation game with xianxia elements.
+    Zombies are raised, mutated, trained through cultivation tiers, and
+    sent into combat. The player manages a farm, grows crops, breeds
+    zombies, and progresses through a cultivation-inspired power system.
+
+  stack:
+    engine: Godot
+    engine_version: "4.6.1"
+    language: GDScript
+    test_runner: GUT
+    os: linux-amd64
+
+  paths:
+    source: "scripts/"
+    tests: "tests/"
+    data: "data/"
+
+  conventions: |
+    Use static typing (:=, -> void) throughout.
+    File names use snake_case (e.g., mutation_manager.gd, zombie_data.gd).
+    Classes use PascalCase.
+    Nodes in scenes use PascalCase (e.g., MutationLab, ZombieSpawner).
+    Signals use past tense (zombie_mutated, cultivation_advanced).
+    All public nodes have class_name declarations.
+    Game data lives in data/{domain}/ as JSON.
+    Tests go in tests/unit/ using GUT framework.
+
+  prd_path: "prd/"
+
+  constants:
+    gut_timeout_ms: 180000
+    integration_test_timeout_ms: 120000
+    godot_import_timeout_s: 120
+
+  test_layers:
+    - id: L1
+      name: "GUT unit tests"
+      runner: "godot --headless -s addons/gut/gut_cmdln.gd"
+    - id: L2
+      name: "Headless integration"
+    - id: L3
+      name: "Visual (Phase 5)"
+    - id: L4
+      name: "PRD compliance"
