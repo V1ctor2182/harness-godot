@@ -54,7 +54,7 @@ function AudioPreview({ assetId }: { assetId: string }) {
   return <audio controls preload="metadata" src={src} className="w-full h-8" />;
 }
 
-function FontPreview({ assetId, sample = '僵尸农场 Zombie Farm 123' }: { assetId: string; sample?: string }) {
+function FontPreview({ assetId, sample = 'The quick brown fox 0123456789' }: { assetId: string; sample?: string }) {
   const [loaded, setLoaded] = useState(false);
   const fontFamily = `asset-${assetId.replace(/[^a-z0-9]/g, '-')}`;
 

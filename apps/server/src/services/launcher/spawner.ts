@@ -234,12 +234,11 @@ export async function spawnAgent(params: SpawnParams): Promise<string> {
       await processContextFeedback(agentRunId, captureResult.structuredOutput.contextFeedback);
     }
 
-    // Bug #2 fix: Persist Godot test results and screenshots from structured output
-    // These come from the agent's JSON output, NOT from stream events
-    // Wrapped in try-catch — agent JSON may have missing/malformed fields, must never crash the spawner
-    const godotOutput = captureResult.structuredOutput as Record<string, unknown> | undefined;
-    if (godotOutput?.testResults && Array.isArray(godotOutput.testResults)) {
-      for (const result of godotOutput.testResults) {
+    // Persist test results and screenshots from agent structured output.
+    // Wrapped in try-catch — agent JSON may have missing/malformed fields, must never crash the spawner.
+    const agentOutput = captureResult.structuredOutput as Record<string, unknown> | undefined;
+    if (agentOutput?.testResults && Array.isArray(agentOutput.testResults)) {
+      for (const result of agentOutput.testResults) {
         try {
           await TestResultModel.create({ ...result, taskId, cycleId, agentRunId });
         } catch (e) {
@@ -248,8 +247,8 @@ export async function spawnAgent(params: SpawnParams): Promise<string> {
         }
       }
     }
-    if (godotOutput?.screenshots && Array.isArray(godotOutput.screenshots)) {
-      for (const screenshot of godotOutput.screenshots) {
+    if (agentOutput?.screenshots && Array.isArray(agentOutput.screenshots)) {
+      for (const screenshot of agentOutput.screenshots) {
         try {
           await ScreenshotModel.create({ ...screenshot, taskId });
         } catch (e) {
@@ -689,9 +688,8 @@ export async function createFollowUpJobs(
         );
         broadcast('task:status_changed', { taskId, status: 'ready', cycleId });
 
-        // Fix B: Pass fixTasks as reviewIssues for precise Coder retry guidance
-        const godotOut = structuredOutput as Record<string, unknown> | undefined;
-        const fixTasks = (godotOut?.['fixTasks'] as Array<Record<string, unknown>>) ?? [];
+        const structOut = structuredOutput as Record<string, unknown> | undefined;
+        const fixTasks = (structOut?.['fixTasks'] as Array<Record<string, unknown>>) ?? [];
         const reviewIssues = fixTasks.map((ft) => ({
           file: (ft['file'] as string) ?? 'unknown',
           line: (ft['line'] as number) ?? undefined,

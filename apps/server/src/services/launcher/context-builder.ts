@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { config } from '../../config.js';
 import { RoomModel } from '../../models/room.js';
 import { SpecModel } from '../../models/spec.js';
 import { AgentRunModel } from '../../models/agent-run.js';
@@ -23,12 +24,10 @@ interface AgentContext {
   contextSnapshot?: ContextSnapshot;
 }
 
-// Bug #3 fix: Detect repo root via .git/ or project.godot instead of package.json only
 function findRepoRoot(): string {
   let dir = __dirname;
   while (dir !== path.dirname(dir)) {
     if (fs.existsSync(path.join(dir, '.git'))) return dir;
-    if (fs.existsSync(path.join(dir, 'project.godot'))) return dir;
     const pkgPath = path.join(dir, 'package.json');
     if (fs.existsSync(pkgPath)) {
       try {
@@ -38,11 +37,24 @@ function findRepoRoot(): string {
     }
     dir = path.dirname(dir);
   }
-  throw new Error('Could not find repo root (no .git, project.godot, or package.json with workspaces)');
+  throw new Error('Could not find repo root (no .git or package.json with workspaces)');
 }
 
 const REPO_ROOT = findRepoRoot();
 const AGENTS_DIR = path.join(REPO_ROOT, 'agents');
+
+/**
+ * Resolve agent prompt path: project-specific override first, then harness
+ * generic stub. Phase D of the decoupling plan.
+ */
+function resolveAgentPromptPath(role: string): string {
+  const projectBase = config.projectRepoLocalPath;
+  if (projectBase) {
+    const projectPrompt = path.join(projectBase, '.harness', 'agents', `${role}.md`);
+    if (fs.existsSync(projectPrompt)) return projectPrompt;
+  }
+  return path.join(AGENTS_DIR, `${role}.md`);
+}
 
 // Common English stop words filtered out during keyword extraction
 const STOP_WORDS = new Set([
@@ -451,8 +463,8 @@ export async function buildContext(params: {
 }): Promise<AgentContext> {
   const { role, taskId, cycleId, retryContext } = params;
 
-  // Load system prompt
-  const promptPath = path.join(AGENTS_DIR, `${role}.md`);
+  // Load system prompt (project override preferred, harness generic fallback)
+  const promptPath = resolveAgentPromptPath(role);
   const systemPromptContent = fs.readFileSync(promptPath, 'utf-8');
 
   // Fetch control singleton for operator directives
