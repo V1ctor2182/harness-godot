@@ -474,7 +474,7 @@
   │   Image: 'godot-agent:4.6.1',  │
   │   Env: [TASK_ID, CYCLE_ID,     │
   │         GITHUB_TOKEN, ...],     │
-  │   Labels: {zombie-farm: agent}, │
+  │   Labels: {harness: agent},     │
   │   Memory: 4GB, CPU: 1          │
   │ })                              │
   └──────────────┬──────────────────┘
@@ -782,7 +782,7 @@
   │    (server 崩溃时正在处理的 job 不可能完成)                   │
   │                                                              │
   │ 2. reconcileOrphans()                                        │
-  │    扫描 Docker: 带 zombie-farm=agent label 的运行中容器      │
+  │    扫描 Docker: 带 harness=agent label 的运行中容器          │
   │    匹配 AgentRun 文档 → 移除容器 → 如果预算内创建 retry job  │
   │                                                              │
   │ 3. reconcileSpending()                                       │

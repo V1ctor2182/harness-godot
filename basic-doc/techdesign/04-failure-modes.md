@@ -20,7 +20,7 @@
   │                  │  "overloaded")          │                      │          │                                          │
   ├──────────────────┼─────────────────────────┼──────────────────────┼──────────┼──────────────────────────────────────────┤
   │ Orphan container │ startup label scan      │ 移除容器 +           │ —        │ 仅 startup 检测，运行时无心跳              │
-  │                  │ (zombie-farm=agent)     │ 创建 retry job       │          │                                          │
+  │                  │ (harness=agent)     │ 创建 retry job       │          │                                          │
   ├──────────────────┼─────────────────────────┼──────────────────────┼──────────┼──────────────────────────────────────────┤
   │ Stale job        │ 每次 poll 检查 job age  │ 标记 failed          │ —        │ 如果 timeout 值配置错误会误判              │
   │                  │ vs role timeout         │                      │          │                                          │
@@ -442,7 +442,7 @@
   │ 回滚 bad merge   见 F6. Rollback 策略                       │
   │                                                              │
   │ 清理 orphan      重启 server → orphan recovery 自动执行     │
-  │ 手动清理容器     docker rm -f $(docker ps -q -f label=zombie-farm=agent) │
+  │ 手动清理容器     docker rm -f $(docker ps -q -f label=harness=agent) │
   └──────────────────────────────────────────────────────────────┘
 
   当前缺失的人工干预能力:

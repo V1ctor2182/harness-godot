@@ -8,7 +8,7 @@
 ┌─────────────────────────────────────────────────────────────────────┐
 │                        HUMAN OPERATOR                               │
 │                     Dashboard (Next.js :3000)                       │
-│     Cycles · Tasks · Agents · Tests · Rooms · Review · Control      │
+│     Home · Cycles · Milestones · Rooms · Assets   🔔 Inbox  ⚙      │
 └────────────────────────────┬────────────────────────────────────────┘
                              │ SSE (real-time)
                              │ REST API
