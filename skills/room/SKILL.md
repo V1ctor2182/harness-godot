@@ -1,7 +1,7 @@
 ---
 name: room
 description: >
-  Manage Nomi Feature Rooms through natural language — create, query, update, delete, move rooms and manage spec states. Use whenever the user wants to interact with Room structure: "给xx加一个room", "xx现在什么状态", "记录一个决策", "把xx标记为in-dev", "review draft specs", "加一条约束", or any CRUD operation on Feature Rooms and their specs. Also triggers on "room" mentions in the context of Nomi project management.
+  Manage Feature Rooms through natural language — create, query, update, delete, move rooms and manage spec states. Use whenever the user wants to interact with Room structure: "给xx加一个room", "xx现在什么状态", "记录一个决策", "把xx标记为in-dev", "review draft specs", "加一条约束", or any CRUD operation on Feature Rooms and their specs. Also triggers on "room" mentions in the context of project management.
 ---
 
 # Room — Feature Room 增删查改 + Spec 状态管理
@@ -19,7 +19,7 @@ description: >
 
 ### 1. 创建 Room（Create）
 
-用户说："给 quick-capture 加一个子 room，叫 trigger-mode"
+用户说："给 payment-flow 加一个子 room，叫 checkout"
 
 执行：
 1. 在父 Room 目录下创建新目录
@@ -36,7 +36,7 @@ description: >
 
 ### 2. 查询 Room（Read）
 
-用户说："trigger-mode 现在什么状态？" / "哪些 room 还没写 spec？"
+用户说："user-auth 现在什么状态？" / "哪些 room 还没写 spec？"
 
 执行：
 1. 读取对应 room.yaml / 遍历所有 Room
@@ -45,7 +45,7 @@ description: >
 
 ### 3. 修改 Room（Update）
 
-用户说："把 trigger-mode 标记为 in-dev" / "给 trigger-mode 加一条约束"
+用户说："把 user-auth 标记为 in-dev" / "给 user-auth 加一条约束"
 
 分两类操作：
 
@@ -85,7 +85,7 @@ anchors: []
 
 ### 4. Spec 状态管理（Review）
 
-用户说："review 一下 desktop-pet 的 draft specs" / "把 EventKit 决策升为 active"
+用户说："review 一下 user-auth 的 draft specs" / "把 bcrypt 决策升为 active"
 
 **单条操作：**
 - 找到对应 spec yaml
@@ -105,7 +105,7 @@ anchors: []
 
 ### 5. 删除/归档（Delete/Archive）
 
-用户说："calendar-sync 先不做了，归档掉"
+用户说："report-builder 先不做了，归档掉"
 
 - 更新 room.yaml 的 `lifecycle: archived`
 - 更新 _tree.yaml 标记
@@ -113,7 +113,7 @@ anchors: []
 
 ### 6. 移动 Room（Move）
 
-用户说："把 map-widget 从 knowledge-base 移到 desktop-pet 下面"
+用户说："把 search-index 从 data-sync 移到 notification-service 下面"
 
 1. 移动目录
 2. 更新 _tree.yaml

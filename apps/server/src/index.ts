@@ -5,7 +5,6 @@ import logger from './lib/logger.js';
 import { runMigrations } from './lib/migration-runner.js';
 import { seedKnowledge } from './lib/seed-knowledge.js';
 import { seedRooms } from './lib/seed-rooms.js';
-import { seedMilestones } from './lib/seed-milestones.js';
 import { loadProjectConfig } from './lib/project-config.js';
 import { initSSE, stopSSE } from './services/sse-manager.js';
 import { startJobQueue, stopJobQueue } from './services/job-queue.js';
@@ -66,10 +65,8 @@ async function main() {
     );
   }
 
-  // Seed milestones from $PROJECT_REPO_LOCAL_PATH/.harness/milestones/ (idempotent)
-  console.log('Seeding milestones...');
-  await seedMilestones();
-  console.log('Milestones seeded');
+  // Milestones are Mongo-only (created via dashboard or Orchestrator proposals).
+  // No yaml seeding — Phase G of the decoupling plan removed seed-milestones.ts.
 
   // Ensure control document exists
   await getOrCreateControl();

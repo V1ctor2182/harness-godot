@@ -9,8 +9,8 @@ description: >
 用户写自己的 prompt（想让 AI 做什么），这个 skill 自动 pull 相关 Room 的上下文，把用户的 prompt 增强为一个带完整背景的 prompt。核心逻辑是 **context pulling**，不是替用户写 prompt。
 
 支持两种粒度：
-- **Room 级**：`promptgen stock-data` — 拉整个 Room 的上下文（用于规划）
-- **Milestone 级**：`promptgen stock-data/m1` — 只拉该 milestone 需要的上下文（用于开发）
+- **Room 级**：`promptgen user-auth` — 拉整个 Room 的上下文（用于规划）
+- **Milestone 级**：`promptgen user-auth/m1` — 只拉该 milestone 需要的上下文（用于开发）
 
 ## 前置条件
 
@@ -21,8 +21,8 @@ description: >
 
 ### Phase 0: 确定粒度
 
-- 用户指定了 milestone（如 "promptgen macro-data/m3"）→ **Milestone 模式**
-- 用户只指定 Room（如 "promptgen macro-data"）→ **Room 模式**（现有行为）
+- 用户指定了 milestone（如 "promptgen payment-flow/m3"）→ **Milestone 模式**
+- 用户只指定 Room（如 "promptgen payment-flow"）→ **Room 模式**（现有行为）
 
 **Milestone 模式额外行为**：
 - 只拉该 milestone 相关的 specs（而非全部）
@@ -34,9 +34,9 @@ description: >
 
 优先级：**用户显式指定 > AI 推断**
 
-- 用户说了 room name（如 "我在 trigger-mode"）→ 直接用，不问
+- 用户说了 room name（如 "我在 user-auth"）→ 直接用，不问
 - 用户没说 → 从 `_tree.yaml` + 各 room spec.md 语义匹配 → **先向用户确认**再 pull
-- 涉及多个 Room（如 "trigger-mode 和 knowledge-base 的集成"）→ 用户指定的全部 pull；AI 推断的先确认
+- 涉及多个 Room（如 "user-auth 和 notification-service 的集成"）→ 用户指定的全部 pull；AI 推断的先确认
 
 ### Phase 2: Pull Context
 
@@ -129,7 +129,7 @@ Pull 的 spec 类型包括全部 7 种：
 
 ## 纯 Prompt 测试模式
 
-用户说 "测一下 trigger-mode 的 spec 够不够生成 prompt" 时：
+用户说 "测一下 user-auth 的 spec 够不够生成 prompt" 时：
 - 只做 Prompt 测试：拉 context，计算 token 数
 - 不需要用户提供 prompt
 - 报告粒度是否合适

@@ -6,7 +6,7 @@ description: >
 
 # Room Status — 项目全景 + 时间线 + Draft Review
 
-扫描所有 Room，生成项目全景报告。把细粒度的 Room 状态聚合成人类可读的仪表盘（对应 VibeHub Layer 3 Projection）。
+扫描所有 Room，生成项目全景报告。把细粒度的 Room 状态聚合成人类可读的仪表盘（对应 Layer 3 Projection）。
 
 ## 前置条件
 
@@ -69,13 +69,13 @@ description: >
 📅 TIMELINE (Phase 1: MVP1)
 Target: 3/10 - 4/20  |  Today: {today}
 
-foundation    ████████░░░░ 60%  ✅ on track
+foundation         ████████░░░░ 60%  ✅ on track
   3/10━━━━━━━━━━━━3/20
-desktop-pet   ██░░░░░░░░░ 15%  ✅ on track
+user-auth          ██░░░░░░░░░ 15%  ✅ on track
   3/18━━━━━━━━━━━━━━4/1
-note-mode     ░░░░░░░░░░░  0%  ⏳ not started
+payment-flow       ░░░░░░░░░░░  0%  ⏳ not started
   3/25━━━━━━━━━━━━━4/8
-trigger-mode  ████░░░░░░░ 40%  ✅ on track
+search-index       ████░░░░░░░ 40%  ✅ on track
   4/1━━━━━━━━━━━━━━4/15
 ```
 
@@ -93,12 +93,12 @@ foundation (60%)
 └─ ⬚ 测试
 Specs: 5 ✅ | Commits: 8 | Last: 3/14
 
-trigger-mode (40%)
+user-auth (40%)
 ├─ ✅ API 接口设计
-├─ 🔨 CRUD API 实现
-├─ ⬚ EventKit 时间触发
-├─ ⬚ 语义匹配内容触发
-└─ ⬚ CoreLocation 位置触发
+├─ 🔨 Session CRUD 实现
+├─ ⬚ 密码登录流程
+├─ ⬚ OAuth 集成
+└─ ⬚ Auth 中间件
 Specs: 6 ✅ 1 ⚠️ | Commits: 3 | Last: 3/15
 ```
 
@@ -106,24 +106,24 @@ Specs: 6 ✅ 1 ⚠️ | Commits: 3 | Last: 3/15
 ```
 📋 DRAFT SPECS 待确认 ({N} 条)
 
-trigger-mode ({n} 条):
- [draft] intent-trigger-mode-001
-   "三种 Trigger 自动触发 AI 处理"
+user-auth ({n} 条):
+ [draft] intent-user-auth-001
+   "支持邮箱 + OAuth 两种登录方式"
    来源: prd_extraction | conf: 0.8
- [draft] constraint-trigger-mode-001
-   "CPU≤3%, triggers≤50"
+ [draft] constraint-user-auth-001
+   "session TTL ≤ 24h"
    来源: prd_extraction | conf: 0.9
 
-→ 使用 room skill: "review trigger-mode 的 draft specs" 逐条确认
+→ 使用 room skill: "review user-auth 的 draft specs" 逐条确认
 ```
 
 **5. Issues**
 ```
 ⚠️ ISSUES
-├─ desktop-pet: 1 stale spec (pet-idle)
-├─ knowledge-base: empty room
-├─ trigger-mode: 3 draft specs pending
-└─ note-mode: 未开始但排期 3/25 开始
+├─ notification-service: 1 stale spec (email-template)
+├─ search-index: empty room
+├─ user-auth: 3 draft specs pending
+└─ payment-flow: 未开始但排期 3/25 开始
 ```
 
 ### Step 4: 输出
@@ -136,4 +136,4 @@ trigger-mode ({n} 条):
 用户只问特定问题时，只展示相关段落：
 - "哪些 room 在开发中？" → 只展示 In Development 段落
 - "有哪些 spec 还没确认？" → 只展示 Draft Specs 段落
-- "trigger-mode 进展如何？" → 只展示该 Room 的进度 + milestones
+- "user-auth 进展如何？" → 只展示该 Room 的进度 + milestones

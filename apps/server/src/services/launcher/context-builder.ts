@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { config } from '../../config.js';
+import { getProjectConfig } from '../../lib/project-config.js';
 import { RoomModel } from '../../models/room.js';
 import { SpecModel } from '../../models/spec.js';
 import { AgentRunModel } from '../../models/agent-run.js';
@@ -44,16 +44,34 @@ const REPO_ROOT = findRepoRoot();
 const AGENTS_DIR = path.join(REPO_ROOT, 'agents');
 
 /**
- * Resolve agent prompt path: project-specific override first, then harness
- * generic stub. Phase D of the decoupling plan.
+ * Build the "## Project Context" section that gets appended to every agent's
+ * system prompt. Reads fields from the loaded ProjectConfig (project.yaml).
+ * Returns empty string when no project is loaded — the generic stub is
+ * self-sufficient on its own.
  */
-function resolveAgentPromptPath(role: string): string {
-  const projectBase = config.projectRepoLocalPath;
-  if (projectBase) {
-    const projectPrompt = path.join(projectBase, '.harness', 'agents', `${role}.md`);
-    if (fs.existsSync(projectPrompt)) return projectPrompt;
+function buildProjectContextSection(): string {
+  const pc = getProjectConfig();
+  if (!pc) return '';
+
+  const lines: string[] = ['## Project Context'];
+  lines.push(`- **Project:** ${pc.name}${pc.description ? ` — ${pc.description}` : ''}`);
+  if (pc.stack?.engine) {
+    lines.push(`- **Engine:** ${pc.stack.engine}${pc.stack.engine_version ? ` ${pc.stack.engine_version}` : ''}`);
   }
-  return path.join(AGENTS_DIR, `${role}.md`);
+  if (pc.stack?.language) lines.push(`- **Language:** ${pc.stack.language}`);
+  if (pc.stack?.test_runner) lines.push(`- **Test Runner:** ${pc.stack.test_runner}`);
+  if (pc.paths?.source) lines.push(`- **Source dir:** ${pc.paths.source}`);
+  if (pc.paths?.tests) lines.push(`- **Tests dir:** ${pc.paths.tests}`);
+  if (pc.prd_path) lines.push(`- **PRD docs:** ${pc.prd_path}`);
+  if (pc.test_layers && pc.test_layers.length > 0) {
+    lines.push(`- **Test layers:** ${pc.test_layers.map((l) => `${l.id} (${l.name})`).join(', ')}`);
+  }
+  if (pc.conventions) {
+    lines.push('');
+    lines.push('### Conventions');
+    lines.push(pc.conventions.trim());
+  }
+  return '\n\n' + lines.join('\n');
 }
 
 // Common English stop words filtered out during keyword extraction
@@ -463,9 +481,10 @@ export async function buildContext(params: {
 }): Promise<AgentContext> {
   const { role, taskId, cycleId, retryContext } = params;
 
-  // Load system prompt (project override preferred, harness generic fallback)
-  const promptPath = resolveAgentPromptPath(role);
-  const systemPromptContent = fs.readFileSync(promptPath, 'utf-8');
+  // Load system prompt from harness stubs + inject project context
+  const promptPath = path.join(AGENTS_DIR, `${role}.md`);
+  let systemPromptContent = fs.readFileSync(promptPath, 'utf-8');
+  systemPromptContent += buildProjectContextSection();
 
   // Fetch control singleton for operator directives
   const control = await getOrCreateControl();

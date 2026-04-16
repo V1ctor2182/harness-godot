@@ -3,6 +3,7 @@ import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { RoomModel } from '../models/room.js';
 import { SpecModel } from '../models/spec.js';
+import { config } from '../config.js';
 import { logger } from './logger.js';
 
 // rooms/ lives at the project root, 4 levels above this file:
@@ -209,6 +210,62 @@ export async function seedRooms(): Promise<{ roomsUpserted: number; specsUpserte
   // Process all top-level nodes (there's typically just one: 00-project-room)
   for (const topNode of treeDoc.tree) {
     await processNode(topNode, null);
+  }
+
+  // ── Dual-source: also scan project repo .harness/rooms/ ──────────
+  const projectBase = config.projectRepoLocalPath;
+  if (projectBase) {
+    const projectRoomsDir = path.join(projectBase, '.harness', 'rooms');
+    try {
+      const projectTreePath = path.join(projectRoomsDir, '_tree.yaml');
+      let projectTreeContent: string | null = null;
+      try {
+        projectTreeContent = await fs.readFile(projectTreePath, 'utf-8');
+      } catch {
+        // no _tree.yaml — will try flat scan below
+      }
+
+      if (projectTreeContent) {
+        const projectTree = parseYaml(projectTreeContent) as { tree: TreeNode[] };
+        if (projectTree?.tree && Array.isArray(projectTree.tree)) {
+          for (const node of projectTree.tree) {
+            await processNode(node, null);
+          }
+          logger.info(`[seed-rooms] processed project _tree.yaml from ${projectRoomsDir}`);
+        }
+      } else {
+        // Flat scan: each subdirectory with a room.yaml becomes a top-level room
+        let entries: import('node:fs').Dirent[];
+        try {
+          entries = await fs.readdir(projectRoomsDir, { withFileTypes: true });
+        } catch {
+          entries = [];
+        }
+        for (const entry of entries) {
+          if (!entry.isDirectory()) continue;
+          const roomDir = path.join(projectRoomsDir, entry.name);
+          const roomYamlPath = path.join(roomDir, 'room.yaml');
+          try {
+            await fs.stat(roomYamlPath);
+          } catch {
+            continue; // no room.yaml, skip
+          }
+          const syntheticNode: TreeNode = {
+            id: entry.name.startsWith('p-') ? entry.name : `p-${entry.name}`,
+            name: entry.name,
+            type: 'feature',
+            path: path.relative(PROJECT_ROOT, roomDir),
+            lifecycle: 'planning',
+          };
+          await processNode(syntheticNode, null);
+        }
+        if (entries.length > 0) {
+          logger.info(`[seed-rooms] flat-scanned ${entries.length} project rooms from ${projectRoomsDir}`);
+        }
+      }
+    } catch (err) {
+      logger.warn({ err }, `[seed-rooms] failed to scan project rooms at ${projectBase}`);
+    }
   }
 
   logger.info(

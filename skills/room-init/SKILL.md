@@ -1,7 +1,7 @@
 ---
 name: room-init
 description: >
-  Initialize the Nomi project's Feature Room tree from a PRD document. Creates the complete meta/ directory structure with Room directories, initial intent and constraint specs, _tree.yaml, and project.yaml. Use this skill when starting a new Nomi project, when the user says "初始化项目", "init rooms", "从PRD创建Room", or when setting up the VibeHub Feature Room structure for the first time. Also use when a PRD is updated and new modules need to be added to the existing Room tree.
+  Initialize the project's Feature Room tree from a PRD document. Creates the complete meta/ directory structure with Room directories, initial intent and constraint specs, _tree.yaml, and project.yaml. Use this skill when starting a new project, when the user says "初始化项目", "init rooms", "从PRD创建Room", or when setting up the Feature Room structure for the first time. Also use when a PRD is updated and new modules need to be added to the existing Room tree.
 ---
 
 # Room Init — 从 PRD 冷启动 Feature Room 树
@@ -10,8 +10,8 @@ description: >
 
 ## 前置条件
 
-- 用户提供了 PRD 文件路径（如 `nomi-prd.md`）
-- 可选：MVP 范围文件（如 `nomi-prd-mvp1.md`）
+- 用户提供了 PRD 文件路径（如 `prd.md`）
+- 可选：MVP 范围文件（如 `prd-mvp1.md`）
 - 项目的 `meta/` 目录尚未初始化（或只需要增量添加新 Room）
 
 ## 执行步骤
@@ -20,8 +20,8 @@ description: >
 
 1. 读取用户指定的 PRD 文件
 2. 提取功能模块，识别：
-   - **Epic 级模块**（大的功能域，如"桌宠系统"、"Quick Capture"）
-   - **Feature 级模块**（具体功能点，如"Note 模式"、"Trigger 模式"）
+   - **Epic 级模块**（大的功能域，如"用户系统"、"支付"）
+   - **Feature 级模块**（具体功能点，如"登录"、"结算"）
    - **父子关系**（哪些 Feature 属于哪个 Epic）
 3. 对每个模块提取：
    - 功能目标（将成为 `intent` spec）
@@ -42,16 +42,16 @@ description: >
 
 00-project-room/
 ├── 01-foundation/          [Epic] backend
-├── 02-desktop-pet/         [Epic] frontend
-├── 03-quick-capture/       [Epic] frontend
-│   ├── 01-note-mode/       [Feature] frontend
-│   └── 02-trigger-mode/    [Feature] backend
-├── 04-knowledge-base/      [Epic] backend
-└── 05-ai-engine/           [Epic] backend
+├── 02-user-auth/           [Epic] backend
+├── 03-payment-flow/        [Epic] fullstack
+│   ├── 01-checkout/        [Feature] frontend
+│   └── 02-billing/         [Feature] backend
+├── 04-search-index/        [Epic] backend
+└── 05-notification-service/[Epic] backend
 
 每个 Room 的 intent 摘要：
 - 01-foundation: 基础架构层，DB + API + 权限 + 错误处理
-- 02-desktop-pet: 桌宠常驻桌面，作为 Nomi 入口
+- 02-user-auth: 用户认证 + session 管理
   ...
 
 请确认或调整。
@@ -133,7 +133,7 @@ anchors: []
 ```
 🚀 Room Init 完成
 
-PRD: nomi-prd.md
+PRD: prd.md
 创建了 {N} 个 Room（{epic_count} Epic + {feature_count} Feature）
 生成了 {spec_count} 个 Spec（{intent_count} intent + {constraint_count} constraint）
 所有 spec 状态: draft（需要 review 后升为 active）
@@ -161,10 +161,10 @@ PRD: nomi-prd.md
 
 | type | 是什么 | 例子 |
 |------|-------|------|
-| `intent` | 为什么做这件事 | "桌宠常驻桌面，作为 Nomi 的入口" |
-| `decision` | 为什么选 A 不选 B | "时间触发用 EventKit 而非自建调度器" |
-| `constraint` | 不能做什么 / 边界 | "后台 CPU ≤3%" |
-| `contract` | 组件之间的接口约定 | "Trigger CRUD API" |
+| `intent` | 为什么做这件事 | "用户可以用邮箱或 OAuth 登录" |
+| `decision` | 为什么选 A 不选 B | "支付用 Stripe 而非自建网关" |
+| `constraint` | 不能做什么 / 边界 | "session TTL ≤ 24h" |
+| `contract` | 组件之间的接口约定 | "Session CRUD API" |
 | `convention` | 团队怎么做事 | "RESTful API 规范" |
 | `change` | 一次具体变更的记录 | "本次 PR 把 session 改为 stateless" |
 | `context` | 背景信息 | "目标用户画像" |

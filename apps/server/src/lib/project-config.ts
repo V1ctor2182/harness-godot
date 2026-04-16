@@ -35,13 +35,12 @@ const projectConfigSchema = z.object({
         source: z.string().optional(),
         tests: z.string().optional(),
         data: z.string().optional(),
-        milestones: z.string().optional(),
-        assets_registry: z.string().optional(),
-        agents: z.string().optional(),
-        knowledge: z.string().optional(),
         rooms: z.string().optional(),
       })
       .optional(),
+
+    conventions: z.string().optional(),
+    prd_path: z.string().optional(),
 
     constants: z.record(z.union([z.number(), z.string()])).optional(),
     test_layers: z.array(testLayerSchema).optional(),

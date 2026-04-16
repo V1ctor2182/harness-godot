@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { JobModel } from '../models/job.js';
 import { SpecModel } from '../models/spec.js';
 import { TaskModel } from '../models/task.js';
+import { MilestoneModel } from '../models/milestone.js';
 import { NotFoundError, ValidationError } from '../lib/errors.js';
 import { asyncHandler } from '../lib/async-handler.js';
 import { createJob } from '../services/job-queue.js';
@@ -16,7 +17,8 @@ type InboxItemType =
   | 'plan_review'
   | 'pr_gate'
   | 'draft_spec'
-  | 'next_cycle';
+  | 'next_cycle'
+  | 'milestone_proposal';
 
 type InboxUrgency = 'low' | 'normal' | 'urgent';
 
@@ -245,6 +247,33 @@ async function loadInboxItems(filters: {
     }
   }
 
+  // Milestone proposals (Orchestrator-generated, waiting for human confirmation)
+  if (pickType('milestone_proposal')) {
+    const proposals = await MilestoneModel.find({ status: 'proposed' })
+      .sort({ createdAt: -1 })
+      .lean();
+    for (const m of proposals) {
+      const createdAt = (m as unknown as { createdAt?: Date }).createdAt ?? new Date();
+      items.push({
+        id: `milestone:${m._id}`,
+        type: 'milestone_proposal',
+        source: { kind: 'job' as const, refId: m._id },
+        title: `Proposed milestone: ${m.name}`,
+        preview: m.description || m.goals?.join(', ') || `${m._id}`,
+        urgency: urgencyOf(createdAt, 'milestone_proposal'),
+        status: 'unread',
+        payload: {
+          milestoneId: m._id,
+          goals: m.goals,
+          features: m.features,
+          prdRef: m.prdRef,
+          source: m.source,
+        },
+        createdAt,
+      });
+    }
+  }
+
   items.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   return items;
 }
@@ -285,7 +314,7 @@ router.get(
 
 // POST /api/inbox/:id/resolve — dispatch to the underlying handler
 const resolveBodySchema = z.object({
-  action: z.enum(['approve', 'reject', 'answer', 'activate_spec', 'archive_spec']),
+  action: z.enum(['approve', 'reject', 'answer', 'activate_spec', 'archive_spec', 'confirm_milestone', 'reject_milestone']),
   reason: z.string().optional(),
   answers: z.record(z.string()).optional(),
   feedback: z.string().optional(),
@@ -393,6 +422,21 @@ router.post(
       task.reviewVerdict = parsed.data.action === 'approve' ? 'approved' : 'changes-requested';
       task.status = parsed.data.action === 'approve' ? 'done' : 'failed';
       await task.save();
+    } else if (kind === 'milestone') {
+      if (parsed.data.action === 'confirm_milestone') {
+        const milestone = await MilestoneModel.findById(refId);
+        if (!milestone) throw new NotFoundError('Milestone', refId);
+        if (milestone.status !== 'proposed') {
+          throw new ValidationError(`Milestone ${refId} is ${milestone.status}, not proposed`);
+        }
+        milestone.status = 'planned';
+        await milestone.save();
+        broadcast('milestone:updated', { action: 'confirmed', milestoneId: refId });
+      } else if (parsed.data.action === 'reject_milestone') {
+        await MilestoneModel.findByIdAndUpdate(refId, { $set: { status: 'archived' } });
+      } else {
+        throw new ValidationError(`Action ${parsed.data.action} not valid for milestone`);
+      }
     } else {
       throw new ValidationError(`Unknown inbox kind: ${kind}`);
     }

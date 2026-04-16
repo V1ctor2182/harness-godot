@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs -I{} echo {})",
+      "Bash(grep -n \"zombie\\\\|Zombie\\\\|Godot\\\\|GUT\" agents/*.md)",
+      "Bash(ls rooms/10-game-rooms/*/)",
+      "Bash(grep -n \"AGENT_CONTAINER_LABEL\\\\|'zombie-farm\\\\.\" apps/server/src/services/launcher/*.ts)",
+      "Bash(pkill -9 -f vitest)",
+      "Bash(git mv:*)",
+      "Bash(grep -l \"zombie\\\\|Godot\\\\|GUT\\\\|GDScript\" knowledge/*.md)"
+    ],
+    "additionalDirectories": [
+      "/Users/victor/work/godot-self-evolve-implementation-system/harness-system/agents"
+    ]
+  }
+}

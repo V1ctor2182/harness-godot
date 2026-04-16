@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { RefreshCw } from 'lucide-react';
+import { Plus, Check, X } from 'lucide-react';
 
 import { api, type MilestoneItem, type MilestoneDetail } from '@/lib/api';
 import { useGlobalSSE } from '@/hooks/use-sse';
@@ -15,6 +15,8 @@ function statusColor(status: MilestoneItem['status']): string {
   if (status === 'completed') return 'bg-success';
   if (status === 'active') return 'bg-primary animate-pulse';
   if (status === 'blocked') return 'bg-destructive';
+  if (status === 'proposed') return 'bg-yellow-400 animate-pulse';
+  if (status === 'archived') return 'bg-muted opacity-50';
   return 'bg-muted';
 }
 
@@ -22,6 +24,8 @@ function statusLabel(status: MilestoneItem['status']): string {
   if (status === 'completed') return '✔ completed';
   if (status === 'active') return '● active';
   if (status === 'blocked') return '✗ blocked';
+  if (status === 'proposed') return '⏳ proposed';
+  if (status === 'archived') return '✕ archived';
   return '○ planned';
 }
 
@@ -144,9 +148,10 @@ function MilestoneDetailModal({
                 </div>
               )}
 
-              {detail.lastSyncedAt && (
+              {detail.createdAt && (
                 <div className="text-[10px] text-muted-foreground">
-                  Last synced: {new Date(detail.lastSyncedAt).toLocaleString()}
+                  Created: {new Date(detail.createdAt).toLocaleString()}
+                  {detail.source === 'orchestrator' && ' · proposed by Orchestrator'}
                 </div>
               )}
             </div>
@@ -162,15 +167,18 @@ function MilestoneDetailModal({
 export default function MilestonesPage() {
   const [milestones, setMilestones] = useState<MilestoneItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newId, setNewId] = useState('');
+  const [newName, setNewName] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
       const data = await api.listMilestones();
       setMilestones(data);
     } catch (e) {
-      setSyncMsg(e instanceof Error ? e.message : 'Failed to load');
+      setError(e instanceof Error ? e.message : 'Failed to load');
     }
   }, []);
 
@@ -187,26 +195,53 @@ export default function MilestonesPage() {
     )
   );
 
-  const handleSync = useCallback(async () => {
-    setSyncing(true);
-    setSyncMsg(null);
+  const handleCreate = useCallback(async () => {
+    if (!newId.trim() || !newName.trim()) return;
+    setCreating(true);
+    setError(null);
     try {
-      const result = await api.syncMilestones();
-      setSyncMsg(`Synced ${result.upserted} milestones`);
+      await api.createMilestone({ id: newId.trim(), name: newName.trim() });
+      setNewId('');
+      setNewName('');
+      setShowCreate(false);
       await refresh();
     } catch (e) {
-      setSyncMsg(e instanceof Error ? e.message : 'Sync failed');
+      setError(e instanceof Error ? e.message : 'Create failed');
     } finally {
-      setSyncing(false);
-      setTimeout(() => setSyncMsg(null), 3000);
+      setCreating(false);
     }
-  }, [refresh]);
+  }, [newId, newName, refresh]);
+
+  const handleConfirm = useCallback(
+    async (id: string) => {
+      try {
+        await api.confirmMilestone(id);
+        await refresh();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Confirm failed');
+      }
+    },
+    [refresh]
+  );
+
+  const handleArchive = useCallback(
+    async (id: string) => {
+      try {
+        await api.archiveMilestone(id);
+        await refresh();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Archive failed');
+      }
+    },
+    [refresh]
+  );
 
   const sorted = useMemo(
-    () => [...milestones].sort((a, b) => a.order - b.order),
+    () => [...milestones].filter((m) => m.status !== 'archived').sort((a, b) => a.order - b.order),
     [milestones]
   );
 
+  const proposedCount = sorted.filter((m) => m.status === 'proposed').length;
   const totalCost = sorted.reduce((sum, m) => sum + (m.totalCostUsd ?? 0), 0);
   const doneCount = sorted.filter((m) => m.status === 'completed').length;
   const activeCount = sorted.filter((m) => m.status === 'active').length;
@@ -217,19 +252,51 @@ export default function MilestonesPage() {
         <div>
           <h1 className="text-xl font-bold">Milestones</h1>
           <p className="text-xs text-muted-foreground">
-            {sorted.length} total · {doneCount} done · {activeCount} active · $
+            {sorted.length} total · {doneCount} done · {activeCount} active
+            {proposedCount > 0 && ` · ${proposedCount} proposed`} · $
             {totalCost.toFixed(2)} spent
           </p>
         </div>
-        <Button size="sm" variant="outline" onClick={handleSync} disabled={syncing}>
-          <RefreshCw className={`size-3.5 mr-1.5 ${syncing ? 'animate-spin' : ''}`} />
-          {syncing ? 'Syncing…' : 'Sync'}
+        <Button size="sm" onClick={() => setShowCreate((v) => !v)}>
+          <Plus className="size-3.5 mr-1.5" />
+          New Milestone
         </Button>
       </div>
 
-      {syncMsg && (
-        <div className="text-xs border rounded px-3 py-1.5 text-muted-foreground bg-muted/30">
-          {syncMsg}
+      {showCreate && (
+        <Card>
+          <CardContent className="pt-3 pb-3 flex items-end gap-2">
+            <div className="flex-shrink-0">
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground">ID</label>
+              <input
+                type="text"
+                value={newId}
+                onChange={(e) => setNewId(e.target.value)}
+                placeholder="M0"
+                className="block w-20 rounded border border-input bg-transparent px-2 py-1 text-xs font-mono"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Name</label>
+              <input
+                type="text"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="Milestone name"
+                className="block w-full rounded border border-input bg-transparent px-2 py-1 text-xs"
+                onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+              />
+            </div>
+            <Button size="sm" onClick={handleCreate} disabled={creating}>
+              {creating ? 'Creating…' : 'Create'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {error && (
+        <div className="text-xs border rounded px-3 py-1.5 text-destructive bg-destructive/10">
+          {error}
         </div>
       )}
 
@@ -274,22 +341,20 @@ export default function MilestonesPage() {
       {/* Detailed list */}
       <div className="space-y-2">
         {sorted.map((m) => (
-          <button
-            key={m._id}
-            type="button"
-            onClick={() => setSelectedId(m._id)}
-            className="w-full text-left"
-          >
+          <div key={m._id} className="w-full text-left">
             <Card
-              className={`transition-colors ${
+              className={`transition-colors cursor-pointer ${
                 m.status === 'completed'
                   ? 'border-success/30'
                   : m.status === 'active'
                     ? 'border-primary/30'
                     : m.status === 'blocked'
                       ? 'border-destructive/30'
-                      : ''
+                      : m.status === 'proposed'
+                        ? 'border-dashed border-yellow-400/50 bg-yellow-400/5'
+                        : ''
               }`}
+              onClick={() => setSelectedId(m._id)}
             >
               <CardContent className="py-2.5 px-3">
                 <div className="flex items-center gap-3">
@@ -301,15 +366,42 @@ export default function MilestonesPage() {
                           ? 'text-primary'
                           : m.status === 'blocked'
                             ? 'text-destructive'
-                            : 'text-muted-foreground'
+                            : m.status === 'proposed'
+                              ? 'text-yellow-400'
+                              : 'text-muted-foreground'
                     }`}
                   >
                     {m._id}
                   </span>
                   <span className="text-sm font-medium flex-1 truncate">{m.name}</span>
+                  {m.status === 'proposed' && m.source === 'orchestrator' && (
+                    <Badge variant="outline" className="text-[9px] border-yellow-400/50 text-yellow-400">
+                      Proposed by Orchestrator
+                    </Badge>
+                  )}
                   <Badge variant="outline" className="text-[9px]">
                     {statusLabel(m.status)}
                   </Badge>
+                  {m.status === 'proposed' && (
+                    <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        type="button"
+                        onClick={() => handleConfirm(m._id)}
+                        className="text-[10px] px-1.5 py-0.5 rounded bg-success/10 text-success border border-success/30 hover:bg-success/20"
+                        title="Confirm milestone"
+                      >
+                        <Check className="size-3" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleArchive(m._id)}
+                        className="text-[10px] px-1.5 py-0.5 rounded bg-destructive/10 text-destructive border border-destructive/30 hover:bg-destructive/20"
+                        title="Reject milestone"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </div>
+                  )}
                   <span className="text-[10px] text-muted-foreground w-16 text-right">
                     {m.estimatedWeeks}w
                   </span>
@@ -322,13 +414,12 @@ export default function MilestonesPage() {
                 </div>
               </CardContent>
             </Card>
-          </button>
+          </div>
         ))}
         {sorted.length === 0 && (
           <Card>
             <CardContent className="py-6 text-center text-sm text-muted-foreground">
-              No milestones found. Run <code className="bg-muted px-1 py-0.5 rounded">Sync</code>{' '}
-              to load from seed-data or game repo.
+              No milestones yet. Click &quot;New Milestone&quot; to create one, or let the Orchestrator propose milestones from your PRD.
             </CardContent>
           </Card>
         )}

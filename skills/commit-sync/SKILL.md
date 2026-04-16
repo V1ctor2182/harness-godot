@@ -1,7 +1,7 @@
 ---
 name: commit-sync
 description: >
-  The core development skill — replaces git commit/push entirely. Analyzes code changes, maps them to Feature Rooms, checks spec consistency (anchor tracking + quality gate), auto-updates specs, detects draft-to-active upgrades, records change specs, updates progress/milestones, propagates status upstream, generates commit messages, and executes git add/commit/push. Use whenever the user says "帮我提交", "commit", "提交代码", "push", "检查代码改动", "dry-run", or wants to commit their work. This is the ONLY way to commit in the Nomi workflow — users should never git commit manually.
+  The core development skill — replaces git commit/push entirely. Analyzes code changes, maps them to Feature Rooms, checks spec consistency (anchor tracking + quality gate), auto-updates specs, detects draft-to-active upgrades, records change specs, updates progress/milestones, propagates status upstream, generates commit messages, and executes git add/commit/push. Use whenever the user says "帮我提交", "commit", "提交代码", "push", "检查代码改动", "dry-run", or wants to commit their work. This is the ONLY way to commit in the workflow — users should never git commit manually.
 ---
 
 # Commit Sync — 检查 + Spec 更新 + 进度追踪 + 自动 Commit/Push
@@ -19,16 +19,16 @@ description: >
 
 ```
 # 基本用法（最常用）
-> "帮我提交，我刚写完 trigger 的 CRUD API"
+> "帮我提交，我刚写完 user-auth 的 CRUD API"
 
 # 带描述（帮助更准确匹配 Room）
-> "提交一下，改了 desktop-pet 的动画状态机，主要是加了 sleep 和 wake"
+> "提交一下，改了 payment-flow 的状态机，主要是加了 retry 和 refund"
 
 # dry-run（只检查不提交）
 > "帮我检查一下现在的代码改动，但先不提交"
 
 # 指定范围
-> "只提交 src/triggers/ 下面的改动"
+> "只提交 src/{module}/ 下面的改动"
 ```
 
 ## 执行步骤
@@ -39,7 +39,7 @@ description: >
 2. 如果用户指定了范围，只分析指定路径
 3. 根据以下信息将文件匹配到对应 Room：
    - 文件路径 vs specs/*.yaml 的 `anchors.file` 字段
-   - 用户的描述（如 "trigger 的 CRUD"）
+   - 用户的描述（如 "user-auth 的 CRUD"）
    - 内容变更的语义分析
 4. 无法匹配的文件标记为 "untracked file"
 
@@ -76,31 +76,31 @@ description: >
 ─────────────────────────
 Files changed: 8
 Rooms affected: 2
- - trigger-mode (5 files)
- - foundation (3 files)
+ - user-auth (5 files)
+ - notification-service (3 files)
 
 Spec Updates:
  ✅ Auto-updated: 2 anchors
  ⚠️ Stale (needs review): 1
-    → constraint-cpu-limit.yaml
-      代码新增了 GPU 调用，可能影响 CPU 约束
+    → constraint-rate-limit.yaml
+      代码新增了新路径，可能影响约束
  🆙 Draft → Active 建议: 1
-    → intent-trigger-crud.yaml
+    → intent-session-crud.yaml
       CRUD API 已实现，建议升为 active
  🆕 Untracked files: 1
-    → src/triggers/scheduler.py
+    → src/auth/session.ts
 
 Conflicts:
  ⛔ Cross-room: 0
 
 Progress:
- trigger-mode: 40% → 60%
+ user-auth: 40% → 60%
    milestone "CRUD API" → completed ✅
- foundation: 60% (unchanged)
+ notification-service: 60% (unchanged)
  project overall: 15% → 22%
 
 Commit message:
- [trigger-mode] feat: add CRUD API for triggers
+ [user-auth] feat: add CRUD API for sessions
 
 Actions:
  1. Auto-update 2 anchors ✅
@@ -180,7 +180,7 @@ d. Stage 完整性
 ✅ Committed: abc1234
 ✅ Pushed to origin/main
 📄 Specs updated: 3 files
-📊 Progress: trigger-mode 40% → 60%
+📊 Progress: user-auth 40% → 60%
 ✅ Phase 7 验证通过
 ```
 
@@ -190,7 +190,7 @@ d. Stage 完整性
 [room-id] type: description
 
 # 多 Room 时
-[trigger-mode][foundation] feat: add trigger CRUD with shared API conventions
+[user-auth][notification-service] feat: add session CRUD with shared API conventions
 
 # type 对照
 feat     — 新功能
@@ -223,6 +223,18 @@ Feature Room progress 更新
 - 展示 Sync Report
 - 不执行 Phase 6（不做任何文件修改和 git 操作）
 - 用户可以先修完问题再 call 正式提交
+
+## Spec Type 参考
+
+| Spec Type | 含义 | 示例 |
+|-----------|------|------|
+| **intent** | 做什么，功能目标 | "用户可以将商品加入购物车并结算" |
+| **decision** | 已确认的技术/产品决策 | "使用 Stripe Checkout server-side 模式" |
+| **constraint** | 不做什么，边界限制（must / must_not / should / should_not） | "Phase 1 不含优惠券计算" |
+| **convention** | 团队约定/编码规范 | "所有 API 使用 JSON:API 规范" |
+| **contract** | 接口契约、API Schema、模块间协议 | "RefundService 接口定义" |
+| **context** | 背景信息、实验记录、数据假设 | "模型基线准确率 92%" |
+| **change** | 一次具体变更的记录 | "本次 PR 把 session 改为 stateless" |
 
 ## progress.yaml commit 记录格式
 

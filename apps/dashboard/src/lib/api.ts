@@ -140,11 +140,38 @@ export const api = {
     }),
 
   // Milestones
-  listMilestones: () => request<MilestoneItem[]>('/milestones'),
+  listMilestones: (params?: { status?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.status) qs.set('status', params.status);
+    return request<MilestoneItem[]>(`/milestones?${qs}`);
+  },
   getMilestone: (id: string) =>
     request<MilestoneDetail>(`/milestones/${encodeURIComponent(id)}`),
-  syncMilestones: () =>
-    request<{ upserted: number; source: string | null }>('/milestones/sync', { method: 'POST' }),
+  createMilestone: (data: {
+    id: string;
+    name: string;
+    description?: string;
+    goals?: string[];
+    features?: string[];
+    dependsOn?: string[];
+    estimatedWeeks?: number;
+    source?: 'human' | 'orchestrator';
+    prdRef?: string;
+  }) => request<MilestoneItem>('/milestones', { method: 'POST', body: JSON.stringify(data) }),
+  updateMilestone: (id: string, data: Record<string, unknown>) =>
+    request<MilestoneItem>(`/milestones/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+  reorderMilestones: (items: Array<{ id: string; order: number }>) =>
+    request<{ reordered: number }>('/milestones/reorder', {
+      method: 'PATCH',
+      body: JSON.stringify(items),
+    }),
+  confirmMilestone: (id: string) =>
+    request<MilestoneItem>(`/milestones/${encodeURIComponent(id)}/confirm`, { method: 'POST' }),
+  archiveMilestone: (id: string) =>
+    request<MilestoneItem>(`/milestones/${encodeURIComponent(id)}`, { method: 'DELETE' }),
 
   // Assets
   listAssets: (params?: { category?: string; milestone?: string; status?: string }) => {
@@ -175,6 +202,8 @@ export const api = {
   // Project config
   getProject: () => request<ProjectState>('/project'),
   reloadProject: () => request<ProjectState>('/project/reload', { method: 'POST' }),
+  initProject: (data: { path: string; name?: string; description?: string; conventions?: string }) =>
+    request<InitProjectResult>('/project/init', { method: 'POST', body: JSON.stringify(data) }),
 };
 
 // ─── Project types ──────────────────────────────────────────────────
@@ -203,6 +232,20 @@ export interface ProjectState {
   loadedAt: string | null;
 }
 
+export interface InitProjectResult {
+  scaffolded: boolean;
+  projectId: string;
+  detected: {
+    engine: string;
+    language: string;
+    test_runner?: string;
+    engine_version?: string;
+  };
+  prdDocsFound: number;
+  yamlPath: string;
+  yaml: string;
+}
+
 // ─── Milestone types ────────────────────────────────────────────────
 
 export interface MilestoneItem {
@@ -213,13 +256,15 @@ export interface MilestoneItem {
   features: string[];
   dependsOn: string[];
   estimatedWeeks: number;
-  status: 'planned' | 'active' | 'completed' | 'blocked';
+  status: 'proposed' | 'planned' | 'active' | 'completed' | 'blocked' | 'archived';
+  source?: 'human' | 'orchestrator';
+  prdRef?: string;
   cycles: number[];
   startedAt?: string;
   completedAt?: string;
   totalCostUsd: number;
-  lastSyncedAt?: string;
   order: number;
+  createdAt?: string;
 }
 
 export interface MilestoneCycleDetail {

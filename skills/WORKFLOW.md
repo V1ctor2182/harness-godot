@@ -1,4 +1,4 @@
-# StockBEE Implementation Workflow
+# Implementation Workflow
 
 ## 全局流程图
 
@@ -65,32 +65,32 @@
 ### 场景 1: 按 milestone 逐步开发
 
 ```
-用户: 做 news-data m1
-  AI: [pull context] → [实现 SQLite news_events 表] → [commit-sync]
-  AI: ✅ m1 完成. 下一个: m2-G1/G2分级处理
+用户: 做 user-auth m1
+  AI: [pull context] → [实现 SessionStore 表] → [commit-sync]
+  AI: ✅ m1 完成. 下一个: m2-登录流程
 
 用户: 下一个
-  AI: [pull context, 含 m1 产出] → [实现 G1/G2 漏斗] → [commit-sync]
-  AI: ✅ m2 完成. 下一个: m3-NewsAPI同步
+  AI: [pull context, 含 m1 产出] → [实现 登录流程] → [commit-sync]
+  AI: ✅ m2 完成. 下一个: m3-外部 OAuth 同步
 
 用户: m3 先跳过，做 m4
   AI: [pull context] → [实现 m4] → [commit-sync]
 
 用户: 回头做 m3
   AI: [pull context, 含 m1/m2/m4 产出] → [实现 m3] → [commit-sync]
-  AI: ✅ news-data 全部完成 (5/5). Room status → 已完成.
+  AI: ✅ user-auth 全部完成 (5/5). Room status → 已完成.
 ```
 
 ### 场景 2: 跨 Room 切换
 
 ```
-用户: 做 macro-data m1
+用户: 做 payment-flow m1
   AI: ✅ m1 完成.
 
-用户: 先去做 factor-storage m1
+用户: 先去做 search-index m1
   AI: [切换 Room] → ✅ m1 完成.
 
-用户: 回到 macro-data, 下一个
+用户: 回到 payment-flow, 下一个
   AI: [读 progress.yaml, 找到 m2 pending] → ✅ m2 完成.
 ```
 

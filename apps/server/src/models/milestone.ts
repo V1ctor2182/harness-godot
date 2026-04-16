@@ -1,7 +1,7 @@
 import mongoose, { Schema } from 'mongoose';
 
 const milestoneSchema = new Schema({
-  _id: { type: String, required: true }, // e.g. "M8"
+  _id: { type: String, required: true },
   name: { type: String, required: true },
   description: { type: String, default: '' },
   goals: { type: [String], default: [] },
@@ -9,20 +9,25 @@ const milestoneSchema = new Schema({
   dependsOn: { type: [String], default: [] },
   estimatedWeeks: { type: Number, default: 0 },
 
-  // Runtime-written fields
   status: {
     type: String,
-    enum: ['planned', 'active', 'completed', 'blocked'],
+    enum: ['proposed', 'planned', 'active', 'completed', 'blocked', 'archived'],
     default: 'planned',
   },
+  source: {
+    type: String,
+    enum: ['human', 'orchestrator'],
+    default: 'human',
+  },
+  prdRef: String,
+
   cycles: { type: [Number], default: [] },
   startedAt: Date,
   completedAt: Date,
   totalCostUsd: { type: Number, default: 0 },
-  lastSyncedAt: { type: Date, default: Date.now },
 
-  // Ordering for roadmap display
   order: { type: Number, default: 0 },
+  createdAt: { type: Date, default: Date.now },
 });
 
 milestoneSchema.index({ status: 1 });

@@ -8,7 +8,7 @@ description: >
 
 用户把和别人的聊天记录、会议笔记、随手想法等非结构化内容粘贴进来，自动解析出 spec 信息，创建 Spec Objects，路由到正确的 Room。
 
-这验证了 VibeHub 最核心的假设：日常讨论中隐含大量的设计决策和约束，但通常会丢失。
+这验证了工作流最核心的假设：日常讨论中隐含大量的设计决策和约束，但通常会丢失。
 
 ## 前置条件
 
@@ -28,18 +28,18 @@ description: >
 
 | 信号 | Spec Type | 例子 |
 |------|-----------|------|
-| "用 X 不用 Y，因为..." | decision | "时间触发用 EventKit 而非自建" |
-| "必须/不能/上限/下限..." | constraint | "CPU≤3%、triggers≤50" |
-| "接口是这样的..." | contract | "REST API: POST /api/triggers" |
+| "用 X 不用 Y，因为..." | decision | "支付用 Stripe 而非自建网关" |
+| "必须/不能/上限/下限..." | constraint | "QPS≤100、单次批量≤50" |
+| "接口是这样的..." | contract | "REST API: POST /api/sessions" |
 | "我们约定都用 xxx..." | convention | "统一用 RESTful" |
-| "用户反馈说.../试了一下..." | context | "Spotlight 风格比悬浮窗好" |
+| "用户反馈说.../试了一下..." | context | "侧边栏风格比模态框好" |
 | "X 改成了 Y" | change | "session 改为 stateless" |
-| "这个功能要做的是..." | intent | "支持三种触发类型" |
+| "这个功能要做的是..." | intent | "支持三种登录方式" |
 
 ### Phase 2: Room 路由
 
 6. 确定每条 spec 属于哪个 Room：
-   - 用户已指定 Room（"这段是关于 trigger-mode 的"）→ 全部归入该 Room
+   - 用户已指定 Room（"这段是关于 user-auth 的"）→ 全部归入该 Room
    - 用户未指定 → AI 语义匹配（读取 `_tree.yaml` + 各 room 的 `spec.md`）
    - 涉及多个 Room → 分别归类
    - 项目级内容（如 "前后端统一用 REST"）→ `00-project-room`
@@ -52,13 +52,13 @@ description: >
 ```
 📋 解析结果（共 {N} 条）
 
-→ trigger-mode ({n} 条)
-  [decision] EventKit 做时间触发（conf: 0.85）
-  [decision] CoreLocation 做位置触发（conf: 0.85）
-  [constraint] geofence ≤ 20 个（conf: 0.9）
+→ user-auth ({n} 条)
+  [decision] 密码用 bcrypt（conf: 0.85）
+  [decision] OAuth 用 Auth0（conf: 0.85）
+  [constraint] session TTL ≤ 24h（conf: 0.9）
 
-→ desktop-pet ({n} 条)
-  [context] Lottie 动画方案在评估中（conf: 0.7）
+→ notification-service ({n} 条)
+  [context] 邮件模板方案在评估中（conf: 0.7）
 
 → 00-project-room ({n} 条)
   [decision] 前后端用 REST（conf: 0.85）
@@ -128,7 +128,7 @@ anchors: []
 | "我觉得应该用 X" | 0.7 | 个人观点，未达成共识 |
 | "X 也行，Y 也行" | 0.5 | 讨论中，未决 |
 | 隐含的约束（从讨论推断） | 0.6 | AI 推断，需要人工确认 |
-| 明确的数字约束 "≤ 20 个" | 0.9 | 明确数字，高置信 |
+| 明确的数字约束 "≤ 24h" | 0.9 | 明确数字，高置信 |
 
 ## 重要规则
 

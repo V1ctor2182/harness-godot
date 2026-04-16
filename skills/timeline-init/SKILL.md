@@ -1,7 +1,7 @@
 ---
 name: timeline-init
 description: >
-  Generate development timeline and milestones for the Nomi project after room-init. Creates timeline.yaml (project-level schedule with dependencies) and progress.yaml for each Room (milestones inferred from intent specs). Use when the user says "生成时间线", "排期", "timeline", "帮我排时间", or after room-init to set up progress tracking. Also use when new Rooms are added and timeline needs updating.
+  Generate development timeline and milestones for the project after room-init. Creates timeline.yaml (project-level schedule with dependencies) and progress.yaml for each Room (milestones inferred from intent specs). Use when the user says "生成时间线", "排期", "timeline", "帮我排时间", or after room-init to set up progress tracking. Also use when new Rooms are added and timeline needs updating.
 ---
 
 # Timeline Init — 生成开发排期 + Milestones
@@ -55,19 +55,19 @@ Phase 1: MVP1 (3/10 - 4/20)
        milestones: DB层, API框架, 权限, 测试
 
 3/18 ░░░░████████░░░░░░░░░ 4/1
-     desktop-pet (14d)
+     user-auth (14d)
        depends: foundation
-       milestones: 渲染引擎, 动画状态机, 交互事件
+       milestones: session store, 登录流程, 中间件
 
 3/25 ░░░░░░░░████████░░░░░ 4/8
-     note-mode (14d)
+     payment-flow (14d)
        depends: foundation
 
 4/1  ░░░░░░░░░░░░████████░ 4/15
-     trigger-mode (15d)
-       depends: foundation, ai-engine
+     search-index (15d)
+       depends: foundation, data-sync
 
-⚠️ 关键路径: foundation → trigger-mode
+⚠️ 关键路径: foundation → search-index
    总计 36 天，deadline 41 天 ✅
 
 确认？(y/n/调整)
