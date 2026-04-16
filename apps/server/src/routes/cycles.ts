@@ -4,6 +4,7 @@ import { getNextCycleId } from '../models/counter.js';
 import { createJob } from '../services/job-queue.js';
 import { NotFoundError } from '../lib/errors.js';
 import { asyncHandler } from '../lib/async-handler.js';
+import { getProjectConfig } from '../lib/project-config.js';
 
 const router = Router();
 
@@ -41,6 +42,17 @@ router.get(
 router.post(
   '/',
   asyncHandler(async (req, res) => {
+    // Phase C hard-block: can't spawn agents without a project loaded.
+    const project = getProjectConfig();
+    if (!project) {
+      res.status(409).json({
+        error: 'no_project_loaded',
+        message:
+          'No project loaded. Set PROJECT_REPO_LOCAL_PATH and create .harness/project.yaml in the project repo, then POST /api/project/reload.',
+      });
+      return;
+    }
+
     const { goal } = req.body;
     if (!goal) {
       res.status(400).json({ error: 'goal is required' });

@@ -85,6 +85,7 @@ export function useSSE({ url, onEvent, onError }: SSEOptions) {
         'inbox:new',
         'inbox:resolved',
         'milestone:updated',
+        'project:reloaded',
       ];
 
       for (const type of eventTypes) {

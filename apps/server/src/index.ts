@@ -6,6 +6,7 @@ import { runMigrations } from './lib/migration-runner.js';
 import { seedKnowledge } from './lib/seed-knowledge.js';
 import { seedRooms } from './lib/seed-rooms.js';
 import { seedMilestones } from './lib/seed-milestones.js';
+import { loadProjectConfig } from './lib/project-config.js';
 import { initSSE, stopSSE } from './services/sse-manager.js';
 import { startJobQueue, stopJobQueue } from './services/job-queue.js';
 import { getOrCreateControl } from './models/control.js';
@@ -50,7 +51,22 @@ async function main() {
   const roomResult = await seedRooms();
   console.log('Rooms seeded');
 
-  // Seed milestones from $GAME_REPO_LOCAL_PATH/.harness/milestones/ (idempotent)
+  // Load project config from $PROJECT_REPO_LOCAL_PATH/.harness/project.yaml.
+  // Safe to call without a project — the server runs in "no project loaded"
+  // mode and the dashboard shows an empty state.
+  console.log('Loading project config...');
+  const projectState = await loadProjectConfig();
+  if (projectState.loaded && projectState.config) {
+    console.log(`Project loaded: ${projectState.config.id} (${projectState.config.name})`);
+  } else {
+    console.log(
+      projectState.error
+        ? `No project loaded: ${projectState.error}`
+        : 'No project loaded (PROJECT_REPO_LOCAL_PATH unset)'
+    );
+  }
+
+  // Seed milestones from $PROJECT_REPO_LOCAL_PATH/.harness/milestones/ (idempotent)
   console.log('Seeding milestones...');
   await seedMilestones();
   console.log('Milestones seeded');

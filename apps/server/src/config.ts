@@ -41,6 +41,11 @@ export const config = {
 
   discordWebhookUrl: env('DISCORD_WEBHOOK_URL', ''),
 
-  // Game repo (for milestones + assets dynamic sync, Phase 3)
-  gameRepoLocalPath: env('GAME_REPO_LOCAL_PATH', ''),
+  // Project repo where milestones, assets, and eventually agent prompts
+  // and knowledge live (see basic-doc/plan-harness-decoupling.md Phase C).
+  // PROJECT_REPO_LOCAL_PATH is canonical; GAME_REPO_LOCAL_PATH is accepted
+  // as a deprecated alias for one release cycle so existing .env files
+  // keep working.
+  projectRepoLocalPath:
+    process.env.PROJECT_REPO_LOCAL_PATH ?? process.env.GAME_REPO_LOCAL_PATH ?? '',
 } as const;

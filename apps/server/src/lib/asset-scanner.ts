@@ -62,12 +62,12 @@ interface PlannedAsset {
  * configured or the file is absent, the scanner returns an empty planned
  * list and only surfaces whatever it finds on disk.
  *
- * Lookup order inside gameRepoLocalPath:
+ * Lookup order inside projectRepoLocalPath:
  *   1. .harness/assets-planned.json   (canonical, Phase B+)
  *   2. assets-planned.json            (legacy, one release of grace)
  */
 function plannedAssetsCandidates(): string[] {
-  const base = config.gameRepoLocalPath;
+  const base = config.projectRepoLocalPath;
   if (!base) return [];
   return [
     path.join(base, '.harness', 'assets-planned.json'),
@@ -215,7 +215,7 @@ async function readPngDimensions(fullPath: string): Promise<{ width?: number; he
 // ─── Main scan ──────────────────────────────────────────────────────
 
 async function scanGameRepo(): Promise<Map<string, AssetFileMeta>> {
-  const baseDir = config.gameRepoLocalPath;
+  const baseDir = config.projectRepoLocalPath;
   const map = new Map<string, AssetFileMeta>();
   if (!baseDir) return map;
 
@@ -324,13 +324,13 @@ export async function resolveAssetFilePath(assetId: string): Promise<string | nu
   const match = assets.find((a) => a.assetId === assetId);
   if (!match?.file) return null;
 
-  const baseDir = config.gameRepoLocalPath;
+  const baseDir = config.projectRepoLocalPath;
   if (!baseDir) return null;
 
   const fullPath = path.join(baseDir, match.file.relPath);
   const assetsRoot = path.join(baseDir, 'assets');
   const resolved = path.resolve(fullPath);
-  // Must live under <gameRepo>/assets/
+  // Must live under <projectRepo>/assets/
   if (!resolved.startsWith(path.resolve(assetsRoot) + path.sep)) return null;
 
   // Reject symlinks

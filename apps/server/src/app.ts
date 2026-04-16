@@ -20,6 +20,7 @@ import testsRouter from './routes/tests.js';
 import inboxRouter from './routes/inbox.js';
 import milestonesRouter from './routes/milestones.js';
 import assetsRouter from './routes/assets.js';
+import projectRouter from './routes/project.js';
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use('/api/tests', testsRouter);
 app.use('/api/inbox', inboxRouter);
 app.use('/api/milestones', milestonesRouter);
 app.use('/api/assets', assetsRouter);
+app.use('/api/project', projectRouter);
 
 // Error handler
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {

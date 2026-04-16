@@ -16,6 +16,8 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { useGlobalSSE } from '@/hooks/use-sse';
+import { useProject } from '@/hooks/use-project';
+import { NoProjectEmptyState } from '@/components/no-project-empty-state';
 
 interface Cycle {
   _id: number;
@@ -36,6 +38,9 @@ interface Cycle {
 export default function CyclesPage() {
   const [cycles, setCycles] = useState<Cycle[]>([]);
   const [newGoal, setNewGoal] = useState('');
+  const [createError, setCreateError] = useState<string | null>(null);
+  const { state: projectState } = useProject();
+  const projectLoaded = projectState.loaded;
 
   useEffect(() => {
     api.listCycles().then((c) => setCycles(c as Cycle[]));
@@ -55,14 +60,26 @@ export default function CyclesPage() {
 
   const handleCreate = async () => {
     if (!newGoal.trim()) return;
-    await api.createCycle(newGoal);
-    setNewGoal('');
-    api.listCycles().then((c) => setCycles(c as Cycle[]));
+    setCreateError(null);
+    try {
+      await api.createCycle(newGoal);
+      setNewGoal('');
+      api.listCycles().then((c) => setCycles(c as Cycle[]));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Failed to create cycle';
+      setCreateError(msg.includes('no_project_loaded') ? 'Cannot create cycle — no project loaded. Set PROJECT_REPO_LOCAL_PATH and create .harness/project.yaml.' : msg);
+    }
   };
 
   return (
     <div className="pt-4">
       <h1 className="mb-4 text-2xl font-semibold">Cycles</h1>
+
+      {!projectLoaded && (
+        <div className="mb-4">
+          <NoProjectEmptyState title="No project loaded — cycle creation disabled" />
+        </div>
+      )}
 
       <Card className="mb-4">
         <CardContent className="flex gap-2 p-4">
@@ -70,13 +87,21 @@ export default function CyclesPage() {
             type="text"
             value={newGoal}
             onChange={(e) => setNewGoal(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
-            placeholder="Enter cycle goal..."
+            onKeyDown={(e) => projectLoaded && e.key === 'Enter' && handleCreate()}
+            placeholder={projectLoaded ? 'Enter cycle goal...' : 'Load a project to enable cycle creation'}
             className="flex-1 font-mono text-xs"
+            disabled={!projectLoaded}
           />
-          <Button onClick={handleCreate}>Create Cycle</Button>
+          <Button onClick={handleCreate} disabled={!projectLoaded}>
+            Create Cycle
+          </Button>
         </CardContent>
       </Card>
+      {createError && (
+        <div className="mb-4 text-xs border rounded px-3 py-2 text-destructive border-destructive/30 bg-destructive/10">
+          {createError}
+        </div>
+      )}
 
       <Card>
         <CardContent className="p-0">

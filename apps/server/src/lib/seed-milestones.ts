@@ -21,21 +21,21 @@ interface MilestoneYaml {
  * Resolve the directory to read milestone yaml files from.
  *
  * The project repo owns milestones: harness reads from
- * `$GAME_REPO_LOCAL_PATH/.harness/milestones/` first. For one release cycle
- * we also honour the legacy `$GAME_REPO_LOCAL_PATH/milestones/` location so
- * projects that predate the .harness/ convention keep working.
+ * `$PROJECT_REPO_LOCAL_PATH/.harness/milestones/` first. For one release
+ * cycle we also honour the legacy `$PROJECT_REPO_LOCAL_PATH/milestones/`
+ * location so projects that predate the .harness/ convention keep working.
  *
  * If no project is configured or no milestones exist, the harness runs in
  * zero-milestone mode (dashboard shows empty state). There is no longer a
  * harness-local fallback — Phase B of the decoupling plan removed it.
  */
 async function resolveMilestonesDir(): Promise<string | null> {
-  const gameRepo = config.gameRepoLocalPath;
-  if (!gameRepo) return null;
+  const projectRepo = config.projectRepoLocalPath;
+  if (!projectRepo) return null;
 
   const candidates = [
-    path.join(gameRepo, '.harness', 'milestones'),
-    path.join(gameRepo, 'milestones'),
+    path.join(projectRepo, '.harness', 'milestones'),
+    path.join(projectRepo, 'milestones'),
   ];
   for (const dir of candidates) {
     try {

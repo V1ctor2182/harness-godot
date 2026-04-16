@@ -2,10 +2,11 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
-import { Bell, Settings, LayoutDashboard, RefreshCw, Milestone, FolderTree, Palette } from 'lucide-react';
+import { Bell, Settings, LayoutDashboard, RefreshCw, Milestone, FolderTree, Palette, Package } from 'lucide-react';
 
 import { SettingsDrawer } from '@/components/settings-drawer';
 import { useInboxBadge } from '@/hooks/use-inbox-badge';
+import { useProject } from '@/hooks/use-project';
 
 interface TopNavProps {
   projectName: string;
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
 export function TopNav({ projectName }: TopNavProps) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { count: inboxCount } = useInboxBadge();
+  const { state: projectState } = useProject();
 
   const toggleSettings = useCallback(() => setSettingsOpen((v) => !v), []);
 
@@ -41,6 +43,27 @@ export function TopNav({ projectName }: TopNavProps) {
     <>
       <nav className="border-b border-border px-4 py-3 flex items-center gap-6">
         <span className="text-sm font-bold tracking-tight text-foreground">{projectName}</span>
+
+        {/* Project badge — shows currently loaded project or "no project". */}
+        <button
+          type="button"
+          onClick={toggleSettings}
+          title={
+            projectState.loaded
+              ? `Project: ${projectState.config?.name ?? projectState.config?.id}${projectState.source ? `\n${projectState.source}` : ''}`
+              : projectState.error ?? 'No project loaded — set PROJECT_REPO_LOCAL_PATH'
+          }
+          className={`flex items-center gap-1.5 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border transition-colors ${
+            projectState.loaded
+              ? 'border-primary/40 text-primary bg-primary/5 hover:bg-primary/10'
+              : 'border-destructive/40 text-destructive bg-destructive/5 hover:bg-destructive/10'
+          }`}
+        >
+          <Package className="size-3" />
+          {projectState.loaded
+            ? (projectState.config?.name ?? projectState.config?.id ?? 'project')
+            : 'no project'}
+        </button>
 
         <div className="flex items-center gap-5">
           {NAV_ITEMS.map(({ href, label, icon: Icon }) => (

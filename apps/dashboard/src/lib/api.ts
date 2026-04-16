@@ -171,7 +171,37 @@ export const api = {
       method: 'POST',
       body: JSON.stringify(body),
     }),
+
+  // Project config
+  getProject: () => request<ProjectState>('/project'),
+  reloadProject: () => request<ProjectState>('/project/reload', { method: 'POST' }),
 };
+
+// ─── Project types ──────────────────────────────────────────────────
+
+export interface ProjectConfigBody {
+  id: string;
+  name: string;
+  description?: string;
+  stack?: {
+    engine?: string;
+    engine_version?: string;
+    language?: string;
+    test_runner?: string;
+    os?: string;
+  };
+  paths?: Record<string, string | undefined>;
+  constants?: Record<string, string | number>;
+  test_layers?: Array<{ id: string; name: string; runner?: string }>;
+}
+
+export interface ProjectState {
+  loaded: boolean;
+  config: ProjectConfigBody | null;
+  source: string | null;
+  error: string | null;
+  loadedAt: string | null;
+}
 
 // ─── Milestone types ────────────────────────────────────────────────
 
