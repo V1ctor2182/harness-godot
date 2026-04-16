@@ -6,7 +6,7 @@ import { AgentRunModel } from '../../models/agent-run.js';
 import { CycleModel } from '../../models/cycle.js';
 import { TaskModel } from '../../models/task.js';
 import { getOrCreateControl } from '../../models/control.js';
-import type { ContextFeedback, ContextSnapshot, RetryContext } from '@zombie-farm/shared';
+import type { ContextFeedback, ContextSnapshot, RetryContext } from '@harness/shared';
 import {
   QUALITY_SCORE_USEFUL_DELTA,
   QUALITY_SCORE_UNNECESSARY_DELTA,
@@ -14,7 +14,7 @@ import {
   QUALITY_SCORE_MIN,
   QUALITY_SCORE_MAX,
   SPEC_TYPE_PRIORITY,
-} from '@zombie-farm/shared';
+} from '@harness/shared';
 
 interface AgentContext {
   systemPromptContent: string;

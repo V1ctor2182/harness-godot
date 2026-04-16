@@ -2,7 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  transpilePackages: ['@zombie-farm/shared'],
+  transpilePackages: ['@harness/shared'],
 };
 
 export default nextConfig;

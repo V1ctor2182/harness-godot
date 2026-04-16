@@ -2,7 +2,7 @@ import { createInterface } from 'node:readline';
 import { AgentEventModel } from '../../models/agent-event.js';
 import { AgentRunModel } from '../../models/agent-run.js';
 import { broadcast } from '../sse-manager.js';
-import { TOOL_RESULT_MAX_BYTES } from '@zombie-farm/shared';
+import { TOOL_RESULT_MAX_BYTES } from '@harness/shared';
 import type {
   AgentEventType,
   TextEvent,
@@ -12,7 +12,7 @@ import type {
   CompletionEvent,
   SystemEvent,
   AgentStructuredOutput,
-} from '@zombie-farm/shared';
+} from '@harness/shared';
 
 interface CaptureResult {
   eventCount: number;

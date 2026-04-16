@@ -9,7 +9,7 @@ import {
   SPENDING_WARNING_THRESHOLD,
   MAX_REVIEW_CYCLES,
   MAX_RETRY_CODER_RUNS,
-} from '@zombie-farm/shared';
+} from '@harness/shared';
 import { buildContext, processContextFeedback } from './context-builder.js';
 import { TestResultModel } from '../../models/test-result.js';
 import { ScreenshotModel } from '../../models/screenshot.js';
@@ -26,7 +26,7 @@ import { captureStream, emitSystemEvent } from './stream-capture.js';
 import { broadcast } from '../sse-manager.js';
 import { createJob, persistRetryReviewIssues } from '../job-queue.js';
 import { notifySpendingWarning, notifyRateLimited } from '../notifier.js';
-import type { AgentRunStatus, RetryContext } from '@zombie-farm/shared';
+import type { AgentRunStatus, RetryContext } from '@harness/shared';
 
 export interface SpawnParams {
   role: string;
@@ -321,7 +321,7 @@ export async function createFollowUpJobs(
   agentRunId: string,
   cycleId: number,
   taskId: string | undefined,
-  structuredOutput: import('@zombie-farm/shared').AgentStructuredOutput | undefined
+  structuredOutput: import('@harness/shared').AgentStructuredOutput | undefined
 ): Promise<void> {
   if (role === 'orchestrator') {
     // Orchestrator completed — check for Q&A questions before applying plan
@@ -645,7 +645,7 @@ export async function createFollowUpJobs(
       // Tests failed → retry Coder with test failure context
       const testRetries = await AgentRunModel.countDocuments({ taskId, role: 'tester' });
 
-      if (testRetries >= (await import('@zombie-farm/shared')).MAX_TEST_RETRIES) {
+      if (testRetries >= (await import('@harness/shared')).MAX_TEST_RETRIES) {
         // Too many test retries — mark task as blocked
         await TaskModel.updateOne(
           { _id: taskId },

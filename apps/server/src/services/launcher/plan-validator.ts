@@ -1,4 +1,4 @@
-import { MIN_PLAN_TASKS, MAX_PLAN_TASKS } from '@zombie-farm/shared';
+import { MIN_PLAN_TASKS, MAX_PLAN_TASKS } from '@harness/shared';
 
 export const VALID_TASK_TYPES = ['feature', 'bug', 'chore', 'refactor', 'test'] as const;
 export const VALID_TASK_PRIORITIES = ['critical', 'high', 'medium', 'low'] as const;

@@ -1,5 +1,5 @@
 {
-  "name": "@zombie-farm/server",
+  "name": "@harness/server",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -11,7 +11,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@zombie-farm/shared": "*",
+    "@harness/shared": "*",
     "cors": "^2.8.5",
     "dockerode": "^4.0.4",
     "dotenv": "^16.4.7",

@@ -1,5 +1,5 @@
 {
-  "name": "zombie-farm-harness",
+  "name": "harness",
   "private": true,
   "workspaces": [
     "apps/*",

@@ -1,4 +1,4 @@
-name: zombie-farm
+name: harness
 
 services:
   mongodb:
@@ -6,7 +6,7 @@ services:
     expose:
       - '27017'
     volumes:
-      - mongodb_data:/data/db
+      - harness_mongodb_data:/data/db
     healthcheck:
       test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
       interval: 10s
@@ -21,7 +21,7 @@ services:
       - '127.0.0.1:3001:3001'
     environment:
       - PORT=3001
-      - MONGODB_URI=mongodb://mongodb:27017/zombie-farm
+      - MONGODB_URI=mongodb://mongodb:27017/harness
       - NODE_ENV=production
     env_file:
       - .env
@@ -73,5 +73,5 @@ services:
         condition: service_healthy
 
 volumes:
-  mongodb_data:
+  harness_mongodb_data:
   reload_trigger:

@@ -5,7 +5,7 @@ import { findOrphanedContainers, removeContainer } from './container.js';
 import { docker } from '../../lib/docker.js';
 import { isDockerAvailable } from '../../lib/docker.js';
 import { createJob } from '../job-queue.js';
-import { DEFAULT_MAX_RETRIES, MAX_RETRY_CODER_RUNS } from '@zombie-farm/shared';
+import { DEFAULT_MAX_RETRIES, MAX_RETRY_CODER_RUNS } from '@harness/shared';
 import { broadcast } from '../sse-manager.js';
 
 /**
@@ -50,7 +50,10 @@ export async function reconcileOrphans(): Promise<void> {
 
   for (const info of orphans) {
     const containerId = info.Id;
-    const agentRunId = info.Labels?.['zombie-farm.agent-run-id'];
+    // Read both new and legacy label keys so the first boot after the
+    // Phase A rename still cleans up containers started under the old label.
+    const agentRunId =
+      info.Labels?.['harness.agent-run-id'] ?? info.Labels?.['zombie-farm.agent-run-id'];
     const container = docker.getContainer(containerId);
 
     if (!agentRunId) {

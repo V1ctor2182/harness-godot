@@ -6,11 +6,12 @@ import { config } from '../../config.js';
 import {
   AGENT_CONTAINER_LABEL,
   AGENT_CONTAINER_LABEL_VALUE,
+  LEGACY_AGENT_CONTAINER_LABEL,
   CONTAINER_MEMORY_MB,
   CONTAINER_CPU_COUNT,
-} from '@zombie-farm/shared';
+} from '@harness/shared';
 
-import { AGENT_DOCKER_IMAGE } from '@zombie-farm/shared';
+import { AGENT_DOCKER_IMAGE } from '@harness/shared';
 const AGENT_IMAGE = AGENT_DOCKER_IMAGE;
 
 export interface ContainerConfig {
@@ -31,7 +32,7 @@ export interface ContainerHandle {
 export async function createAgentContainer(cfg: ContainerConfig): Promise<ContainerHandle> {
   const container = await docker.createContainer({
     Image: AGENT_IMAGE,
-    name: `zombie-farm-${cfg.agentRunId}`,
+    name: `harness-${cfg.agentRunId}`,
     Env: [
       `CLAUDE_CODE_OAUTH_TOKEN=${config.claudeCodeOauthToken}`,
       `AGENT_ROLE=${cfg.role}`,
@@ -47,8 +48,8 @@ export async function createAgentContainer(cfg: ContainerConfig): Promise<Contai
     ],
     Labels: {
       [AGENT_CONTAINER_LABEL]: AGENT_CONTAINER_LABEL_VALUE,
-      'zombie-farm.agent-run-id': cfg.agentRunId,
-      'zombie-farm.role': cfg.role,
+      'harness.agent-run-id': cfg.agentRunId,
+      'harness.role': cfg.role,
     },
     HostConfig: {
       Memory: CONTAINER_MEMORY_MB * 1024 * 1024,
@@ -165,13 +166,33 @@ export async function removeContainer(container: Dockerode.Container): Promise<v
 }
 
 export async function findOrphanedContainers(): Promise<Dockerode.ContainerInfo[]> {
-  return docker.listContainers({
-    all: true,
-    filters: {
-      label: [`${AGENT_CONTAINER_LABEL}=${AGENT_CONTAINER_LABEL_VALUE}`],
-      status: ['running'],
-    },
-  });
+  const [current, legacy] = await Promise.all([
+    docker.listContainers({
+      all: true,
+      filters: {
+        label: [`${AGENT_CONTAINER_LABEL}=${AGENT_CONTAINER_LABEL_VALUE}`],
+        status: ['running'],
+      },
+    }),
+    // Also pick up containers from the old `zombie-farm=agent` label so the
+    // first boot after the Phase A rename can clean them up gracefully.
+    docker.listContainers({
+      all: true,
+      filters: {
+        label: [`${LEGACY_AGENT_CONTAINER_LABEL}=${AGENT_CONTAINER_LABEL_VALUE}`],
+        status: ['running'],
+      },
+    }),
+  ]);
+  // Dedupe by container id in case a container somehow had both labels.
+  const seen = new Set<string>();
+  const merged: Dockerode.ContainerInfo[] = [];
+  for (const info of [...current, ...legacy]) {
+    if (seen.has(info.Id)) continue;
+    seen.add(info.Id);
+    merged.push(info);
+  }
+  return merged;
 }
 
 export async function killContainer(containerId: string): Promise<void> {

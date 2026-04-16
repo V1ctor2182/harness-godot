@@ -87,8 +87,13 @@ export const PROTECTED_PATHS = [
 
 // ─── Container Labels ────────────────────────────────────────────────
 
-export const AGENT_CONTAINER_LABEL = 'zombie-farm';
+export const AGENT_CONTAINER_LABEL = 'harness';
 export const AGENT_CONTAINER_LABEL_VALUE = 'agent';
+// Legacy label key, read-only. Kept so the first boot after the
+// Phase A rename can still discover and clean up containers started under
+// the old label. Remove after one release cycle once no zombie-farm
+// containers are expected on any dev machine.
+export const LEGACY_AGENT_CONTAINER_LABEL = 'zombie-farm';
 
 // ─── Task ID Format ──────────────────────────────────────────────────
 

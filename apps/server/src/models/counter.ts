@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { TASK_ID_PREFIX, TASK_ID_PAD_LENGTH } from '@zombie-farm/shared';
+import { TASK_ID_PREFIX, TASK_ID_PAD_LENGTH } from '@harness/shared';
 
 const counterSchema = new Schema({
   _id: { type: String, required: true },

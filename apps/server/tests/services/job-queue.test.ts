@@ -144,7 +144,7 @@ import {
   computeCycleMetrics,
   persistRetryReviewIssues,
 } from '../../src/services/job-queue.js';
-import { RELOAD_TRIGGER_PATH } from '@zombie-farm/shared';
+import { RELOAD_TRIGGER_PATH } from '@harness/shared';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

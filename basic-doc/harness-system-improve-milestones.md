@@ -442,7 +442,7 @@ archiveStaleSpecs: (roomId) => request('/specs/archive-stale', { method: 'POST',
 listTests: (params?) => request('/tests', { params }),
 ```
 
-新增对应 TypeScript 接口: `RoomTreeNode`, `Room`, `Spec`, `CreateSpecPayload` (从 `@zombie-farm/shared` re-export 或在 dashboard 侧定义)。
+新增对应 TypeScript 接口: `RoomTreeNode`, `Room`, `Spec`, `CreateSpecPayload` (从 `@harness/shared` re-export 或在 dashboard 侧定义)。
 
 #### 新建 `apps/dashboard/src/app/rooms/page.tsx`
 
@@ -615,7 +615,7 @@ export const RETRY_BACKOFF_MS = [30_000, 120_000]; // 30s, 2min
 
 **retry 逻辑** (processJob catch block): 设置 notBefore:
 ```typescript
-import { RETRY_BACKOFF_MS } from '@zombie-farm/shared';
+import { RETRY_BACKOFF_MS } from '@harness/shared';
 const delay = RETRY_BACKOFF_MS[Math.min(job.retryCount, RETRY_BACKOFF_MS.length - 1)];
 // $set 中新增 notBefore
 { $set: { status: 'pending', error, notBefore: new Date(Date.now() + delay) }, $inc: { retryCount: 1 } }
