@@ -1,24 +1,27 @@
 spec_id: "intent-02-03-tester-001"
 type: intent
-state: draft
+state: active
 intent:
-  summary: "执行多层测试 (L2-L4)，quick-fail 原则，失败时创建 fix tasks"
+  summary: "Runs project-defined test layers, reports structured results, retries up to 3x"
   detail: |
-    执行 L2 integration、L3 visual、L4 PRD compliance 测试。Quick-fail 原则：
-    L1 fail→skip L2/L3/L4, L2 fail→skip L3。L4 (PRD compliance) 与 L2 并行执行。
-    输出 TestResult with pass/fail counts, performance data, PRD violations。
-    Screenshots captured during L3 with AI analysis。
-    GUT timeout: 3 min, integration test timeout: 2 min, visual test timeout: 5 min。
+    Test layers are dynamic, defined by project.yaml.test_layers — not hardcoded
+    L1/L2/L3/L4. Quick-fail principle: earlier layer failure skips subsequent layers.
+    Outputs structured JSON with per-layer pass/fail counts, failure details, and
+    performance metrics. Retries failing runs up to 3 times before reporting final
+    failure. The tester agent is project-agnostic; all test commands, timeouts, and
+    layer definitions come from project configuration.
 constraints: []
 indexing:
   type: intent
   priority: high
   layer: feature
   domain: "testing"
-  tags: [tester, integration-test, visual-test, prd-compliance, quick-fail]
+  tags: [tester, test-layers, quick-fail, structured-results, project-agnostic]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
+  confidence: 0.95
+  source_ref: "harness-system codebase 2026-04-19 audit"
 relations: []
-anchors: []
+anchors:
+  - path: "agents/tester.md"
+  - path: "apps/server/src/models/test-result.ts"

@@ -1,20 +1,26 @@
 spec_id: "intent-04-01-context-builder-001"
 type: intent
-state: draft
+state: active
 intent:
-  summary: "Assemble most relevant knowledge files for each agent run"
+  summary: "Assembles Room specs + project context section for each agent run"
   detail: |
-    为每次 agent run 组装最相关的 knowledge files。按 qualityScore 和 lastReferencedAt 排名，注入到容器 /home/agent/context/。处理 retry context（previous error, review issues, files changed）。
+    buildContext() selects specs by task keyword matching, enforces an ~8k token budget,
+    and injects by priority order (constraints > decisions > contracts > conventions).
+    buildProjectContextSection() appends project.yaml fields (engine, language,
+    conventions, test layers) to every agent prompt. No knowledge/ file reading —
+    all context comes from Room specs and project.yaml injection.
 constraints: []
 indexing:
   type: intent
   priority: high
   layer: feature
   domain: "context-builder"
-  tags: [context, ranking, quality-score, retry, dockerode]
+  tags: [context, specs, keyword-matching, token-budget, project-context]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
+  confidence: 0.95
+  source_ref: "harness-system codebase 2026-04-19 audit"
 relations: []
-anchors: []
+anchors:
+  - path: "apps/server/src/services/launcher/context-builder.ts"
+    symbols: ["buildContext", "buildProjectContextSection"]

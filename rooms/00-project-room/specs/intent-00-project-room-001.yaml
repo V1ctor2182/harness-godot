@@ -1,23 +1,29 @@
 spec_id: "intent-00-project-room-001"
 type: intent
-state: draft
+state: active
 intent:
-  summary: "Zombie Farm AI 实现团队的跨模块 conventions、技术栈决策、系统级 constraints"
+  summary: "Generic AI engineering team — cross-module conventions, .harness/ contract, project-agnostic constraints"
   detail: |
-    6 个 agent 协作开发 Godot 4.6.1 僵尸农场游戏。项目采用 TypeScript strict mode，
-    Node.js 22，ES modules。Monorepo 结构包含 apps/server (Express)、
-    apps/dashboard (Next.js)、packages/shared。Agent prompts 版本化管理在 agents/ 目录，
-    所有容器标记 zombie-farm=agent，Godot 4.6.1 锁定在所有环境。
+    Reusable 6-agent framework (Orchestrator, Coder, Tester, Reviewer, Integrator, Curator)
+    that implements software autonomously against any project repo. TypeScript strict mode,
+    npm workspaces (apps/server Express API, apps/dashboard Next.js UI, packages/shared
+    types and constants). MongoDB "harness" database for all persistence. Agent prompts in
+    agents/ directory receive project context injection at runtime. The .harness/project.yaml
+    contract defines project-specific settings (engine, language, conventions, test layers)
+    so the harness itself stays project-agnostic.
 constraints: []
 indexing:
   type: intent
   priority: high
   layer: epic
   domain: "project-management"
-  tags: [project, conventions, tech-stack, constraints, godot, zombie-farm]
+  tags: [project, conventions, tech-stack, constraints, harness, project-agnostic]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
+  confidence: 0.95
+  source_ref: "harness-system codebase 2026-04-19 audit"
 relations: []
-anchors: []
+anchors:
+  - path: "CLAUDE.md"
+  - path: "package.json"
+  - path: "apps/server/src/config.ts"

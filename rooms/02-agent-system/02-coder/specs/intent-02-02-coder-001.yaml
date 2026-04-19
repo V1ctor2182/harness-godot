@@ -1,23 +1,27 @@
 spec_id: "intent-02-02-coder-001"
 type: intent
-state: draft
+state: active
 intent:
-  summary: "实现 GDScript 代码、编写 L1 GUT 单元测试、创建 branch 和 PR"
+  summary: "Implements task code per project conventions, runs project test suite, opens PR"
   detail: |
-    实现 GDScript 代码、编写 L1 GUT 单元测试、创建 branch 和 PR。
-    输出 structured PR body with summary, decisions, files changed, context feedback。
-    代码写 GDScript，测试用 GUT 9.x 框架。运行 godot --headless import 验证资源导入。
-    Branch 从 BASE_BRANCH 创建，不直接 push main。
+    Generic coder agent. Clones the project repo, creates a feature branch from
+    BASE_BRANCH, implements the task according to conventions injected from
+    project.yaml, writes tests using the project-defined test framework, and
+    pushes a PR with a structured body (summary, decisions, files changed,
+    context feedback). Language and framework details come from project.yaml
+    injection at runtime — the coder prompt itself is project-agnostic.
 constraints: []
 indexing:
   type: intent
   priority: high
   layer: feature
   domain: "implementation"
-  tags: [coder, gdscript, gut-testing, pull-request, branch]
+  tags: [coder, implementation, pull-request, branch, project-agnostic]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
+  confidence: 0.95
+  source_ref: "harness-system codebase 2026-04-19 audit"
 relations: []
-anchors: []
+anchors:
+  - path: "agents/coder.md"
+  - path: "apps/server/src/services/launcher/spawner.ts"

@@ -1,20 +1,26 @@
 spec_id: "intent-05-testing-pipeline-001"
 type: intent
-state: draft
+state: active
 intent:
-  summary: "Four-layer test pipeline for Godot game code quality assurance"
+  summary: "Dynamic test layer pipeline — layers defined by project.yaml, not hardcoded"
   detail: |
-    4 层测试保障 Godot game code 质量：L1 GUT unit → L2 integration → L3 visual → L4 PRD compliance。Quick-fail 原则、TestResult/Screenshot 持久化、performance metrics 追踪。
+    Test layers come from project.yaml.test_layers, making the pipeline project-agnostic.
+    TestResult model stores layer as a free string field, and the dashboard groups results
+    dynamically by whatever layers the project defines. The tester agent runs whatever
+    test command the project specifies per layer. Quick-fail ordering and retry logic
+    are handled by the harness, not the project.
 constraints: []
 indexing:
   type: intent
   priority: high
   layer: epic
   domain: "testing-pipeline"
-  tags: [testing, GUT, integration, visual, PRD-compliance, quick-fail]
+  tags: [testing, dynamic-layers, project-agnostic, test-results, quick-fail]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
+  confidence: 0.95
+  source_ref: "harness-system codebase 2026-04-19 audit"
 relations: []
-anchors: []
+anchors:
+  - path: "apps/server/src/models/test-result.ts"
+  - path: "apps/server/src/routes/tests.ts"

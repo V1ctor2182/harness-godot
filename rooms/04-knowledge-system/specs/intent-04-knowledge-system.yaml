@@ -1,20 +1,28 @@
 spec_id: "intent-04-knowledge-system-001"
 type: intent
-state: draft
+state: active
 intent:
-  summary: "Persistent institutional memory with quality score feedback loop"
+  summary: "Room+Spec dual-source knowledge system — harness rooms + project .harness/rooms/"
   detail: |
-    持久化 institutional memory，通过 quality score feedback loop 驱动上下文选择。Categories: skills, decisions, specs, journal, inbox, pruned, retrospectives。
+    Room+Spec architecture with 7 spec types (intent, constraint, decision, convention,
+    contract, runbook, snapshot). Dual-source seedRooms() scans both harness-system/rooms/
+    and $PROJECT_REPO_LOCAL_PATH/.harness/rooms/ to upsert Room and Spec documents into
+    MongoDB. Quality score feedback loop: specs referenced by successful agent runs gain
+    score, unused specs decay. Context builder assembles specs per task keywords, enforcing
+    a token budget and priority ordering.
 constraints: []
 indexing:
   type: intent
   priority: high
   layer: epic
   domain: "knowledge-system"
-  tags: [knowledge, quality-score, feedback-loop, context-selection]
+  tags: [knowledge, rooms, specs, dual-source, quality-score, feedback-loop]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
+  confidence: 0.95
+  source_ref: "harness-system codebase 2026-04-19 audit"
 relations: []
-anchors: []
+anchors:
+  - path: "apps/server/src/lib/seed-rooms.ts"
+  - path: "apps/server/src/models/room.ts"
+  - path: "apps/server/src/models/spec.ts"
