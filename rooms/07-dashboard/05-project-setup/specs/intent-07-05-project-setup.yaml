@@ -1,0 +1,55 @@
+spec_id: "intent-07-05-project-setup-001"
+type: intent
+state: active
+intent:
+  summary: "Project onboarding — auto-detect engine, scaffold .harness/, dashboard /setup page"
+  detail: |
+    The harness is project-agnostic. Connecting a target project requires:
+      1. PROJECT_REPO_LOCAL_PATH env var pointing to a local checkout
+      2. .harness/project.yaml inside that repo
+
+    POST /api/project/init auto-detects the engine from marker files
+    (project.godot → Godot, Cargo.toml → Rust, package.json → Node,
+    go.mod → Go, pyproject.toml → Python) and scaffolds:
+      - .harness/project.yaml with detected values
+      - .harness/rooms/ empty dir for Feature Rooms
+      - prd/README.md template if prd/ doesn't exist
+
+    Dashboard /setup page provides a two-tab onboarding flow:
+      - "Create New Project": path input → auto-detect → edit
+        name/description/conventions → init → reload → redirect to Home
+      - "Connect Existing Repo": path input → reload config
+
+    When no project is loaded:
+      - Top nav shows red "no project" badge
+      - Home bento shows "Get Started" card linking to /setup
+      - Cycle creation returns 409 with no_project_loaded error
+      - Cycles page disables create form
+
+    GET /api/project returns the current config state.
+    POST /api/project/reload re-reads project.yaml from disk.
+constraints:
+  - "Init must refuse if .harness/project.yaml already exists (use reload instead)"
+  - "Cycle creation MUST return 409 when getProjectConfig() is null"
+indexing:
+  type: intent
+  priority: high
+  layer: feature
+  domain: "project-setup"
+  tags: [project, init, auto-detect, scaffold, setup-page, empty-state]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.95
+  source_ref: "74d871b Phase C + 2d44ce8 Phase G"
+relations:
+  - target: "intent-07-dashboard-001"
+    type: "depends_on"
+anchors:
+  - file: "apps/server/src/lib/project-config.ts"
+    symbol: "loadProjectConfig"
+  - file: "apps/server/src/routes/project.ts"
+  - file: "apps/dashboard/src/app/setup/page.tsx"
+    symbol: "SetupPage"
+  - file: "apps/dashboard/src/components/no-project-empty-state.tsx"
+    symbol: "NoProjectEmptyState"
+  - file: "basic-doc/techdesign/08-project-setup.md"

@@ -1,0 +1,50 @@
+spec_id: "intent-07-04-milestones-001"
+type: intent
+state: active
+intent:
+  summary: "Milestone management — Mongo-only CRUD, Orchestrator proposals via Inbox, dashboard roadmap UI"
+  detail: |
+    Milestones are the project roadmap. They live in Mongo only — no yaml
+    files. The lifecycle:
+      1. Orchestrator reads PRD → proposes milestones (status: proposed,
+         source: orchestrator) → appear in Inbox as milestone_proposal
+      2. Human confirms from Inbox or /milestones page → status: planned
+      3. Cycle created targeting a milestone → status: active
+      4. All goals met → status: completed
+    Humans can also create milestones directly from the dashboard.
+
+    Backend: full CRUD via /api/milestones (POST create, PATCH update,
+    PATCH reorder, POST confirm, DELETE archive). MilestoneModel has
+    proposed/planned/active/completed/blocked/archived status enum,
+    source field (human|orchestrator), prdRef, cycles[], totalCostUsd.
+
+    Dashboard: /milestones page is a management UI — roadmap bar colored
+    by status, list with create button, inline confirm/reject for
+    proposed milestones (dashed border + "Proposed by Orchestrator"
+    badge), detail modal with contributing cycles + linked specs.
+constraints:
+  - "Milestones must NEVER be stored as yaml files — Mongo is the single source of truth"
+  - "Proposed milestones from Orchestrator must go through Inbox confirmation before becoming planned"
+indexing:
+  type: intent
+  priority: high
+  layer: feature
+  domain: "milestones"
+  tags: [milestones, crud, inbox, orchestrator, roadmap, management-ui]
+provenance:
+  source_type: codebase_extraction
+  confidence: 0.95
+  source_ref: "2d44ce8 Phase G Batch 2"
+relations:
+  - target: "intent-07-dashboard-001"
+    type: "depends_on"
+  - target: "contract-07-dashboard-api-milestones-001"
+    type: "relates_to"
+anchors:
+  - file: "apps/server/src/models/milestone.ts"
+    symbol: "MilestoneModel"
+  - file: "apps/server/src/routes/milestones.ts"
+  - file: "apps/server/src/routes/inbox.ts"
+    symbol: "milestone_proposal"
+  - file: "apps/dashboard/src/app/milestones/page.tsx"
+    symbol: "MilestonesPage"

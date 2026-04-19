@@ -1,0 +1,10 @@
+room:
+  id: "07-04-milestones"
+  name: "Milestone 管理"
+  parent: "07-dashboard"
+  lifecycle: active
+  created_at: "2026-04-15"
+  updated_at: "2026-04-19"
+  owner: fullstack
+  contributors: []
+  depends_on: []

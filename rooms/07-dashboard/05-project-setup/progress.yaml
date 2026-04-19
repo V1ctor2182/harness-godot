@@ -1,0 +1,22 @@
+lifecycle: active
+completion: 90
+milestones:
+  - id: project-config-loader
+    name: "ProjectConfig loader reads .harness/project.yaml with zod validation"
+    status: completed
+    completed_at: "2026-04-15"
+  - id: project-init-endpoint
+    name: "POST /api/project/init auto-detects engine and scaffolds .harness/"
+    status: completed
+    completed_at: "2026-04-16"
+  - id: setup-page
+    name: "Dashboard /setup page with Create New / Connect Existing tabs"
+    status: completed
+    completed_at: "2026-04-16"
+  - id: empty-state
+    name: "No-project empty state on Home + Cycles + top nav badge"
+    status: completed
+    completed_at: "2026-04-15"
+  - id: project-switcher
+    name: "Runtime project switching without env file editing"
+    status: pending

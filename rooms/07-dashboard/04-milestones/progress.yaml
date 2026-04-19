@@ -1,0 +1,18 @@
+lifecycle: active
+completion: 80
+milestones:
+  - id: milestone-crud-api
+    name: "Full CRUD API for milestones (POST/PATCH/DELETE/confirm/reorder)"
+    status: completed
+    completed_at: "2026-04-16"
+  - id: milestone-inbox-integration
+    name: "Proposed milestones appear in Inbox as milestone_proposal items"
+    status: completed
+    completed_at: "2026-04-16"
+  - id: milestone-mgmt-ui
+    name: "Dashboard management UI with create, confirm/reject proposed, archive"
+    status: completed
+    completed_at: "2026-04-16"
+  - id: milestone-orchestrator-proposal
+    name: "Orchestrator auto-proposes milestones from PRD during bootstrap cycle"
+    status: pending
