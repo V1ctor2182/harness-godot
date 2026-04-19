@@ -3,173 +3,187 @@ tree:
     name: "项目总控"
     type: project
     owner: fullstack
-    lifecycle: planning
+    lifecycle: active
     path: "rooms/00-project-room"
     children:
       - id: 01-cycle-engine
         name: "Cycle 引擎"
         type: epic
         owner: backend
-        lifecycle: planning
+        lifecycle: active
         path: "rooms/01-cycle-engine"
 
       - id: 02-agent-system
         name: "Agent 系统"
         type: epic
         owner: backend
-        lifecycle: planning
+        lifecycle: active
         path: "rooms/02-agent-system"
         children:
           - id: 02-01-orchestrator
             name: "Orchestrator Agent"
             type: feature
             owner: backend
-            lifecycle: planning
+            lifecycle: active
             path: "rooms/02-agent-system/01-orchestrator"
 
           - id: 02-02-coder
             name: "Coder Agent"
             type: feature
             owner: backend
-            lifecycle: planning
+            lifecycle: active
             path: "rooms/02-agent-system/02-coder"
 
           - id: 02-03-tester
             name: "Tester Agent"
             type: feature
             owner: backend
-            lifecycle: planning
+            lifecycle: active
             path: "rooms/02-agent-system/03-tester"
 
           - id: 02-04-reviewer
             name: "Reviewer Agent"
             type: feature
             owner: backend
-            lifecycle: planning
+            lifecycle: active
             path: "rooms/02-agent-system/04-reviewer"
 
           - id: 02-05-integrator
             name: "Integrator Agent"
             type: feature
             owner: backend
-            lifecycle: planning
+            lifecycle: active
             path: "rooms/02-agent-system/05-integrator"
 
           - id: 02-06-curator
             name: "Curator Agent"
             type: feature
             owner: backend
-            lifecycle: planning
+            lifecycle: active
             path: "rooms/02-agent-system/06-curator"
 
           - id: 02-07-container
             name: "容器生命周期"
             type: feature
             owner: backend
-            lifecycle: planning
+            lifecycle: active
             path: "rooms/02-agent-system/07-container"
 
           - id: 02-08-spawner
             name: "Agent 调度器"
             type: feature
             owner: backend
-            lifecycle: planning
+            lifecycle: active
             path: "rooms/02-agent-system/08-spawner"
 
           - id: 02-09-stream-capture
             name: "流式输出捕获"
             type: feature
             owner: backend
-            lifecycle: planning
+            lifecycle: active
             path: "rooms/02-agent-system/09-stream-capture"
 
       - id: 03-job-queue
         name: "任务队列"
         type: epic
         owner: backend
-        lifecycle: planning
+        lifecycle: active
         path: "rooms/03-job-queue"
 
       - id: 04-knowledge-system
         name: "知识系统"
         type: epic
         owner: backend
-        lifecycle: planning
+        lifecycle: active
         path: "rooms/04-knowledge-system"
         children:
           - id: 04-01-context-builder
             name: "上下文构建器"
             type: feature
             owner: backend
-            lifecycle: planning
+            lifecycle: active
             path: "rooms/04-knowledge-system/01-context-builder"
 
           - id: 04-02-curation
             name: "知识策展"
             type: feature
             owner: backend
-            lifecycle: planning
+            lifecycle: active
             path: "rooms/04-knowledge-system/02-curation"
 
       - id: 05-testing-pipeline
         name: "测试管线"
         type: epic
         owner: backend
-        lifecycle: planning
+        lifecycle: active
         path: "rooms/05-testing-pipeline"
 
       - id: 06-plan-validation
         name: "计划校验"
         type: feature
         owner: backend
-        lifecycle: planning
+        lifecycle: active
         path: "rooms/06-plan-validation"
 
       - id: 07-dashboard
         name: "控制面板"
         type: epic
         owner: frontend
-        lifecycle: planning
+        lifecycle: active
         path: "rooms/07-dashboard"
         children:
           - id: 07-01-live-stream
             name: "实时流"
             type: feature
             owner: frontend
-            lifecycle: planning
+            lifecycle: active
             path: "rooms/07-dashboard/01-live-stream"
 
           - id: 07-02-review-panel
             name: "审查面板"
             type: feature
             owner: frontend
-            lifecycle: planning
+            lifecycle: active
             path: "rooms/07-dashboard/02-review-panel"
 
           - id: 07-03-analytics
             name: "数据分析"
             type: feature
             owner: frontend
-            lifecycle: planning
+            lifecycle: active
             path: "rooms/07-dashboard/03-analytics"
+
+          - id: 07-04-milestones
+            name: "Milestone 管理"
+            type: feature
+            owner: fullstack
+            lifecycle: active
+            path: "rooms/07-dashboard/04-milestones"
+
+          - id: 07-05-project-setup
+            name: "项目初始化"
+            type: feature
+            owner: fullstack
+            lifecycle: active
+            path: "rooms/07-dashboard/05-project-setup"
 
       - id: 08-infrastructure
         name: "基础设施"
         type: epic
         owner: backend
-        lifecycle: planning
+        lifecycle: active
         path: "rooms/08-infrastructure"
 
       - id: 09-spending
         name: "成本控制"
         type: feature
         owner: backend
-        lifecycle: planning
+        lifecycle: active
         path: "rooms/09-spending"
 
       - id: 11-data-layer
         name: "数据层"
         type: epic
         owner: backend
-        lifecycle: planning
+        lifecycle: active
         path: "rooms/11-data-layer"
