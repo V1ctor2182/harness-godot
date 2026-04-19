@@ -2,9 +2,9 @@ room:
   id: "02-03-tester"
   name: "Tester Agent"
   parent: "02-agent-system"
-  lifecycle: planning
+  lifecycle: active
   created_at: "2026-04-05"
-  updated_at: "2026-04-05"
+  updated_at: "2026-04-19"
   owner: backend
   contributors: []
   prompt_test:
