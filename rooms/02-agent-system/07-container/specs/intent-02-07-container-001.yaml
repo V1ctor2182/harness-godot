@@ -1,16 +1,19 @@
 spec_id: "intent-02-07-container-001"
 type: intent
-state: draft
+state: active
 intent:
-  summary: "Docker 容器 9 步生命周期管理，image build、entrypoint、orphan recovery"
+  summary: "Docker container 9-step lifecycle — create, inject context, stream, collect, cleanup"
   detail: |
-    Docker 容器 9 步生命周期管理：PREPARE→CREATE→INJECT→ATTACH→START→STREAM→WAIT→COLLECT→CLEANUP。
-    Image build、entrypoint 脚本、orphan recovery。
-    Memory: 4GB default / 8GB max, CPU: 1 core。
-    Container label: zombie-farm=agent。
-    Entrypoint: clone repo → godot import (120s timeout) → rate limit check → claude code launch。
-    Orphan recovery on startup: scan Docker for labeled containers。
-    TASK_BRANCH support for retests — checkout existing branch。
+    9-step container lifecycle:
+    PREPARE → CREATE → INJECT → ATTACH → START → STREAM → WAIT → COLLECT → CLEANUP.
+    Memory: 4GB default / 8GB max, CPU: 1 core.
+    Container label: harness=agent (legacy zombie-farm=agent also scanned
+    during orphan recovery for backward compat).
+    Entrypoint: clone project repo → project-specific setup → rate limit
+    check → claude code launch.
+    Orphan recovery on startup: scan Docker for labeled containers, match
+    against AgentRun docs, remove stale containers, create retry jobs.
+    TASK_BRANCH support for retests — checkout existing branch.
 constraints: []
 indexing:
   type: intent
@@ -20,7 +23,12 @@ indexing:
   tags: [container, docker, lifecycle, entrypoint, orphan-recovery]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
+  confidence: 0.95
+  source_ref: "harness-system codebase 2026-04-19 audit"
 relations: []
-anchors: []
+anchors:
+  - file: "apps/server/src/services/launcher/container.ts"
+    symbol: "createAgentContainer"
+  - file: "apps/server/src/services/launcher/orphan-recovery.ts"
+    symbol: "reconcileOrphans"
+  - file: "docker/agent/Dockerfile"

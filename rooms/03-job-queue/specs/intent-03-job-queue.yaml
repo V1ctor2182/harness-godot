@@ -1,6 +1,6 @@
 spec_id: "intent-03-job-queue-001"
 type: intent
-state: draft
+state: active
 intent:
   summary: "Polling-based work queue with dual slot pools and approval gates"
   detail: |
@@ -14,7 +14,7 @@ indexing:
   tags: [polling, slot-pools, approval-gates, stale-detection]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
+  confidence: 0.95
+  source_ref: "harness-system codebase 2026-04-19 audit"
 relations: []
 anchors: []

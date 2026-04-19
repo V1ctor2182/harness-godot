@@ -1,6 +1,6 @@
 spec_id: "intent-02-01-orchestrator-001"
 type: intent
-state: draft
+state: active
 intent:
   summary: "读取项目文档生成 3-7 task plans with dependencies"
   detail: |
@@ -18,7 +18,7 @@ indexing:
   tags: [orchestrator, planning, task-generation, dependencies, prd]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
+  confidence: 0.95
+  source_ref: "harness-system codebase 2026-04-19 audit"
 relations: []
 anchors: []

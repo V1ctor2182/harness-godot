@@ -1,6 +1,6 @@
 spec_id: "intent-09-spending-001"
 type: intent
-state: draft
+state: active
 intent:
   summary: "Per-run cost tracking with budget caps and circuit breaker protection"
   detail: |
@@ -14,7 +14,7 @@ indexing:
   tags: [cost-tracking, budget-cap, circuit-breaker, spending-warning]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
+  confidence: 0.95
+  source_ref: "harness-system codebase 2026-04-19 audit"
 relations: []
 anchors: []

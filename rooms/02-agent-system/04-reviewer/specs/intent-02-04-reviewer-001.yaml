@@ -1,6 +1,6 @@
 spec_id: "intent-02-04-reviewer-001"
 type: intent
-state: draft
+state: active
 intent:
   summary: "7-item checklist 评审 PR，输出 severity-graded verdict"
   detail: |
@@ -19,7 +19,7 @@ indexing:
   tags: [reviewer, code-quality, prd-compliance, checklist, severity]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
+  confidence: 0.95
+  source_ref: "harness-system codebase 2026-04-19 audit"
 relations: []
 anchors: []

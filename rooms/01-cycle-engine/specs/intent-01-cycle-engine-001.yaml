@@ -1,6 +1,6 @@
 spec_id: "intent-01-cycle-engine-001"
 type: intent
-state: draft
+state: active
 intent:
   summary: "管理 bounded work units (cycles)，驱动五阶段流转和 task 生命周期"
   detail: |
@@ -18,7 +18,7 @@ indexing:
   tags: [cycle, task-lifecycle, phase-transition, workflow, bounded-work-unit]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
+  confidence: 0.95
+  source_ref: "harness-system codebase 2026-04-19 audit"
 relations: []
 anchors: []

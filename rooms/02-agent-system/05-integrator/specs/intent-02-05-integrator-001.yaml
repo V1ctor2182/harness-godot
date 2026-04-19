@@ -1,24 +1,26 @@
 spec_id: "intent-02-05-integrator-001"
 type: intent
-state: draft
+state: active
 intent:
-  summary: "按拓扑依赖顺序合并 approved PRs，dry-run conflict detection"
+  summary: "Merges approved PRs in topological dependency order with dry-run conflict detection"
   detail: |
-    按拓扑依赖顺序合并 approved PRs。Dry-run conflict detection、merge conflict resolution、
-    regression test 验证。合并顺序按 blockedBy 拓扑排序。合并前 dry-run: git merge --no-commit --no-ff。
-    Conflict 时 task re-queue with fresh spawn（不是 failure）。
-    .tscn (Godot scene) 文件冲突需特殊处理。
-    20%+ tasks 冲突重试 → retrospect 阶段 flag process issue。
+    Merges approved PRs in topological dependency order. Dry-run conflict
+    detection via git merge --no-commit --no-ff. Conflict triggers task
+    re-queue with fresh spawn (not failure). 20%+ tasks with conflict
+    retries → retrospect phase flags a process issue.
+    Project-specific merge heuristics come from project.yaml conventions.
 constraints: []
 indexing:
   type: intent
   priority: high
   layer: feature
   domain: "integration"
-  tags: [integrator, merge, conflict-resolution, topological-sort, tscn]
+  tags: [integrator, merge, conflict-resolution, topological-sort]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
+  confidence: 0.95
+  source_ref: "harness-system codebase 2026-04-19 audit"
 relations: []
-anchors: []
+anchors:
+  - file: "agents/integrator.md"
+  - file: "apps/server/src/services/launcher/spawner.ts"

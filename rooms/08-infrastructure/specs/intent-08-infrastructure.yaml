@@ -1,6 +1,6 @@
 spec_id: "intent-08-infrastructure-001"
 type: intent
-state: draft
+state: active
 intent:
   summary: "Docker compose stack, CI/CD, GitHub integration, migrations, and health checks"
   detail: |
@@ -14,7 +14,7 @@ indexing:
   tags: [docker, mongodb, CI-CD, github, migrations, health-check]
 provenance:
   source_type: codebase_extraction
-  confidence: 0.85
-  source_ref: "harness-system codebase"
+  confidence: 0.95
+  source_ref: "harness-system codebase 2026-04-19 audit"
 relations: []
 anchors: []
