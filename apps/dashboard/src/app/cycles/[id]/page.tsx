@@ -7,7 +7,6 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 
 import { api, type TestResultItem } from '@/lib/api';
 import { useGlobalSSE } from '@/hooks/use-sse';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { StatusBadge } from '@/components/status-badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { AgentDetail } from '@/components/agent-detail';
@@ -128,52 +127,58 @@ function AgentCard({ group, onOpen }: { group: RoleGroup; onOpen: (role: Role) =
 
   let statusDot = '○';
   let statusLabel = 'idle';
-  let statusClass = 'text-muted-foreground';
+  let statusColor = 'var(--muted-foreground)';
   if (isRunning) {
     statusDot = '●';
     statusLabel = `${group.running} running`;
-    statusClass = 'text-primary';
+    statusColor = 'var(--burgundy)';
   } else if (group.done > 0 && group.failed === 0) {
     statusDot = '✔';
     statusLabel = `${group.done} done`;
-    statusClass = 'text-success';
+    statusColor = 'var(--forest)';
   } else if (isFailed) {
     statusDot = '✗';
     statusLabel = `${group.failed} failed`;
-    statusClass = 'text-destructive';
+    statusColor = 'var(--oxblood)';
   }
+
+  const borderColor = isFailed
+    ? 'var(--oxblood)'
+    : isRunning
+      ? 'var(--burgundy)'
+      : 'var(--rule-strong)';
 
   return (
     <button
       type="button"
       onClick={() => group.hasAnyRun && onOpen(group.role)}
       disabled={!group.hasAnyRun}
-      className={`flex flex-col items-start gap-1 rounded-md border px-3 py-2 text-left min-w-[150px] transition-colors ${
-        isFailed
-          ? 'border-destructive/50 bg-destructive/5'
-          : isRunning
-            ? 'border-primary/50 bg-primary/5 animate-pulse'
-            : 'border-border bg-background hover:border-foreground/50'
-      } ${group.hasAnyRun ? 'cursor-pointer' : 'cursor-default opacity-80'}`}
+      className={`flex flex-col items-start gap-1 rounded-sm px-3 py-2 text-left min-w-[150px] transition-colors ${
+        isRunning ? 'live-pulse' : ''
+      } ${group.hasAnyRun ? 'cursor-pointer hover:bg-[var(--surface)]' : 'cursor-default opacity-70'}`}
+      style={{
+        border: `1px solid ${borderColor}`,
+        background: isRunning || isFailed ? 'var(--surface)' : 'transparent',
+      }}
     >
       <div className="flex items-center justify-between w-full">
-        <span className="text-xs font-semibold uppercase tracking-wide">{ROLE_LABEL[group.role]}</span>
+        <span className="text-meta text-[var(--ink)]">{ROLE_LABEL[group.role]}</span>
         {isMulti && count > 0 && (
-          <span className="text-[10px] text-muted-foreground">×{count}</span>
+          <span className="text-kicker text-[var(--muted-foreground)]">×{count}</span>
         )}
       </div>
-      <div className={`text-xs ${statusClass}`}>
+      <div className="text-[11px]" style={{ color: statusColor }}>
         <span className="mr-1">{statusDot}</span>
         {statusLabel}
       </div>
       {latestTask && (
-        <div className="text-[10px] text-muted-foreground font-mono truncate max-w-full">
+        <div className="text-[10px] text-[var(--muted-foreground)] font-mono truncate max-w-full">
           {latestTask}
         </div>
       )}
-      <div className="flex items-center gap-3 text-[10px] text-muted-foreground w-full mt-0.5">
+      <div className="flex items-center gap-3 text-[10px] text-[var(--muted-foreground)] w-full mt-0.5">
         <span>{group.totalDuration > 0 ? formatDuration(group.totalDuration) : '—'}</span>
-        <span className="ml-auto font-mono">
+        <span className="ml-auto font-mono text-tabular">
           ${group.totalCost > 0 ? group.totalCost.toFixed(2) : '—'}
         </span>
       </div>
@@ -184,8 +189,16 @@ function AgentCard({ group, onOpen }: { group: RoleGroup; onOpen: (role: Role) =
 function PipelineArrow({ active }: { active: boolean }) {
   return (
     <div className="flex items-center" aria-hidden>
-      <div className={`h-px w-4 ${active ? 'bg-primary' : 'bg-border'}`} />
-      <span className={`text-sm ${active ? 'text-primary' : 'text-muted-foreground'}`}>▶</span>
+      <div
+        className="h-px w-4"
+        style={{ background: active ? 'var(--burgundy)' : 'var(--rule)' }}
+      />
+      <span
+        className="text-sm"
+        style={{ color: active ? 'var(--burgundy)' : 'var(--muted-foreground)' }}
+      >
+        ▶
+      </span>
     </div>
   );
 }
@@ -198,28 +211,28 @@ function TeamPipeline({
   onOpenAgent: (role: Role) => void;
 }) {
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm">Team Pipeline</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-stretch gap-1 flex-wrap">
-          {groups.map((g, i) => (
-            <div key={g.role} className="flex items-center">
-              <AgentCard group={g} onOpen={onOpenAgent} />
-              {i < groups.length - 1 && <PipelineArrow active={groups[i].hasAnyRun} />}
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 text-[10px] text-muted-foreground flex items-center gap-4">
-          <span>● running</span>
-          <span className="text-success">✔ done</span>
-          <span className="text-destructive">✗ failed</span>
-          <span>○ idle</span>
-          <span className="ml-auto">click a card to inspect agent runs</span>
-        </div>
-      </CardContent>
-    </Card>
+    <section className="border-t border-[var(--rule)] pt-4">
+      <div className="text-kicker text-[var(--muted-foreground)] mb-3">
+        <span>The Pipeline</span>
+        <span className="mx-2">·</span>
+        <span className="text-[var(--ink-2)]">Six agents, one story</span>
+      </div>
+      <div className="flex items-stretch gap-1 flex-wrap">
+        {groups.map((g, i) => (
+          <div key={g.role} className="flex items-center">
+            <AgentCard group={g} onOpen={onOpenAgent} />
+            {i < groups.length - 1 && <PipelineArrow active={groups[i].hasAnyRun} />}
+          </div>
+        ))}
+      </div>
+      <div className="mt-3 text-[10px] text-[var(--muted-foreground)] flex items-center gap-4 font-mono uppercase tracking-[0.08em]">
+        <span style={{ color: 'var(--burgundy)' }}>● running</span>
+        <span style={{ color: 'var(--forest)' }}>✔ done</span>
+        <span style={{ color: 'var(--oxblood)' }}>✗ failed</span>
+        <span>○ idle</span>
+        <span className="ml-auto normal-case tracking-normal italic">click a card to inspect agent runs</span>
+      </div>
+    </section>
   );
 }
 
@@ -237,45 +250,45 @@ function TasksPanel({
   onOpenTask: (taskId: string) => void;
 }) {
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm">Tasks ({tasks.length})</CardTitle>
-      </CardHeader>
-      <CardContent className="p-0">
-        {tasks.length === 0 ? (
-          <div className="px-4 py-3 text-sm text-muted-foreground">No tasks in this cycle.</div>
-        ) : (
-          <div className="divide-y divide-border">
-            {tasks.map((t) => {
-              const cost = taskCostMap.get(t._id);
-              const tests = taskTestSummaryMap.get(t._id);
-              return (
-                <button
-                  type="button"
-                  key={t._id}
-                  onClick={() => onOpenTask(t._id)}
-                  className="w-full flex items-center gap-3 px-4 py-2 text-left hover:bg-muted/30 transition-colors"
-                >
-                  <span className="font-mono text-[11px] text-muted-foreground w-24 shrink-0">
-                    {t._id}
+    <section>
+      <div className="text-kicker text-[var(--muted-foreground)] mb-2 flex items-center gap-2">
+        <span>The Work</span>
+        <span>·</span>
+        <span className="text-[var(--ink-2)]">{tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}</span>
+      </div>
+      {tasks.length === 0 ? (
+        <div className="py-3 text-sm text-[var(--muted-foreground)] italic">No tasks in this cycle.</div>
+      ) : (
+        <div className="border-t border-[var(--rule)]">
+          {tasks.map((t) => {
+            const cost = taskCostMap.get(t._id);
+            const tests = taskTestSummaryMap.get(t._id);
+            return (
+              <button
+                type="button"
+                key={t._id}
+                onClick={() => onOpenTask(t._id)}
+                className="w-full flex items-center gap-3 py-2.5 text-left border-b border-[var(--rule)] hover:bg-[var(--surface)] transition-colors px-1"
+              >
+                <span className="font-mono text-[11px] text-[var(--muted-foreground)] w-24 shrink-0">
+                  {t._id}
+                </span>
+                <span className="flex-1 truncate text-sm text-[var(--ink)]">{t.title}</span>
+                <StatusBadge status={t.status} />
+                {tests && (
+                  <span className="text-[10px] text-[var(--muted-foreground)] font-mono">
+                    {tests.passed}/{tests.total} ({tests.layers}L)
                   </span>
-                  <span className="flex-1 truncate text-sm">{t.title}</span>
-                  <StatusBadge status={t.status} />
-                  {tests && (
-                    <span className="text-[10px] text-muted-foreground">
-                      {tests.passed}/{tests.total} ({tests.layers}L)
-                    </span>
-                  )}
-                  <span className="font-mono text-[11px] text-muted-foreground w-14 text-right">
-                    {cost != null ? `$${cost.toFixed(2)}` : '—'}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                )}
+                <span className="font-mono text-tabular text-[11px] text-[var(--muted-foreground)] w-14 text-right">
+                  {cost != null ? `$${cost.toFixed(2)}` : '—'}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -323,43 +336,50 @@ function TestsPanel({ tests }: { tests: TestResultItem[] }) {
     .slice(0, 5);
 
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <button
-          type="button"
-          onClick={() => setExpanded((v) => !v)}
-          className="w-full flex items-center gap-2 text-left"
-        >
-          {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-          <CardTitle className="text-sm">Tests</CardTitle>
-          {passRate !== null && (
-            <span className="text-xs text-muted-foreground">
-              pass rate {passRate}% ({totalPassed}/{totalTests})
+    <section>
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full flex items-center gap-2 text-left mb-2"
+      >
+        {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+        <span className="text-kicker text-[var(--muted-foreground)]">The Tests</span>
+        {passRate !== null && (
+          <span className="text-[11px] text-[var(--ink-2)] font-mono">
+            <span className="text-tabular" style={{ color: passRate === 100 ? 'var(--forest)' : passRate < 80 ? 'var(--oxblood)' : 'var(--mustard)' }}>
+              {passRate}%
             </span>
-          )}
-        </button>
-      </CardHeader>
+            <span className="mx-1 text-[var(--muted-foreground)]">·</span>
+            <span className="text-[var(--muted-foreground)]">{totalPassed}/{totalTests}</span>
+          </span>
+        )}
+      </button>
       {expanded && (
-        <CardContent className="space-y-3">
+        <div className="space-y-3 border-t border-[var(--rule)] pt-3">
           {summaries.length === 0 ? (
-            <div className="text-sm text-muted-foreground">No test results yet.</div>
+            <div className="text-sm text-[var(--muted-foreground)] italic">No test results yet.</div>
           ) : (
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {summaries.map((s) => {
                 const ratio = s.total > 0 ? s.passed / s.total : 0;
                 return (
                   <div key={s.layer} className="flex items-center gap-3 text-xs">
-                    <span className="w-20 font-mono text-muted-foreground">{s.layer}</span>
-                    <div className="flex-1 h-1.5 rounded bg-muted overflow-hidden">
+                    <span className="w-20 font-mono text-[var(--muted-foreground)] uppercase tracking-[0.06em]">{s.layer}</span>
+                    <div className="flex-1 h-1 rounded-full bg-[var(--rule)] overflow-hidden">
                       <div
-                        className={`h-full ${s.failed > 0 ? 'bg-destructive' : 'bg-success'}`}
-                        style={{ width: `${ratio * 100}%` }}
+                        className="h-full transition-all"
+                        style={{
+                          width: `${ratio * 100}%`,
+                          background: s.failed > 0 ? 'var(--oxblood)' : 'var(--forest)',
+                        }}
                       />
                     </div>
-                    <span className="font-mono w-16 text-right">
+                    <span className="font-mono text-tabular w-16 text-right text-[var(--ink)]">
                       {s.passed}/{s.total}
                     </span>
-                    {s.failed > 0 && <span className="text-destructive">⚠ {s.failed}</span>}
+                    {s.failed > 0 && (
+                      <span style={{ color: 'var(--oxblood)' }}>⚠ {s.failed}</span>
+                    )}
                   </div>
                 );
               })}
@@ -367,20 +387,18 @@ function TestsPanel({ tests }: { tests: TestResultItem[] }) {
           )}
           {recentFailures.length > 0 && (
             <div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
-                Recent failures
-              </div>
+              <div className="text-kicker text-[var(--muted-foreground)] mb-1">Recent failures</div>
               <ul className="space-y-1 text-xs">
                 {recentFailures.map((f, i) => (
-                  <li key={i} className="text-muted-foreground">
-                    <span className="font-mono text-foreground">{f.taskId}</span>
+                  <li key={i} className="text-[var(--muted-foreground)]">
+                    <span className="font-mono text-[var(--ink)]">{f.taskId}</span>
                     <span className="mx-1">·</span>
-                    <span className="text-foreground">{f.layer}</span>
+                    <span className="text-[var(--ink)]">{f.layer}</span>
                     <span className="mx-1">·</span>
                     <span>{f.testName}</span>
                     {f.file && (
                       <span className="ml-1">
-                        <span className="text-accent">{f.file}</span>
+                        <span style={{ color: 'var(--mustard)' }}>{f.file}</span>
                         {f.line != null && <span>:{f.line}</span>}
                       </span>
                     )}
@@ -389,9 +407,9 @@ function TestsPanel({ tests }: { tests: TestResultItem[] }) {
               </ul>
             </div>
           )}
-        </CardContent>
+        </div>
       )}
-    </Card>
+    </section>
   );
 }
 
@@ -406,37 +424,38 @@ interface EventEntry {
 function EventsLog({ entries }: { entries: EventEntry[] }) {
   const [expanded, setExpanded] = useState(false);
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <button
-          type="button"
-          onClick={() => setExpanded((v) => !v)}
-          className="w-full flex items-center gap-2 text-left"
-        >
-          {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
-          <CardTitle className="text-sm">Events ({entries.length})</CardTitle>
-        </button>
-      </CardHeader>
+    <section className="border-t border-[var(--rule)] pt-3">
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="w-full flex items-center gap-2 text-left"
+      >
+        {expanded ? <ChevronDown className="size-4" /> : <ChevronRight className="size-4" />}
+        <span className="text-kicker text-[var(--muted-foreground)]">The Wire</span>
+        <span className="text-[11px] text-[var(--ink-2)] font-mono text-tabular">
+          {entries.length} {entries.length === 1 ? 'event' : 'events'}
+        </span>
+      </button>
       {expanded && (
-        <CardContent>
+        <div className="mt-3">
           {entries.length === 0 ? (
-            <div className="text-sm text-muted-foreground">Waiting for events…</div>
+            <div className="text-sm text-[var(--muted-foreground)] italic">Waiting for events…</div>
           ) : (
             <div className="max-h-60 overflow-auto space-y-0.5 text-xs font-mono">
               {entries.slice(-200).reverse().map((e, i) => (
                 <div key={i} className="flex gap-2">
-                  <span className="text-muted-foreground w-16 shrink-0">
+                  <span className="text-[var(--muted-foreground)] w-16 shrink-0 text-tabular">
                     {e.at.toLocaleTimeString()}
                   </span>
-                  <span className="text-accent w-40 shrink-0 truncate">{e.type}</span>
-                  <span className="text-muted-foreground truncate">{e.summary}</span>
+                  <span className="w-40 shrink-0 truncate" style={{ color: 'var(--mustard)' }}>{e.type}</span>
+                  <span className="text-[var(--muted-foreground)] truncate">{e.summary}</span>
                 </div>
               ))}
             </div>
           )}
-        </CardContent>
+        </div>
       )}
-    </Card>
+    </section>
   );
 }
 
@@ -541,8 +560,11 @@ export default function CycleDetailPage() {
 
   if (!cycle) {
     return (
-      <div className="pt-4 text-sm text-muted-foreground">
-        Loading cycle {id}… <Link href="/cycles" className="text-primary hover:underline ml-2">Back to cycles</Link>
+      <div className="pt-4 text-sm text-[var(--muted-foreground)] italic">
+        Loading cycle {id}…{' '}
+        <Link href="/cycles" className="text-[var(--burgundy)] hover:underline ml-2 not-italic">
+          ← Back to cycles
+        </Link>
       </div>
     );
   }
@@ -551,41 +573,71 @@ export default function CycleDetailPage() {
   const progressFailed = cycle.metrics?.tasksFailed ?? 0;
   const progressTotal = tasks.length || 1;
   const progressPct = Math.round(((progressDone + progressFailed) / progressTotal) * 100);
+  const startDate = cycle.startedAt ? new Date(cycle.startedAt) : null;
+  const dateline = startDate
+    ? `${startDate.getFullYear()}·${String(startDate.getMonth() + 1).padStart(2, '0')}·${String(startDate.getDate()).padStart(2, '0')}`
+    : '—';
 
   return (
-    <div className="pt-4 space-y-4">
-      {/* Header */}
-      <div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <Link href="/cycles" className="text-xs text-muted-foreground hover:text-foreground">
-            ← Cycles
-          </Link>
-          <h1 className="text-xl font-bold">Cycle {cycle._id}</h1>
-          <StatusBadge status={cycle.phase} />
+    <div className="pt-4 space-y-6">
+      {/* Back link */}
+      <Link
+        href="/cycles"
+        className="text-kicker text-[var(--muted-foreground)] hover:text-[var(--burgundy)] transition-colors"
+      >
+        ← Cycles Archive
+      </Link>
+
+      {/* Editorial feature header */}
+      <header className="pb-6 border-b-2 border-[var(--ink)]">
+        <div className="text-kicker text-[var(--burgundy)] mb-3">
+          <span>Feature · Cycle M{cycle._id}</span>
+          <span className="mx-2 text-[var(--rule-strong)]">·</span>
+          <span className="text-[var(--muted-foreground)]">{dateline}</span>
+          <span className="mx-2 text-[var(--rule-strong)]">·</span>
+          <span className="text-[var(--muted-foreground)]">{cycle.phase}</span>
+        </div>
+
+        <h1 className="text-display-1 text-[var(--ink)] max-w-4xl">
+          {cycle.goal}
+          <span className="italic text-[var(--burgundy)]">.</span>
+        </h1>
+
+        <div className="mt-4 flex items-center gap-3 flex-wrap">
           <StatusBadge status={cycle.status} />
-          <span className="ml-auto text-xs text-muted-foreground font-mono">
+          <span className="text-[var(--muted-foreground)]">·</span>
+          <span className="text-meta text-[var(--ink-2)]">
+            By Orchestrator &amp; Team
+          </span>
+          <span className="ml-auto text-[11px] text-[var(--muted-foreground)] font-mono text-tabular">
             ${cycle.metrics?.totalCostUsd?.toFixed(2) ?? '0.00'}
             {cycle.metrics?.totalDurationMs
               ? ` · ${formatDuration(cycle.metrics.totalDurationMs)}`
               : ''}
           </span>
         </div>
-        <div className="mt-2 text-sm text-muted-foreground">{cycle.goal}</div>
-        <div className="mt-2 flex items-center gap-2">
-          <div className="flex-1 h-1.5 rounded bg-muted overflow-hidden">
-            <div className="h-full bg-primary transition-all" style={{ width: `${progressPct}%` }} />
+
+        <div className="mt-5 flex items-center gap-3">
+          <div className="flex-1 h-1 rounded-full bg-[var(--rule)] overflow-hidden">
+            <div
+              className="h-full transition-all"
+              style={{
+                width: `${progressPct}%`,
+                background: progressFailed > 0 ? 'var(--oxblood)' : 'var(--forest)',
+              }}
+            />
           </div>
-          <span className="text-xs text-muted-foreground font-mono w-20 text-right">
+          <span className="text-[11px] text-[var(--muted-foreground)] font-mono text-tabular w-24 text-right">
             {progressDone + progressFailed}/{progressTotal} tasks
           </span>
         </div>
-      </div>
+      </header>
 
       {/* Team pipeline */}
       <TeamPipeline groups={roleGroups} onOpenAgent={openAgent} />
 
-      {/* Tasks + Tests in a 2-col grid on wide screens */}
-      <div className="grid gap-4 lg:grid-cols-3">
+      {/* Tasks + Tests in a 2-col editorial layout */}
+      <div className="grid gap-8 lg:grid-cols-3 border-t border-[var(--rule)] pt-6">
         <div className="lg:col-span-2">
           <TasksPanel
             tasks={tasks}
@@ -594,7 +646,7 @@ export default function CycleDetailPage() {
             onOpenTask={openTask}
           />
         </div>
-        <div className="lg:col-span-1">
+        <div className="lg:col-span-1 lg:border-l lg:border-[var(--rule)] lg:pl-8">
           <TestsPanel tests={tests} />
         </div>
       </div>
