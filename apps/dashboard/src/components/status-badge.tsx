@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 type StatusVariant = 'success' | 'warning' | 'destructive' | 'info' | 'muted';
@@ -33,27 +32,47 @@ const statusMap: Record<string, StatusVariant> = {
   'changes-requested': 'destructive',
 };
 
-const variantStyles: Record<StatusVariant, string> = {
-  success: 'bg-success/15 text-success border-success/20',
-  warning: 'bg-warning/15 text-warning border-warning/20',
-  destructive: 'bg-destructive/15 text-destructive border-destructive/20',
-  info: 'bg-primary/15 text-primary border-primary/20',
-  muted: 'bg-muted text-muted-foreground border-border',
+// Editorial Workbench palette: pills, not squares; burgundy/forest/oxblood/mustard
+const variantStyles: Record<StatusVariant, React.CSSProperties> = {
+  success: {
+    background: 'color-mix(in oklch, var(--forest) 12%, transparent)',
+    color: 'var(--forest)',
+    borderColor: 'color-mix(in oklch, var(--forest) 30%, transparent)',
+  },
+  warning: {
+    background: 'color-mix(in oklch, var(--mustard) 18%, transparent)',
+    color: 'color-mix(in oklch, var(--mustard) 70%, var(--ink))',
+    borderColor: 'color-mix(in oklch, var(--mustard) 40%, transparent)',
+  },
+  destructive: {
+    background: 'color-mix(in oklch, var(--oxblood) 12%, transparent)',
+    color: 'var(--oxblood)',
+    borderColor: 'color-mix(in oklch, var(--oxblood) 30%, transparent)',
+  },
+  info: {
+    background: 'color-mix(in oklch, var(--burgundy) 10%, transparent)',
+    color: 'var(--burgundy)',
+    borderColor: 'color-mix(in oklch, var(--burgundy) 25%, transparent)',
+  },
+  muted: {
+    background: 'var(--surface)',
+    color: 'var(--muted-foreground)',
+    borderColor: 'var(--rule-strong)',
+  },
 };
 
 export function StatusBadge({ status, className }: { status: string; className?: string }) {
   const variant = statusMap[status] ?? 'muted';
   return (
-    <Badge
-      variant="outline"
+    <span
       className={cn(
-        'rounded-md font-mono text-[10px] uppercase tracking-wider',
-        variantStyles[variant],
+        'inline-flex items-center rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-[0.08em] whitespace-nowrap',
         className
       )}
+      style={variantStyles[variant]}
     >
       {status}
-    </Badge>
+    </span>
   );
 }
 
@@ -61,13 +80,14 @@ export function LiveDot({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 text-success text-[10px] font-bold tracking-wide',
+        'inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.1em] live-pulse',
         className
       )}
+      style={{ color: 'var(--burgundy)' }}
     >
       <span
-        className="inline-block size-1.5 rounded-full bg-success"
-        style={{ animation: 'pulse-dot 1.4s ease-in-out infinite' }}
+        className="inline-block size-1.5 rounded-full"
+        style={{ background: 'var(--burgundy)' }}
       />
       LIVE
     </span>
