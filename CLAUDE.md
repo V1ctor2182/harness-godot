@@ -32,3 +32,9 @@ When you make a change that affects architecture, schemas, project structure, ev
 - **Target project:** configured via `PROJECT_REPO_LOCAL_PATH` env var. Harness reads `.harness/project.yaml` for identity + context, `.harness/rooms/` for Feature Rooms, and `prd/` for product docs
 - **Milestones:** Mongo-only (no yaml). Created by human or proposed by Orchestrator → confirmed from Inbox
 - **The `.harness/` contract:** `project.yaml` (identity) + `rooms/` (knowledge). Nothing else.
+
+## Design System
+
+Always read [DESIGN.md](./DESIGN.md) before making any visual or UI decisions. All font choices, colors, spacing, border radius, and aesthetic direction are defined there. Do not deviate without explicit user approval.
+
+Direction: **Editorial Workbench** — Fraunces serif + Instrument Sans + JetBrains Mono, warm paper light mode default, burgundy + forest accents, hierarchical radius (pills round, cards 4-6px, inputs 3px), motion only when meaningful. In QA or design reviews, flag any code that drifts from DESIGN.md.
