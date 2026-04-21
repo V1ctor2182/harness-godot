@@ -3,6 +3,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ─────────────────────────────────────────────────────────────────────
+ * HARNESS — Editorial Workbench design system
+ * See DESIGN.md at repo root for the full schema.
+ * ─────────────────────────────────────────────────────────────────── */
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -27,59 +32,310 @@
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
   --color-warning-foreground: var(--warning-foreground);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --font-mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-burgundy: var(--burgundy);
+  --color-burgundy-2: var(--burgundy-2);
+  --color-forest: var(--forest);
+  --color-forest-2: var(--forest-2);
+  --color-mustard: var(--mustard);
+  --color-oxblood: var(--oxblood);
+  --color-gold: var(--gold);
+
+  /* Hierarchical radius: pills full, cards 4-6px, inputs 3px */
+  --radius-xs: 3px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-full: 9999px;
+
+  --font-display: 'Fraunces', Georgia, ui-serif, serif;
+  --font-sans: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', ui-monospace, monospace;
 }
 
-/* Dark-only dashboard */
+/* ── Light mode (default — Editorial Workbench) ───────────────────── */
 :root {
-  --radius: 0.5rem;
-  --background: oklch(0.12 0 0);
-  --foreground: oklch(0.93 0 0);
-  --card: oklch(0.16 0 0);
-  --card-foreground: oklch(0.93 0 0);
-  --popover: oklch(0.16 0 0);
-  --popover-foreground: oklch(0.93 0 0);
-  --primary: oklch(0.6 0.2 260);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.22 0 0);
-  --secondary-foreground: oklch(0.93 0 0);
-  --muted: oklch(0.22 0 0);
-  --muted-foreground: oklch(0.55 0 0);
-  --accent: oklch(0.22 0 0);
-  --accent-foreground: oklch(0.93 0 0);
-  --destructive: oklch(0.6 0.2 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.26 0 0);
-  --input: oklch(0.26 0 0);
-  --ring: oklch(0.6 0.2 260);
-  --success: oklch(0.65 0.2 145);
-  --success-foreground: oklch(0.98 0 0);
-  --warning: oklch(0.75 0.15 85);
-  --warning-foreground: oklch(0.15 0 0);
+  --radius: 4px;
+
+  --paper: oklch(0.97 0.01 80);
+  --surface: oklch(0.99 0.005 80);
+  --surface-alt: oklch(0.93 0.01 80);
+  --ink: oklch(0.18 0.02 50);
+  --ink-2: oklch(0.28 0.02 50);
+  --rule: oklch(0.9 0.008 80);
+  --rule-strong: oklch(0.82 0.01 80);
+
+  --burgundy: oklch(0.4 0.15 20);
+  --burgundy-2: oklch(0.47 0.16 20);
+  --forest: oklch(0.4 0.08 150);
+  --forest-2: oklch(0.48 0.09 150);
+  --mustard: oklch(0.7 0.15 75);
+  --oxblood: oklch(0.5 0.15 30);
+  --gold: oklch(0.72 0.11 85);
+
+  /* shadcn/ui semantic tokens mapped onto the Editorial palette */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--burgundy);
+  --primary-foreground: oklch(0.98 0.005 80);
+  --secondary: var(--surface-alt);
+  --secondary-foreground: var(--ink);
+  --muted: oklch(0.45 0.015 60);
+  --muted-foreground: oklch(0.45 0.015 60);
+  --accent: var(--surface-alt);
+  --accent-foreground: var(--ink);
+  --destructive: var(--oxblood);
+  --destructive-foreground: oklch(0.98 0.005 80);
+  --border: var(--rule-strong);
+  --input: var(--rule-strong);
+  --ring: var(--burgundy);
+  --success: var(--forest);
+  --success-foreground: oklch(0.98 0.005 80);
+  --warning: var(--mustard);
+  --warning-foreground: var(--ink);
 }
 
+/* ── Dark mode (derived — warm, not cold) ─────────────────────────── */
+.dark {
+  --paper: oklch(0.14 0.01 60);
+  --surface: oklch(0.18 0.01 55);
+  --surface-alt: oklch(0.22 0.012 55);
+  --ink: oklch(0.93 0.01 80);
+  --ink-2: oklch(0.82 0.008 75);
+  --rule: oklch(0.28 0.008 60);
+  --rule-strong: oklch(0.38 0.01 55);
+
+  --burgundy: oklch(0.68 0.16 30);
+  --burgundy-2: oklch(0.76 0.16 30);
+  --forest: oklch(0.72 0.11 150);
+  --forest-2: oklch(0.8 0.12 150);
+  --mustard: oklch(0.78 0.15 80);
+  --oxblood: oklch(0.68 0.16 35);
+  --gold: oklch(0.78 0.12 85);
+
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface);
+  --card-foreground: var(--ink);
+  --popover: var(--surface);
+  --popover-foreground: var(--ink);
+  --primary: var(--burgundy);
+  --primary-foreground: oklch(0.14 0.01 60);
+  --secondary: var(--surface-alt);
+  --secondary-foreground: var(--ink);
+  --muted: oklch(0.58 0.012 65);
+  --muted-foreground: oklch(0.58 0.012 65);
+  --accent: var(--surface-alt);
+  --accent-foreground: var(--ink);
+  --destructive: var(--oxblood);
+  --destructive-foreground: oklch(0.14 0.01 60);
+  --border: var(--rule-strong);
+  --input: var(--rule-strong);
+  --ring: var(--burgundy);
+  --success: var(--forest);
+  --success-foreground: oklch(0.14 0.01 60);
+  --warning: var(--mustard);
+  --warning-foreground: var(--ink);
+}
+
+/* ── Base layer ───────────────────────────────────────────────────── */
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-mono text-[13px] leading-relaxed antialiased;
+    font-family: var(--font-sans);
+    background: var(--paper);
+    color: var(--ink);
+    font-size: 14px;
+    line-height: 1.55;
+    font-feature-settings: 'ss01', 'cv11';
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   a {
-    @apply text-primary hover:underline;
+    color: var(--burgundy);
+    text-decoration: none;
+  }
+  a:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  code,
+  pre,
+  kbd,
+  samp {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
   }
 }
 
+/* ── Editorial type utility classes ───────────────────────────────── */
+@layer components {
+  .font-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+  }
+  .font-sans-custom {
+    font-family: var(--font-sans);
+  }
+
+  .text-hero {
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: 3.5rem;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+  }
+  .text-display-1 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 2.5rem;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .text-display-2 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 2rem;
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+  }
+  .text-display-3 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 1.375rem;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+  .text-meta {
+    font-family: var(--font-sans);
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .text-kicker {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    line-height: 1.3;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .text-data {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+  .text-tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Editorial pull-quote */
+  .pullquote {
+    border-left: 3px solid var(--burgundy);
+    padding: 8px 16px;
+    margin: 16px 0;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 16px;
+    color: var(--ink-2);
+    line-height: 1.5;
+  }
+
+  /* Editorial drop-cap on first letter of a paragraph */
+  .dropcap::first-letter {
+    font-family: var(--font-display);
+    font-weight: 500;
+    font-size: 52px;
+    float: left;
+    line-height: 0.9;
+    padding: 4px 8px 0 0;
+    color: var(--burgundy);
+  }
+
+  /* Section rule dividers */
+  .section-rule {
+    border-top: 1px solid var(--rule);
+  }
+  .section-rule-strong {
+    border-top: 1px solid var(--rule-strong);
+  }
+}
+
+/* ── Motion — pulse for live agent cards and dots ─────────────────── */
 @keyframes pulse-dot {
   0%,
   100% {
     opacity: 1;
   }
   50% {
-    opacity: 0.25;
+    opacity: 0.35;
   }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.live-pulse {
+  animation: breathe 2s ease-in-out infinite;
+}
+
+/* ── Legacy badge classes (mapped to new palette) ─────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  border: 1px solid;
+}
+.badge-active {
+  color: var(--burgundy);
+  border-color: var(--burgundy);
+  background: color-mix(in oklch, var(--burgundy) 6%, var(--surface));
+}
+.badge-completed {
+  color: var(--forest);
+  border-color: var(--forest);
+  background: color-mix(in oklch, var(--forest) 6%, var(--surface));
+}
+.badge-paused {
+  color: var(--mustard);
+  border-color: var(--mustard);
+  background: color-mix(in oklch, var(--mustard) 10%, var(--surface));
+}
+.badge-failed {
+  color: var(--oxblood);
+  border-color: var(--oxblood);
+  background: color-mix(in oklch, var(--oxblood) 6%, var(--surface));
+}
+.badge-pending {
+  color: var(--muted);
+  border-color: var(--rule-strong);
+  background: var(--surface);
 }
