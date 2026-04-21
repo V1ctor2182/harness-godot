@@ -1,0 +1,1415 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Harness — Editorial Workbench (Design Preview)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --paper: #f7f3eb;
+        --surface: #fcfaf5;
+        --surface-alt: #f0ebe0;
+        --ink: #1f1810;
+        --ink-2: #3d342a;
+        --muted: #7a6f63;
+        --muted-2: #a89d90;
+        --rule: #e3ded1;
+        --rule-strong: #c9c1b0;
+        --burgundy: #8b2e1a;
+        --burgundy-2: #a3412b;
+        --forest: #2e5b3d;
+        --forest-2: #3e7550;
+        --mustard: #b8830c;
+        --oxblood: #a63d20;
+        --gold: #c89f4a;
+        --shadow-editorial: 0 1px 0 rgba(31, 24, 16, 0.04);
+
+        --font-display: 'Fraunces', Georgia, serif;
+        --font-body: 'Instrument Sans', -apple-system, system-ui, sans-serif;
+        --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
+      }
+      :root.dark {
+        --paper: #121008;
+        --surface: #1a1712;
+        --surface-alt: #241f18;
+        --ink: #f3ede0;
+        --ink-2: #cfc6b4;
+        --muted: #8d8270;
+        --muted-2: #6a6152;
+        --rule: #2a2419;
+        --rule-strong: #3d3425;
+        --burgundy: #d9674a;
+        --burgundy-2: #e78567;
+        --forest: #7fb390;
+        --forest-2: #9dcfae;
+        --mustard: #e5b34b;
+        --oxblood: #d9684b;
+        --gold: #e5c275;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: var(--font-body);
+        font-size: 14px;
+        line-height: 1.55;
+        color: var(--ink);
+        background: var(--paper);
+        -webkit-font-smoothing: antialiased;
+        font-feature-settings: 'ss01', 'cv11';
+      }
+      .page {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 48px 32px 96px;
+      }
+      /* ── Nav ─────────────────────────────────────────────── */
+      .masthead {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        border-bottom: 1px solid var(--rule-strong);
+        padding-bottom: 16px;
+        margin-bottom: 48px;
+      }
+      .brand {
+        font-family: var(--font-display);
+        font-weight: 500;
+        font-size: 28px;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+      }
+      .brand em {
+        font-style: italic;
+        color: var(--burgundy);
+      }
+      .masthead-meta {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.02em;
+      }
+      .masthead-meta span + span {
+        margin-left: 16px;
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 12px 0 24px;
+        border-bottom: 1px solid var(--rule);
+        margin-bottom: 40px;
+      }
+      .nav a {
+        font-family: var(--font-body);
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--ink-2);
+        text-decoration: none;
+      }
+      .nav a.active {
+        color: var(--burgundy);
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+      .nav-right {
+        margin-left: auto;
+        display: flex;
+        gap: 16px;
+        align-items: center;
+      }
+      .badge-bell {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        padding: 3px 10px;
+        border: 1px solid var(--rule-strong);
+        border-radius: 9999px;
+        color: var(--ink-2);
+        background: var(--surface);
+      }
+      .badge-bell strong {
+        color: var(--burgundy);
+        font-weight: 600;
+      }
+      .mode-toggle {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        padding: 4px 10px;
+        border: 1px solid var(--rule-strong);
+        background: var(--surface);
+        cursor: pointer;
+        color: var(--ink-2);
+        border-radius: 3px;
+      }
+      .mode-toggle:hover {
+        border-color: var(--ink-2);
+      }
+
+      /* ── Section header ─────────────────────────────────── */
+      .section-title {
+        font-family: var(--font-display);
+        font-weight: 500;
+        font-size: 20px;
+        letter-spacing: -0.01em;
+        margin: 48px 0 16px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--rule);
+      }
+      .section-title .kicker {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        display: block;
+        margin-bottom: 4px;
+        font-weight: 500;
+      }
+      .rule {
+        border-top: 1px solid var(--rule);
+        margin: 40px 0;
+      }
+
+      /* ── Typography specimens ──────────────────────────── */
+      .specimen {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        gap: 24px;
+        padding: 16px 0;
+        border-bottom: 1px dashed var(--rule);
+      }
+      .specimen-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .hero-type {
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: 56px;
+        line-height: 1.05;
+        letter-spacing: -0.025em;
+        color: var(--ink);
+      }
+      .hero-type em {
+        font-style: italic;
+        color: var(--burgundy);
+      }
+      .h1-type {
+        font-family: var(--font-display);
+        font-weight: 500;
+        font-size: 32px;
+        letter-spacing: -0.015em;
+      }
+      .h2-type {
+        font-family: var(--font-display);
+        font-weight: 500;
+        font-size: 22px;
+        letter-spacing: -0.01em;
+      }
+      .body-type {
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--ink-2);
+      }
+      .meta-type {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+      }
+      .data-type {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-variant-numeric: tabular-nums;
+        color: var(--ink);
+      }
+      .byline {
+        font-family: var(--font-body);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .byline strong {
+        font-weight: 600;
+        color: var(--ink-2);
+      }
+
+      /* ── Palette swatches ─────────────────────────────── */
+      .palette {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .swatch {
+        padding: 16px 12px;
+        border-radius: 4px;
+        font-family: var(--font-mono);
+        font-size: 10px;
+        line-height: 1.4;
+        border: 1px solid var(--rule);
+        min-height: 96px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+      }
+      .swatch .name {
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        font-size: 9px;
+        margin-bottom: 2px;
+      }
+      .swatch .hex {
+        opacity: 0.8;
+      }
+
+      /* ── Buttons ──────────────────────────────────────── */
+      .btn-row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .btn {
+        font-family: var(--font-body);
+        font-weight: 500;
+        font-size: 13px;
+        padding: 8px 16px;
+        border-radius: 3px;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: background 120ms ease-out, border-color 120ms ease-out;
+      }
+      .btn-primary {
+        background: var(--burgundy);
+        color: #fff1e8;
+      }
+      .btn-primary:hover {
+        background: var(--burgundy-2);
+      }
+      .btn-secondary {
+        background: var(--surface);
+        color: var(--ink);
+        border-color: var(--rule-strong);
+      }
+      .btn-secondary:hover {
+        border-color: var(--ink-2);
+      }
+      .btn-ghost {
+        background: transparent;
+        color: var(--ink-2);
+      }
+      .btn-ghost:hover {
+        background: var(--surface-alt);
+      }
+      .btn-danger {
+        background: transparent;
+        color: var(--oxblood);
+        border-color: var(--oxblood);
+      }
+      .btn-danger:hover {
+        background: var(--oxblood);
+        color: #fff;
+      }
+
+      /* ── Pills / Badges ───────────────────────────────── */
+      .pill {
+        font-family: var(--font-body);
+        font-size: 10px;
+        font-weight: 500;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 3px 10px;
+        border-radius: 9999px;
+        border: 1px solid;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .pill.success {
+        color: var(--forest);
+        border-color: var(--forest);
+        background: color-mix(in oklch, var(--forest) 6%, var(--surface));
+      }
+      .pill.active {
+        color: var(--burgundy);
+        border-color: var(--burgundy);
+        background: color-mix(in oklch, var(--burgundy) 6%, var(--surface));
+      }
+      .pill.warning {
+        color: var(--mustard);
+        border-color: var(--mustard);
+        background: color-mix(in oklch, var(--mustard) 10%, var(--surface));
+      }
+      .pill.danger {
+        color: var(--oxblood);
+        border-color: var(--oxblood);
+        background: color-mix(in oklch, var(--oxblood) 6%, var(--surface));
+      }
+      .pill.muted {
+        color: var(--muted);
+        border-color: var(--rule-strong);
+        background: var(--surface);
+      }
+      .pill.dot::before {
+        content: '';
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .pill.active.dot::before {
+        animation: breathe 2s ease-in-out infinite;
+      }
+      @keyframes breathe {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.35; }
+      }
+
+      /* ── Cards ────────────────────────────────────────── */
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--rule-strong);
+        border-radius: 4px;
+        padding: 20px;
+      }
+      .card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        padding-bottom: 12px;
+        border-bottom: 1px solid var(--rule);
+        margin-bottom: 12px;
+      }
+      .card-title {
+        font-family: var(--font-display);
+        font-weight: 500;
+        font-size: 18px;
+        letter-spacing: -0.01em;
+      }
+      .card-kicker {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+      }
+
+      /* ── Inputs ───────────────────────────────────────── */
+      .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .input-label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+      }
+      .input {
+        font-family: var(--font-body);
+        font-size: 13px;
+        padding: 8px 12px;
+        border: 1px solid var(--rule-strong);
+        border-radius: 3px;
+        background: var(--surface);
+        color: var(--ink);
+        outline: none;
+        transition: border-color 120ms;
+      }
+      .input:focus {
+        border-color: var(--burgundy);
+      }
+
+      /* ── Alert bars ───────────────────────────────────── */
+      .alert {
+        padding: 12px 16px;
+        border-left: 3px solid;
+        background: var(--surface);
+        font-size: 13px;
+        line-height: 1.5;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .alert-kicker {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        font-weight: 600;
+        flex-shrink: 0;
+        padding-top: 2px;
+      }
+      .alert.success {
+        border-color: var(--forest);
+      }
+      .alert.success .alert-kicker {
+        color: var(--forest);
+      }
+      .alert.warning {
+        border-color: var(--mustard);
+      }
+      .alert.warning .alert-kicker {
+        color: var(--mustard);
+      }
+      .alert.danger {
+        border-color: var(--oxblood);
+      }
+      .alert.danger .alert-kicker {
+        color: var(--oxblood);
+      }
+      .alert.info {
+        border-color: var(--burgundy);
+      }
+      .alert.info .alert-kicker {
+        color: var(--burgundy);
+      }
+
+      /* ── Mockup: Home Bento ──────────────────────────── */
+      .mockup-wrap {
+        border: 1px solid var(--rule-strong);
+        border-radius: 6px;
+        padding: 0;
+        margin: 16px 0;
+        overflow: hidden;
+        background: var(--paper);
+      }
+      .mockup-chrome {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 12px;
+        background: var(--surface-alt);
+        border-bottom: 1px solid var(--rule);
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+      }
+      .mockup-chrome .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--rule-strong);
+      }
+      .mockup-body {
+        padding: 24px;
+      }
+      .cover-hero {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 32px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid var(--rule);
+        margin-bottom: 24px;
+      }
+      .cover-lede {
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: 40px;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+      }
+      .cover-lede em {
+        font-style: italic;
+        color: var(--burgundy);
+      }
+      .cover-dek {
+        margin-top: 12px;
+        font-size: 14px;
+        color: var(--ink-2);
+        line-height: 1.5;
+        max-width: 50ch;
+      }
+      .cover-meta {
+        margin-top: 16px;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .cover-stat {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--muted);
+        letter-spacing: 0.02em;
+      }
+      .cover-stat strong {
+        font-family: var(--font-display);
+        font-weight: 500;
+        font-size: 22px;
+        color: var(--ink);
+        display: block;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+      }
+      .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        grid-auto-rows: 110px;
+        gap: 12px;
+      }
+      .tile {
+        background: var(--surface);
+        border: 1px solid var(--rule);
+        border-radius: 4px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+      .tile-kicker {
+        font-family: var(--font-mono);
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        padding-bottom: 6px;
+        border-bottom: 1px solid var(--rule);
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .tile-body {
+        flex: 1;
+        overflow: hidden;
+      }
+      .span-6 { grid-column: span 6; }
+      .span-4 { grid-column: span 4; }
+      .span-3 { grid-column: span 3; }
+      .span-12 { grid-column: span 12; }
+      .row-2 { grid-row: span 2; }
+
+      /* Active cycle pipeline (hero tile) */
+      .pipeline {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .agent-card {
+        flex: 1;
+        min-width: 84px;
+        border: 1px solid var(--rule-strong);
+        border-radius: 4px;
+        padding: 8px 10px;
+        background: var(--paper);
+      }
+      .agent-card.running {
+        border-color: var(--burgundy);
+        background: color-mix(in oklch, var(--burgundy) 4%, var(--surface));
+      }
+      .agent-card.done {
+        border-color: var(--forest);
+      }
+      .agent-card.idle {
+        opacity: 0.55;
+      }
+      .agent-role {
+        font-family: var(--font-body);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .agent-meta {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      .agent-status {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        margin-top: 2px;
+      }
+      .agent-status.running { color: var(--burgundy); }
+      .agent-status.done { color: var(--forest); }
+      .arrow {
+        font-family: var(--font-mono);
+        color: var(--muted-2);
+        font-size: 11px;
+      }
+      .arrow.active { color: var(--burgundy); }
+
+      /* Inbox tile */
+      .inbox-item {
+        display: flex;
+        gap: 6px;
+        align-items: flex-start;
+        padding: 4px 0;
+        border-bottom: 1px dotted var(--rule);
+        font-size: 12px;
+      }
+      .inbox-item:last-child { border-bottom: 0; }
+      .inbox-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--burgundy);
+        margin-top: 7px;
+        flex-shrink: 0;
+      }
+
+      /* Spending */
+      .stat-big {
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: 32px;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+        font-variant-numeric: tabular-nums;
+      }
+      .stat-sub {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .bar {
+        height: 4px;
+        background: var(--surface-alt);
+        border-radius: 2px;
+        margin-top: 8px;
+        overflow: hidden;
+      }
+      .bar-fill {
+        height: 100%;
+        background: var(--burgundy);
+      }
+
+      /* Recent cycles */
+      .entry {
+        display: grid;
+        grid-template-columns: 40px 1fr auto;
+        gap: 8px;
+        padding: 4px 0;
+        border-bottom: 1px dotted var(--rule);
+        font-size: 12px;
+        align-items: baseline;
+      }
+      .entry-id {
+        font-family: var(--font-mono);
+        color: var(--muted);
+      }
+      .entry-title {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .entry-cost {
+        font-family: var(--font-mono);
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+
+      /* Events stream */
+      .events {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        color: var(--muted);
+        line-height: 1.8;
+        max-height: 100%;
+        overflow: hidden;
+      }
+      .events strong {
+        color: var(--burgundy);
+        font-weight: 500;
+      }
+
+      /* ── Mockup: Cycle detail (editorial) ──────────────── */
+      .article {
+        padding: 16px 32px 32px;
+        max-width: 960px;
+      }
+      .article-kicker {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+        margin-bottom: 4px;
+      }
+      .article-title {
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: 44px;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        color: var(--ink);
+        margin: 4px 0 12px;
+      }
+      .article-title em {
+        font-style: italic;
+        color: var(--burgundy);
+      }
+      .article-dek {
+        font-family: var(--font-display);
+        font-weight: 400;
+        font-size: 18px;
+        font-style: italic;
+        color: var(--ink-2);
+        line-height: 1.5;
+        margin-bottom: 16px;
+        max-width: 60ch;
+      }
+      .article-byline {
+        font-family: var(--font-body);
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        border-top: 1px solid var(--rule);
+        border-bottom: 1px solid var(--rule);
+        padding: 8px 0;
+      }
+      .pullquote {
+        border-left: 3px solid var(--burgundy);
+        padding: 8px 16px;
+        margin: 16px 0;
+        font-family: var(--font-display);
+        font-style: italic;
+        font-size: 16px;
+        color: var(--ink-2);
+        line-height: 1.5;
+      }
+      .dropcap::first-letter {
+        font-family: var(--font-display);
+        font-weight: 500;
+        font-size: 52px;
+        float: left;
+        line-height: 0.9;
+        padding: 4px 8px 0 0;
+        color: var(--burgundy);
+      }
+
+      /* Data table */
+      table.editorial {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        margin-top: 16px;
+      }
+      table.editorial th {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        text-align: left;
+        padding: 8px 12px 8px 0;
+        border-bottom: 1px solid var(--rule-strong);
+      }
+      table.editorial td {
+        padding: 8px 12px 8px 0;
+        border-bottom: 1px solid var(--rule);
+        font-variant-numeric: tabular-nums;
+      }
+      table.editorial td.num,
+      table.editorial td.mono {
+        font-family: var(--font-mono);
+        color: var(--muted);
+      }
+      table.editorial tr:hover td {
+        background: var(--surface-alt);
+      }
+
+      /* ── Mockup: Setup onboarding ─────────────────────── */
+      .setup-card {
+        max-width: 680px;
+        margin: 24px auto;
+      }
+      .tab-row {
+        display: flex;
+        gap: 24px;
+        border-bottom: 1px solid var(--rule-strong);
+        margin-bottom: 24px;
+      }
+      .tab {
+        padding: 12px 0;
+        font-family: var(--font-body);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--muted);
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+      }
+      .tab.active {
+        color: var(--burgundy);
+        border-bottom-color: var(--burgundy);
+      }
+
+      .detection-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-top: 16px;
+        padding: 16px;
+        background: color-mix(in oklch, var(--forest) 4%, var(--surface));
+        border-radius: 4px;
+        border: 1px solid color-mix(in oklch, var(--forest) 20%, var(--rule));
+      }
+      .detection-item {
+        font-size: 12px;
+      }
+      .detection-item .label {
+        font-family: var(--font-mono);
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        display: block;
+      }
+      .detection-item .value {
+        font-family: var(--font-display);
+        font-weight: 500;
+        font-size: 16px;
+        color: var(--ink);
+      }
+
+      /* ── Helpers ──────────────────────────────────────── */
+      .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+      .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      .gap-8 { display: flex; flex-direction: column; gap: 8px; }
+      .gap-12 { display: flex; flex-direction: column; gap: 12px; }
+      .gap-16 { display: flex; flex-direction: column; gap: 16px; }
+      .text-muted { color: var(--muted); }
+      .text-accent { color: var(--burgundy); }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <!-- MASTHEAD -->
+      <header class="masthead">
+        <div>
+          <div class="brand">Harness<em>.</em></div>
+          <div class="masthead-meta">
+            <span>VOL. I · ISSUE 42</span>
+            <span>PROJECT: ZOMBIE FARM</span>
+            <span>2026·04·21</span>
+          </div>
+        </div>
+        <button class="mode-toggle" onclick="document.documentElement.classList.toggle('dark')">Toggle theme</button>
+      </header>
+
+      <!-- NAV -->
+      <nav class="nav">
+        <a href="#" class="active">Home</a>
+        <a href="#">Cycles</a>
+        <a href="#">Milestones</a>
+        <a href="#">Rooms</a>
+        <a href="#">Assets</a>
+        <div class="nav-right">
+          <span class="badge-bell">Inbox <strong>3</strong></span>
+          <span class="meta-type">⌘,</span>
+        </div>
+      </nav>
+
+      <!-- ── TYPOGRAPHY SPECIMEN ───────────────────────────── -->
+      <h2 class="section-title"><span class="kicker">§1</span>Typography</h2>
+
+      <div class="specimen">
+        <div class="specimen-label">Display · Fraunces</div>
+        <div class="hero-type">An <em>implementation</em> team, six agents deep.</div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-label">H1 · Fraunces 500</div>
+        <div class="h1-type">Cycle M8-C1 · Mutations & Evolution</div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-label">H2 · Fraunces 500</div>
+        <div class="h2-type">Active pipeline, three coders in flight</div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-label">Body · Instrument Sans</div>
+        <div class="body-type">
+          The Orchestrator has proposed five tasks for this cycle; two have been
+          handed to Coder agents who are currently working in isolated containers.
+          A third is pending review. The Integrator will merge in dependency order
+          once the reviewers are satisfied.
+        </div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-label">Data · JetBrains Mono</div>
+        <div class="data-type">TASK-00042 · agent-run-a3b2f1 · $0.74 · 3m 04s</div>
+      </div>
+      <div class="specimen">
+        <div class="specimen-label">Byline / Meta</div>
+        <div class="byline">BY <strong>CODER AGENT</strong> · 2 MIN AGO · CYCLE M8-C1</div>
+      </div>
+
+      <!-- ── PALETTE ──────────────────────────────────────── -->
+      <h2 class="section-title"><span class="kicker">§2</span>Palette</h2>
+
+      <div class="palette">
+        <div class="swatch" style="background: var(--paper); color: var(--ink);">
+          <div class="name">Paper</div><div class="hex">oklch 0.97 0.01 80</div>
+        </div>
+        <div class="swatch" style="background: var(--surface); color: var(--ink);">
+          <div class="name">Surface</div><div class="hex">oklch 0.99 0.005 80</div>
+        </div>
+        <div class="swatch" style="background: var(--ink); color: var(--paper);">
+          <div class="name">Ink</div><div class="hex">oklch 0.18 0.02 50</div>
+        </div>
+        <div class="swatch" style="background: var(--burgundy); color: #fff1e8;">
+          <div class="name">Burgundy</div><div class="hex">oklch 0.40 0.15 20</div>
+        </div>
+        <div class="swatch" style="background: var(--forest); color: #f0f8f2;">
+          <div class="name">Forest</div><div class="hex">oklch 0.40 0.08 150</div>
+        </div>
+        <div class="swatch" style="background: var(--oxblood); color: #fff;">
+          <div class="name">Oxblood</div><div class="hex">oklch 0.50 0.15 30</div>
+        </div>
+      </div>
+      <div class="palette" style="margin-top: 8px; grid-template-columns: repeat(6, 1fr);">
+        <div class="swatch" style="background: var(--muted); color: #fff;">
+          <div class="name">Muted</div><div class="hex">oklch 0.45 0.015 60</div>
+        </div>
+        <div class="swatch" style="background: var(--rule-strong); color: var(--ink);">
+          <div class="name">Rule</div><div class="hex">oklch 0.82 0.01 80</div>
+        </div>
+        <div class="swatch" style="background: var(--mustard); color: var(--ink);">
+          <div class="name">Mustard</div><div class="hex">oklch 0.70 0.15 75</div>
+        </div>
+        <div class="swatch" style="background: var(--gold); color: var(--ink);">
+          <div class="name">Gold</div><div class="hex">oklch 0.72 0.11 85</div>
+        </div>
+        <div class="swatch" style="background: var(--surface-alt); color: var(--ink);">
+          <div class="name">Surface·2</div><div class="hex">oklch 0.93 0.01 80</div>
+        </div>
+        <div class="swatch" style="background: var(--ink-2); color: var(--paper);">
+          <div class="name">Ink·2</div><div class="hex">oklch 0.28 0.02 50</div>
+        </div>
+      </div>
+
+      <!-- ── COMPONENTS ──────────────────────────────────── -->
+      <h2 class="section-title"><span class="kicker">§3</span>Components</h2>
+
+      <div class="grid-2">
+        <div class="gap-16">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-kicker">Buttons</div>
+                <div class="card-title">Primary · secondary · ghost · danger</div>
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="btn btn-primary">Approve</button>
+              <button class="btn btn-secondary">Request changes</button>
+              <button class="btn btn-ghost">Defer</button>
+              <button class="btn btn-danger">Reject</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-kicker">Pills · Status</div>
+                <div class="card-title">Live states</div>
+              </div>
+            </div>
+            <div class="btn-row">
+              <span class="pill active dot">Active</span>
+              <span class="pill success dot">Completed</span>
+              <span class="pill warning dot">Proposed</span>
+              <span class="pill danger dot">Blocked</span>
+              <span class="pill muted">Planned</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <div class="card-kicker">Form</div>
+                <div class="card-title">Inputs</div>
+              </div>
+            </div>
+            <div class="gap-12">
+              <div class="input-group">
+                <label class="input-label">Cycle goal</label>
+                <input class="input" placeholder="What should the team do this cycle?" value="Propose milestones from PRD" />
+              </div>
+              <div class="input-group">
+                <label class="input-label">Project path</label>
+                <input class="input" style="font-family: var(--font-mono); font-size: 12px;" value="/Users/victor/work/zombie-farm-godot" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gap-16">
+          <div class="alert success">
+            <span class="alert-kicker">Merged</span>
+            <div>
+              <strong>M8-C0 integrated cleanly.</strong> Four tasks merged to main in
+              dependency order. Regression test suite passed on first run.
+            </div>
+          </div>
+          <div class="alert info">
+            <span class="alert-kicker">Proposed</span>
+            <div>
+              Orchestrator has proposed <em>seven milestones</em> from the PRD. Review
+              in your Inbox to confirm the roadmap.
+            </div>
+          </div>
+          <div class="alert warning">
+            <span class="alert-kicker">Pending</span>
+            <div>
+              PR <span class="data-type">#1242</span> touches protected paths and needs human review before merge.
+            </div>
+          </div>
+          <div class="alert danger">
+            <span class="alert-kicker">Blocked</span>
+            <div>
+              Tester exhausted retries on <span class="data-type">TASK-00041</span> —
+              integration test continues to fail at
+              <span class="data-type">tests/combat.test.ts:42</span>.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MOCKUP: HOME ─────────────────────────────────── -->
+      <h2 class="section-title"><span class="kicker">§4 · MOCKUP</span>Home — front page</h2>
+
+      <div class="mockup-wrap">
+        <div class="mockup-chrome">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span style="margin-left: 8px;">harness — home</span>
+        </div>
+        <div class="mockup-body">
+          <div class="cover-hero">
+            <div>
+              <div class="article-kicker">The Lead · M8-C1</div>
+              <div class="cover-lede">Mutations &amp; <em>Evolution</em>, in flight.</div>
+              <div class="cover-dek">
+                The team is seventy percent through the mutation milestone, with
+                three coders in containers and a tester standing by. Budget is
+                comfortable; one proposed milestone awaits confirmation.
+              </div>
+              <div class="cover-meta">
+                <div class="cover-stat"><strong>3/5</strong>tasks done</div>
+                <div class="cover-stat"><strong>$2.40</strong>of $5.00</div>
+                <div class="cover-stat"><strong>42m</strong>elapsed</div>
+                <div class="cover-stat"><strong>M8</strong>current milestone</div>
+              </div>
+            </div>
+            <div>
+              <div class="byline" style="margin-bottom: 8px;">Today's pipeline</div>
+              <div class="pipeline">
+                <div class="agent-card done">
+                  <div class="agent-role">Orch.</div>
+                  <div class="agent-status done">✔ done</div>
+                  <div class="agent-meta">2m 18s</div>
+                </div>
+                <span class="arrow active">→</span>
+                <div class="agent-card running">
+                  <div class="agent-role">Coder ×3</div>
+                  <div class="agent-status running">● running</div>
+                  <div class="agent-meta">$1.86</div>
+                </div>
+                <span class="arrow active">→</span>
+                <div class="agent-card running">
+                  <div class="agent-role">Tester</div>
+                  <div class="agent-status running">● running</div>
+                  <div class="agent-meta">3m 04s</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="bento-grid">
+            <div class="tile span-4 row-2">
+              <div class="tile-kicker">Inbox <span>3 unread</span></div>
+              <div class="tile-body gap-8">
+                <div class="inbox-item">
+                  <span class="inbox-dot"></span>
+                  <div>
+                    <strong>Plan Q&amp;A</strong> — Orchestrator has 2 questions about mutation scope.
+                    <div class="meta-type" style="margin-top: 2px;">3 MIN AGO</div>
+                  </div>
+                </div>
+                <div class="inbox-item">
+                  <span class="inbox-dot"></span>
+                  <div>
+                    <strong>PR gate</strong> — <span class="data-type">#1242</span> touches protected paths.
+                    <div class="meta-type" style="margin-top: 2px;">17 MIN AGO</div>
+                  </div>
+                </div>
+                <div class="inbox-item">
+                  <span class="inbox-dot"></span>
+                  <div>
+                    <strong>Milestone proposal</strong> — M9 draft from Orchestrator awaiting confirmation.
+                    <div class="meta-type" style="margin-top: 2px;">52 MIN AGO</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="tile span-4 row-2">
+              <div class="tile-kicker">Spending <span>last 7d</span></div>
+              <div class="tile-body">
+                <div class="stat-big">$142.50</div>
+                <div class="stat-sub">of $500.00 cap · 28.5% used</div>
+                <div class="bar"><div class="bar-fill" style="width: 28.5%;"></div></div>
+                <div class="events" style="margin-top: 12px; font-size: 9px;">
+                  M·T·W·T·F·S·S &nbsp; ▇&nbsp;▅&nbsp;▇&nbsp;▆&nbsp;▇&nbsp;▇&nbsp;▆
+                </div>
+              </div>
+            </div>
+            <div class="tile span-4 row-2">
+              <div class="tile-kicker">Tests <span>active cycle</span></div>
+              <div class="tile-body gap-8">
+                <div class="data-type" style="font-size: 18px;">96%<span style="color: var(--muted); font-size: 10px; margin-left: 6px;">pass rate</span></div>
+                <div style="font-size: 11px; color: var(--muted); font-family: var(--font-mono);">
+                  unit &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;18/18 ████████<br />
+                  integration &nbsp; 5/6 &nbsp;██████░<br />
+                  scene &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1/1 &nbsp;█
+                </div>
+              </div>
+            </div>
+            <div class="tile span-6">
+              <div class="tile-kicker">Recent cycles</div>
+              <div class="tile-body">
+                <div class="entry">
+                  <span class="entry-id">M8-C1</span>
+                  <span class="entry-title">Mutations & evolution · implement phase</span>
+                  <span class="entry-cost">$2.40</span>
+                </div>
+                <div class="entry">
+                  <span class="entry-id">M8-C0</span>
+                  <span class="entry-title">Mutation data model · merged</span>
+                  <span class="entry-cost">$4.10</span>
+                </div>
+                <div class="entry">
+                  <span class="entry-id">M7-C5</span>
+                  <span class="entry-title">Skill tree finalization · merged</span>
+                  <span class="entry-cost">$3.20</span>
+                </div>
+              </div>
+            </div>
+            <div class="tile span-3">
+              <div class="tile-kicker">Milestones</div>
+              <div class="tile-body">
+                <div class="data-type" style="font-size: 14px;">8<span class="text-muted" style="font-size: 10px;">/16</span></div>
+                <div class="meta-type" style="margin-top: 2px;">COMPLETED</div>
+                <div class="byline" style="margin-top: 8px;">● M8 <span class="text-muted">active</span></div>
+                <div class="byline text-muted" style="margin-top: 2px;">○ M9 next</div>
+              </div>
+            </div>
+            <div class="tile span-3">
+              <div class="tile-kicker">Rooms</div>
+              <div class="tile-body">
+                <div class="data-type" style="font-size: 14px;">42 <span class="text-muted" style="font-size: 10px;">active</span></div>
+                <div class="byline" style="color: var(--mustard); margin-top: 8px;">● 3 draft specs</div>
+                <div class="byline text-muted" style="margin-top: 2px;">12 stale flagged</div>
+              </div>
+            </div>
+            <div class="tile span-12">
+              <div class="tile-kicker">Live events <span>streaming</span></div>
+              <div class="tile-body">
+                <div class="events">
+                  <strong>14:42</strong>&nbsp; agent:started &nbsp; coder &nbsp; TASK-00043<br />
+                  <strong>14:42</strong>&nbsp; job:requires_approval &nbsp; next-cycle &nbsp; M8-C1<br />
+                  <strong>14:40</strong>&nbsp; agent:completed &nbsp; coder &nbsp; TASK-00041 &nbsp; $0.42<br />
+                  <strong>14:39</strong>&nbsp; cycle:progress &nbsp; M8-C1 &nbsp; 3/5<br />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MOCKUP: CYCLE ARTICLE ────────────────────────── -->
+      <h2 class="section-title"><span class="kicker">§5 · MOCKUP</span>Cycle detail — the feature article</h2>
+
+      <div class="mockup-wrap">
+        <div class="mockup-chrome">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span style="margin-left: 8px;">harness — /cycles/M8-C1</span>
+        </div>
+        <div class="article">
+          <div class="article-kicker">The Feature · M8-C1 · IMPLEMENT PHASE</div>
+          <h1 class="article-title">Mutations &amp; <em>Evolution</em>, In Flight</h1>
+          <p class="article-dek">
+            Three coders in containers, one tester standing by, and a proposed
+            roadmap waiting in the Inbox. Here is where the team stands at 14:42.
+          </p>
+          <div class="article-byline">
+            BY <strong>ORCHESTRATOR, CODER ×3, TESTER</strong> &nbsp;·&nbsp; STARTED 42 MIN AGO &nbsp;·&nbsp; $2.40 / $5.00 BUDGET
+          </div>
+
+          <p class="dropcap body-type" style="margin-top: 24px;">
+            The current cycle targets milestone <strong>M8 — Mutations &amp; Evolution</strong>,
+            derived from chapter 03b of the product requirements document.
+            Orchestrator produced a five-task plan after brief negotiation with the
+            operator over the scope of the mutation lab; three of those tasks are
+            now with Coder agents, one is pending review, and one remains in the
+            backlog. Below, a snapshot of the team at work.
+          </p>
+
+          <div class="pullquote">
+            "The mutation table should be normalized against the cultivation tier,
+            not against raw fertilizer count." &nbsp;— <em>decision, from M8-C0 retrospect</em>
+          </div>
+
+          <table class="editorial">
+            <thead>
+              <tr>
+                <th style="width: 100px;">Task</th>
+                <th>Title</th>
+                <th style="width: 100px;">Agent</th>
+                <th style="width: 80px;">State</th>
+                <th style="width: 70px; text-align: right;">Cost</th>
+                <th style="width: 60px; text-align: right;">Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono">TASK-00041</td>
+                <td>Define mutation trait table</td>
+                <td class="mono">coder</td>
+                <td><span class="pill success dot">merged</span></td>
+                <td class="num" style="text-align: right;">$0.92</td>
+                <td class="num" style="text-align: right;">14m</td>
+              </tr>
+              <tr>
+                <td class="mono">TASK-00042</td>
+                <td>Implement mutation rolling logic</td>
+                <td class="mono">coder</td>
+                <td><span class="pill active dot">running</span></td>
+                <td class="num" style="text-align: right;">$0.74</td>
+                <td class="num" style="text-align: right;">3m</td>
+              </tr>
+              <tr>
+                <td class="mono">TASK-00043</td>
+                <td>Write GUT tests for mutation table</td>
+                <td class="mono">coder</td>
+                <td><span class="pill active dot">running</span></td>
+                <td class="num" style="text-align: right;">$0.70</td>
+                <td class="num" style="text-align: right;">2m</td>
+              </tr>
+              <tr>
+                <td class="mono">TASK-00044</td>
+                <td>Catalyst resource model</td>
+                <td class="mono">—</td>
+                <td><span class="pill muted">pending</span></td>
+                <td class="num" style="text-align: right;">—</td>
+                <td class="num" style="text-align: right;">—</td>
+              </tr>
+              <tr>
+                <td class="mono">TASK-00045</td>
+                <td>Mutation lab building scene</td>
+                <td class="mono">—</td>
+                <td><span class="pill muted">pending</span></td>
+                <td class="num" style="text-align: right;">—</td>
+                <td class="num" style="text-align: right;">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── MOCKUP: SETUP ────────────────────────────────── -->
+      <h2 class="section-title"><span class="kicker">§6 · MOCKUP</span>Setup — onboarding a new project</h2>
+
+      <div class="mockup-wrap">
+        <div class="mockup-chrome">
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span style="margin-left: 8px;">harness — /setup</span>
+        </div>
+        <div class="mockup-body">
+          <div class="setup-card">
+            <div class="article-kicker">§ GETTING STARTED</div>
+            <h1 class="article-title" style="font-size: 36px;">Welcome to the <em>workshop</em>.</h1>
+            <p class="body-type" style="max-width: 56ch;">
+              Point harness at a project repo. It will detect the stack, scaffold the
+              configuration, and your six agents can go to work.
+            </p>
+
+            <div class="tab-row">
+              <div class="tab active">Create new project</div>
+              <div class="tab">Connect existing repo</div>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label">Project repo path</label>
+              <input class="input" style="font-family: var(--font-mono);" value="/Users/victor/work/my-new-game" />
+            </div>
+            <div style="margin-top: 16px;">
+              <button class="btn btn-primary">Detect &amp; initialize</button>
+            </div>
+
+            <div class="detection-grid">
+              <div class="detection-item">
+                <span class="label">ENGINE DETECTED</span>
+                <div class="value">Godot 4.6.1</div>
+              </div>
+              <div class="detection-item">
+                <span class="label">LANGUAGE</span>
+                <div class="value">GDScript</div>
+              </div>
+              <div class="detection-item">
+                <span class="label">TEST RUNNER</span>
+                <div class="value">GUT</div>
+              </div>
+              <div class="detection-item">
+                <span class="label">PRD DOCS</span>
+                <div class="value">3 found in <span class="data-type" style="font-size: 14px;">prd/</span></div>
+              </div>
+            </div>
+
+            <div class="gap-12" style="margin-top: 20px;">
+              <div class="input-group">
+                <label class="input-label">Project name</label>
+                <input class="input" value="Zombie Farm" />
+              </div>
+              <div class="input-group">
+                <label class="input-label">Description (optional)</label>
+                <input class="input" placeholder="Auto-derived from dir name" />
+              </div>
+              <div class="input-group">
+                <label class="input-label">Coding conventions (injected into agent prompts)</label>
+                <textarea class="input" rows="3" style="font-family: var(--font-mono); font-size: 12px;">Use static typing (:=, -> void). snake_case file names. signals use past tense.</textarea>
+              </div>
+            </div>
+
+            <div style="margin-top: 24px; display: flex; justify-content: space-between;">
+              <button class="btn btn-ghost">Cancel</button>
+              <button class="btn btn-primary">Initialize project</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="rule"></div>
+      <p class="meta-type" style="text-align: center;">
+        END OF PREVIEW · HARNESS DESIGN SYSTEM · EDITORIAL WORKBENCH · v1.0
+      </p>
+    </div>
+  </body>
+</html>
