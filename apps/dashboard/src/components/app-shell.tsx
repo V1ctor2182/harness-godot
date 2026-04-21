@@ -10,7 +10,7 @@ export function AppShell({ projectName, children }: { projectName: string; child
   return (
     <PopupProvider>
       <TopNav projectName={projectName} />
-      <main className="max-w-[1400px] mx-auto p-4">{children}</main>
+      <main className="max-w-[1280px] mx-auto px-6 py-8">{children}</main>
       <PopupPreview renderers={popupRenderers} />
     </PopupProvider>
   );

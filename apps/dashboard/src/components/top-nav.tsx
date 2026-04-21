@@ -2,25 +2,35 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useCallback } from 'react';
-import { Bell, Settings, LayoutDashboard, RefreshCw, Milestone, FolderTree, Palette, Package } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Bell, Settings, Package } from 'lucide-react';
 
 import { SettingsDrawer } from '@/components/settings-drawer';
 import { useInboxBadge } from '@/hooks/use-inbox-badge';
 import { useProject } from '@/hooks/use-project';
 
 interface TopNavProps {
-  projectName: string;
+  /** Env fallback. Current masthead reads project.name from useProject(). Kept for compat. */
+  projectName?: string;
 }
 
 const NAV_ITEMS = [
-  { href: '/', label: 'Home', icon: LayoutDashboard },
-  { href: '/cycles', label: 'Cycles', icon: RefreshCw },
-  { href: '/milestones', label: 'Milestones', icon: Milestone },
-  { href: '/rooms', label: 'Rooms', icon: FolderTree },
-  { href: '/assets', label: 'Assets', icon: Palette },
+  { href: '/', label: 'Home' },
+  { href: '/cycles', label: 'Cycles' },
+  { href: '/milestones', label: 'Milestones' },
+  { href: '/rooms', label: 'Rooms' },
+  { href: '/assets', label: 'Assets' },
 ];
 
-export function TopNav({ projectName }: TopNavProps) {
+function formatDate(d: Date): string {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}·${mm}·${dd}`;
+}
+
+export function TopNav(_props: TopNavProps) {
+  const pathname = usePathname();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { count: inboxCount } = useInboxBadge();
   const { state: projectState } = useProject();
@@ -29,7 +39,7 @@ export function TopNav({ projectName }: TopNavProps) {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      // Cmd+, (macOS) / Ctrl+, (others) → toggle settings
+      // ⌘, / Ctrl+, → toggle settings
       if ((e.metaKey || e.ctrlKey) && e.key === ',') {
         e.preventDefault();
         toggleSettings();
@@ -39,70 +49,115 @@ export function TopNav({ projectName }: TopNavProps) {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [toggleSettings]);
 
+  const today = formatDate(new Date());
+  const projectLabel = projectState.loaded
+    ? (projectState.config?.name ?? projectState.config?.id ?? 'project')
+    : 'no project';
+
   return (
     <>
-      <nav className="border-b border-border px-4 py-3 flex items-center gap-6">
-        <span className="text-sm font-bold tracking-tight text-foreground">{projectName}</span>
-
-        {/* Project badge — shows currently loaded project or "no project". */}
-        <button
-          type="button"
-          onClick={toggleSettings}
-          title={
-            projectState.loaded
-              ? `Project: ${projectState.config?.name ?? projectState.config?.id}${projectState.source ? `\n${projectState.source}` : ''}`
-              : projectState.error ?? 'No project loaded — set PROJECT_REPO_LOCAL_PATH'
-          }
-          className={`flex items-center gap-1.5 text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border transition-colors ${
-            projectState.loaded
-              ? 'border-primary/40 text-primary bg-primary/5 hover:bg-primary/10'
-              : 'border-destructive/40 text-destructive bg-destructive/5 hover:bg-destructive/10'
-          }`}
-        >
-          <Package className="size-3" />
-          {projectState.loaded
-            ? (projectState.config?.name ?? projectState.config?.id ?? 'project')
-            : 'no project'}
-        </button>
-
-        <div className="flex items-center gap-5">
-          {NAV_ITEMS.map(({ href, label, icon: Icon }) => (
+      {/* ── Masthead ─────────────────────────────────────────── */}
+      <header className="border-b border-[var(--rule-strong)]">
+        <div className="max-w-[1280px] mx-auto px-6 py-4 flex items-end justify-between gap-6">
+          <div className="flex items-baseline gap-4 min-w-0">
             <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors no-underline"
+              href="/"
+              className="font-display text-[28px] font-medium leading-none text-[var(--ink)] hover:no-underline"
+              style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}
             >
-              <Icon className="size-3.5" />
-              {label}
-            </Link>
-          ))}
-        </div>
-
-        <div className="ml-auto flex items-center gap-3">
-          <Link
-            href="/inbox"
-            className="relative flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors no-underline"
-            aria-label={`Inbox${inboxCount > 0 ? ` (${inboxCount} unread)` : ''}`}
-          >
-            <Bell className="size-4" />
-            {inboxCount > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground flex items-center justify-center leading-none">
-                {inboxCount > 99 ? '99+' : inboxCount}
+              Harness
+              <span
+                className="italic"
+                style={{ fontFamily: 'var(--font-display)', color: 'var(--burgundy)' }}
+              >
+                .
               </span>
-            )}
-          </Link>
+            </Link>
+            <div className="text-kicker hidden sm:flex items-center gap-4 text-[var(--muted-foreground)]">
+              <span>VOL. I</span>
+              <span>·</span>
+              <button
+                type="button"
+                onClick={toggleSettings}
+                title={
+                  projectState.loaded
+                    ? `Project: ${projectLabel}${projectState.source ? `\n${projectState.source}` : ''}`
+                    : (projectState.error ?? 'No project — click to setup')
+                }
+                className={`inline-flex items-center gap-1 hover:text-[var(--ink)] transition-colors ${
+                  projectState.loaded ? 'text-[var(--burgundy)]' : 'text-[var(--oxblood)]'
+                }`}
+              >
+                <Package className="size-3" />
+                <span>PROJECT: {projectLabel.toUpperCase()}</span>
+              </button>
+              <span>·</span>
+              <span>{today}</span>
+            </div>
+          </div>
 
           <button
             type="button"
             onClick={toggleSettings}
-            className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
+            className="text-kicker text-[var(--muted-foreground)] hover:text-[var(--ink)] transition-colors inline-flex items-center gap-1.5"
             aria-label="Open settings"
             title="Settings (⌘,)"
           >
-            <Settings className="size-4" />
+            <Settings className="size-3.5" />
+            <span className="hidden sm:inline">SETTINGS</span>
           </button>
         </div>
-      </nav>
+
+        {/* ── Nav strip ───────────────────────────────────── */}
+        <div className="max-w-[1280px] mx-auto px-6 py-3 border-t border-[var(--rule)] flex items-center gap-6">
+          {NAV_ITEMS.map(({ href, label }) => {
+            const active = href === '/' ? pathname === '/' : pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`text-meta no-underline transition-colors ${
+                  active
+                    ? 'text-[var(--burgundy)]'
+                    : 'text-[var(--ink-2)] hover:text-[var(--ink)]'
+                }`}
+                style={
+                  active
+                    ? { textDecoration: 'underline', textUnderlineOffset: '6px' }
+                    : undefined
+                }
+              >
+                {label}
+              </Link>
+            );
+          })}
+
+          <div className="ml-auto flex items-center gap-3">
+            <Link
+              href="/inbox"
+              className="relative inline-flex items-center gap-1.5 text-meta no-underline text-[var(--ink-2)] hover:text-[var(--ink)] transition-colors"
+              aria-label={`Inbox${inboxCount > 0 ? ` (${inboxCount} unread)` : ''}`}
+            >
+              <Bell className="size-3.5" />
+              <span className="hidden sm:inline">INBOX</span>
+              {inboxCount > 0 && (
+                <span
+                  className="text-mono text-[10px] font-semibold px-2 py-[1px] rounded-full border"
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    color: 'var(--burgundy)',
+                    borderColor: 'var(--burgundy)',
+                    background:
+                      'color-mix(in oklch, var(--burgundy) 6%, var(--surface))',
+                  }}
+                >
+                  {inboxCount > 99 ? '99+' : inboxCount}
+                </span>
+              )}
+            </Link>
+          </div>
+        </div>
+      </header>
 
       <SettingsDrawer open={settingsOpen} onOpenChange={setSettingsOpen} />
     </>
