@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { RefreshCw } from 'lucide-react';
 
 import { api, type AssetSpec, type AssetStatus } from '@/lib/api';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
@@ -21,10 +20,10 @@ const CATEGORY_META: Record<string, { label: string; en: string; icon: string }>
 };
 
 const STATUS_COLOR: Record<AssetStatus, string> = {
-  planned: 'text-muted-foreground',
-  placeholder: 'text-yellow-400',
-  replaced: 'text-blue-400',
-  final: 'text-success',
+  planned: 'var(--muted-foreground)',
+  placeholder: 'var(--mustard)',
+  replaced: 'var(--burgundy)',
+  final: 'var(--forest)',
 };
 
 function statusBadge(s: AssetStatus): string {
@@ -80,10 +79,16 @@ function FontPreview({ assetId, sample = 'The quick brown fox 0123456789' }: { a
 
 function PlaceholderTile({ status, spec }: { status: AssetStatus; spec?: string }) {
   return (
-    <div className="flex items-center justify-center h-20 text-[10px] text-muted-foreground border border-dashed border-border rounded">
+    <div
+      className="flex items-center justify-center h-20 text-[10px] border border-dashed rounded-xs"
+      style={{
+        borderColor: 'var(--rule-strong)',
+        color: 'var(--muted-foreground)',
+      }}
+    >
       <div className="text-center px-2">
-        <div className="uppercase">{status}</div>
-        {spec && <div className="truncate max-w-[120px] mt-0.5">{spec}</div>}
+        <div className="uppercase tracking-[0.08em] font-mono">{status}</div>
+        {spec && <div className="truncate max-w-[120px] mt-0.5 italic">{spec}</div>}
       </div>
     </div>
   );
@@ -162,8 +167,8 @@ function AssetDetailModal({
                 <div>{asset.type}</div>
               </div>
               <div>
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground">Status</div>
-                <div className={STATUS_COLOR[asset.status]}>{asset.status}</div>
+                <div className="text-kicker text-[var(--muted-foreground)]">Status</div>
+                <div style={{ color: STATUS_COLOR[asset.status] }}>{asset.status}</div>
               </div>
               {asset.milestone && (
                 <div>
@@ -280,38 +285,56 @@ export default function AssetsPage() {
     return c;
   }, [assets]);
 
+  const filterChipStyle = (active: boolean): React.CSSProperties => ({
+    color: active ? 'var(--burgundy)' : 'var(--muted-foreground)',
+    borderBottom: `2px solid ${active ? 'var(--burgundy)' : 'transparent'}`,
+  });
+
   return (
-    <div className="pt-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-bold">Assets</h1>
-          <p className="text-xs text-muted-foreground">
-            {counts.total} total · {counts.planned} planned · {counts.placeholder} placeholder ·{' '}
-            {counts.replaced} replaced · {counts.final} final
-          </p>
+    <div className="pt-4 space-y-6">
+      {/* Editorial header */}
+      <header className="pb-5 border-b-2 border-[var(--ink)]">
+        <div className="flex items-start justify-between">
+          <div>
+            <div className="text-kicker text-[var(--burgundy)] mb-2">
+              <span>The Gallery</span>
+              <span className="mx-2 text-[var(--rule-strong)]">·</span>
+              <span className="text-[var(--muted-foreground)]">
+                {counts.total} total · {counts.planned} planned · {counts.placeholder} placeholder · {counts.replaced} replaced · {counts.final} final
+              </span>
+            </div>
+            <h1 className="text-display-3 text-[var(--ink)]">
+              Assets
+              <span className="italic text-[var(--burgundy)]">.</span>
+            </h1>
+          </div>
+          <Button size="sm" variant="outline" onClick={handleRescan} disabled={rescanning}>
+            <RefreshCw className={`size-3.5 mr-1.5 ${rescanning ? 'animate-spin' : ''}`} />
+            {rescanning ? 'Scanning…' : 'Rescan'}
+          </Button>
         </div>
-        <Button size="sm" variant="outline" onClick={handleRescan} disabled={rescanning}>
-          <RefreshCw className={`size-3.5 mr-1.5 ${rescanning ? 'animate-spin' : ''}`} />
-          {rescanning ? 'Scanning…' : 'Rescan'}
-        </Button>
-      </div>
+      </header>
 
       {error && (
-        <div className="text-xs border rounded px-3 py-1.5 text-destructive bg-destructive/10">
+        <div
+          className="text-xs rounded-sm px-3 py-1.5"
+          style={{
+            color: 'var(--oxblood)',
+            border: '1px solid color-mix(in oklch, var(--oxblood) 30%, transparent)',
+            background: 'color-mix(in oklch, var(--oxblood) 8%, transparent)',
+          }}
+        >
           {error}
         </div>
       )}
 
-      {/* Category filter */}
-      <div className="flex gap-1.5 flex-wrap">
+      {/* Category filter — editorial tabs */}
+      <div className="flex gap-4 flex-wrap">
         <button
           type="button"
           onClick={() => setSelectedCategory(null)}
-          className={`text-[11px] px-2 py-1 rounded border ${
-            !selectedCategory
-              ? 'bg-primary/10 border-primary/30 text-primary'
-              : 'border-border text-muted-foreground hover:text-foreground'
-          }`}
+          className="text-meta pb-1"
+          style={filterChipStyle(!selectedCategory)}
         >
           All
         </button>
@@ -322,29 +345,29 @@ export default function AssetsPage() {
               key={c}
               type="button"
               onClick={() => setSelectedCategory(selectedCategory === c ? null : c)}
-              className={`text-[11px] px-2 py-1 rounded border ${
-                selectedCategory === c
-                  ? 'bg-primary/10 border-primary/30 text-primary'
-                  : 'border-border text-muted-foreground hover:text-foreground'
-              }`}
+              className="text-meta pb-1"
+              style={filterChipStyle(selectedCategory === c)}
             >
-              {meta?.icon ?? '📦'} {meta?.en ?? c}
+              <span className="mr-1">{meta?.icon ?? '📦'}</span>
+              {meta?.en ?? c}
             </button>
           );
         })}
       </div>
 
       {/* Milestone + Status filters */}
-      <div className="flex gap-1.5 flex-wrap">
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground self-center">
-          Milestone:
-        </span>
+      <div className="flex gap-2 flex-wrap items-center">
+        <span className="text-kicker text-[var(--muted-foreground)]">Milestone</span>
         <button
           type="button"
           onClick={() => setSelectedMilestone(null)}
-          className={`text-[10px] px-1.5 py-0.5 rounded border ${
-            !selectedMilestone ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground'
-          }`}
+          className="text-[10px] px-1.5 py-0.5 rounded-full border font-mono uppercase tracking-[0.08em]"
+          style={{
+            color: !selectedMilestone ? 'var(--burgundy)' : 'var(--muted-foreground)',
+            borderColor: !selectedMilestone
+              ? 'color-mix(in oklch, var(--burgundy) 30%, transparent)'
+              : 'var(--rule-strong)',
+          }}
         >
           All
         </button>
@@ -353,24 +376,32 @@ export default function AssetsPage() {
             key={m}
             type="button"
             onClick={() => setSelectedMilestone(selectedMilestone === m ? null : m)}
-            className={`text-[10px] px-1.5 py-0.5 rounded border ${
-              selectedMilestone === m ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground'
-            }`}
+            className="text-[10px] px-1.5 py-0.5 rounded-full border font-mono uppercase tracking-[0.08em]"
+            style={{
+              color: selectedMilestone === m ? 'var(--burgundy)' : 'var(--muted-foreground)',
+              borderColor:
+                selectedMilestone === m
+                  ? 'color-mix(in oklch, var(--burgundy) 30%, transparent)'
+                  : 'var(--rule-strong)',
+            }}
           >
             {m}
           </button>
         ))}
-        <span className="text-[10px] uppercase tracking-wider text-muted-foreground self-center ml-3">
-          Status:
-        </span>
+        <span className="text-kicker text-[var(--muted-foreground)] ml-3">Status</span>
         {(['planned', 'placeholder', 'replaced', 'final'] as AssetStatus[]).map((s) => (
           <button
             key={s}
             type="button"
             onClick={() => setSelectedStatus(selectedStatus === s ? null : s)}
-            className={`text-[10px] px-1.5 py-0.5 rounded border ${
-              selectedStatus === s ? 'bg-primary/10 border-primary/30 text-primary' : 'border-border text-muted-foreground'
-            }`}
+            className="text-[10px] px-1.5 py-0.5 rounded-full border font-mono uppercase tracking-[0.08em]"
+            style={{
+              color: selectedStatus === s ? STATUS_COLOR[s] : 'var(--muted-foreground)',
+              borderColor:
+                selectedStatus === s
+                  ? `color-mix(in oklch, ${STATUS_COLOR[s]} 40%, transparent)`
+                  : 'var(--rule-strong)',
+            }}
           >
             {s}
           </button>
@@ -378,46 +409,42 @@ export default function AssetsPage() {
       </div>
 
       {/* Asset grid */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm">
-            {filtered.length} asset{filtered.length === 1 ? '' : 's'}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
-            {filtered.map((a) => (
-              <button
-                key={a.assetId}
-                type="button"
-                onClick={() => setSelected(a)}
-                className="text-left border border-border rounded p-2 hover:border-foreground/30 transition-colors"
-              >
-                <div className="h-20 flex items-center justify-center bg-muted/20 rounded mb-1.5 overflow-hidden">
-                  <AssetThumbnail asset={a} />
-                </div>
-                <div className="flex items-center gap-1">
-                  <span className={STATUS_COLOR[a.status]}>{statusBadge(a.status)}</span>
-                  <span className="text-[11px] font-mono truncate">{a.name}</span>
-                </div>
-                <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-                  {a.milestone && <span>{a.milestone}</span>}
-                  {a.file?.width && a.file?.height && (
-                    <span>
-                      {a.file.width}×{a.file.height}
-                    </span>
-                  )}
-                </div>
-              </button>
-            ))}
-            {filtered.length === 0 && (
-              <div className="col-span-full text-center text-sm text-muted-foreground py-8">
-                No assets match filters.
+      <section>
+        <div className="text-kicker text-[var(--muted-foreground)] mb-3">
+          {filtered.length} asset{filtered.length === 1 ? '' : 's'}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+          {filtered.map((a) => (
+            <button
+              key={a.assetId}
+              type="button"
+              onClick={() => setSelected(a)}
+              className="text-left border border-[var(--rule-strong)] rounded-xs p-2 hover:border-[var(--burgundy)] hover:bg-[var(--surface)] transition-colors"
+            >
+              <div className="h-20 flex items-center justify-center bg-[var(--surface)] rounded-xs mb-1.5 overflow-hidden">
+                <AssetThumbnail asset={a} />
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="flex items-center gap-1">
+                <span style={{ color: STATUS_COLOR[a.status] }}>{statusBadge(a.status)}</span>
+                <span className="text-[11px] font-mono truncate text-[var(--ink)]">{a.name}</span>
+              </div>
+              <div className="flex items-center gap-1 text-[9px] text-[var(--muted-foreground)] font-mono text-tabular">
+                {a.milestone && <span>{a.milestone}</span>}
+                {a.file?.width && a.file?.height && (
+                  <span>
+                    {a.file.width}×{a.file.height}
+                  </span>
+                )}
+              </div>
+            </button>
+          ))}
+          {filtered.length === 0 && (
+            <div className="col-span-full text-center text-sm text-[var(--muted-foreground)] py-8 italic">
+              No assets match filters.
+            </div>
+          )}
+        </div>
+      </section>
 
       <AssetDetailModal asset={selected} onClose={() => setSelected(null)} />
     </div>
