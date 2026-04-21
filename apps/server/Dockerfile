@@ -42,9 +42,9 @@ COPY --from=build /app/node_modules/ node_modules/
 COPY --from=build /app/apps/server/package.json apps/server/
 COPY --from=build /app/package.json ./
 
-# Runtime needs agents/ and knowledge/ dirs (context-builder reads them)
+# Runtime needs agents/ (context-builder reads prompts from it).
+# Project knowledge lives in the target repo's .harness/rooms/, not in the image.
 COPY agents/ agents/
-COPY knowledge/ knowledge/
 
 # Create reload trigger mount point
 RUN mkdir -p /reload
