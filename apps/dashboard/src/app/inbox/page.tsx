@@ -5,9 +5,7 @@ import Link from 'next/link';
 import { useGlobalSSE } from '@/hooks/use-sse';
 
 import { api, type InboxItem, type InboxItemType, type InboxResolveBody } from '@/lib/api';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 
 // ─── Type filters ───────────────────────────────────────────────────
 
@@ -25,10 +23,10 @@ function typeLabel(type: InboxItemType): string {
   return TYPE_TABS.find((t) => t.id === type)?.label ?? type;
 }
 
-function urgencyClass(u: string): string {
-  if (u === 'urgent') return 'border-destructive/60 bg-destructive/10';
-  if (u === 'normal') return 'border-warning/40 bg-warning/5';
-  return '';
+function urgencyAccent(u: string): string {
+  if (u === 'urgent') return 'var(--oxblood)';
+  if (u === 'normal') return 'var(--mustard)';
+  return 'transparent';
 }
 
 // ─── Detail form components (per-type) ──────────────────────────────
@@ -218,18 +216,35 @@ function DraftSpecForm({ item, onResolve }: { item: InboxItem; onResolve: (body:
 
 function Metadata({ item }: { item: InboxItem }) {
   return (
-    <div className="pt-3 border-t border-border text-xs text-muted-foreground space-y-1">
-      <div>Created: {new Date(item.createdAt).toLocaleString()}</div>
+    <div className="pt-4 mt-4 border-t border-[var(--rule)] text-xs text-[var(--muted-foreground)] space-y-1 font-mono">
+      <div>
+        <span className="text-kicker mr-2">Created</span>
+        {new Date(item.createdAt).toLocaleString()}
+      </div>
       {item.source.cycleId != null && (
         <div>
-          Cycle:{' '}
-          <Link href={`/cycles/${item.source.cycleId}`} className="text-primary hover:underline">
-            {item.source.cycleId}
+          <span className="text-kicker mr-2">Cycle</span>
+          <Link
+            href={`/cycles/${item.source.cycleId}`}
+            className="hover:underline"
+            style={{ color: 'var(--burgundy)' }}
+          >
+            M{item.source.cycleId}
           </Link>
         </div>
       )}
-      {item.source.taskId && <div>Task: {item.source.taskId}</div>}
-      {item.source.agentRunId && <div>Agent run: {item.source.agentRunId}</div>}
+      {item.source.taskId && (
+        <div>
+          <span className="text-kicker mr-2">Task</span>
+          {item.source.taskId}
+        </div>
+      )}
+      {item.source.agentRunId && (
+        <div>
+          <span className="text-kicker mr-2">Agent Run</span>
+          {item.source.agentRunId}
+        </div>
+      )}
     </div>
   );
 }
@@ -345,105 +360,145 @@ export default function InboxPage() {
   }, [filtered, selected]);
 
   return (
-    <div className="pt-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Inbox</h1>
-        <span className="text-xs text-muted-foreground">
-          {items.length} pending · j/k to navigate
-        </span>
-      </div>
+    <div className="pt-4 space-y-6">
+      {/* Editorial header */}
+      <header className="pb-5 border-b-2 border-[var(--ink)]">
+        <div className="text-kicker text-[var(--burgundy)] mb-2">
+          <span>The Desk</span>
+          <span className="mx-2 text-[var(--rule-strong)]">·</span>
+          <span className="text-[var(--muted-foreground)]">
+            {items.length} pending
+          </span>
+          <span className="mx-2 text-[var(--rule-strong)]">·</span>
+          <span className="text-[var(--muted-foreground)] italic normal-case tracking-normal">
+            press j/k to navigate
+          </span>
+        </div>
+        <h1 className="text-display-3 text-[var(--ink)]">
+          Inbox
+          <span className="italic text-[var(--burgundy)]">.</span>
+        </h1>
+      </header>
 
-      <div className="flex items-center gap-2 flex-wrap">
-        {TYPE_TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setFilter(tab.id)}
-            className={`text-xs px-2.5 py-1 rounded border transition-colors ${
-              filter === tab.id
-                ? 'bg-primary/10 border-primary/30 text-primary'
-                : 'border-border text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            {tab.label} {counts[tab.id] ? `(${counts[tab.id]})` : ''}
-          </button>
-        ))}
+      {/* Filter tabs — editorial chips */}
+      <div className="flex items-center gap-4 flex-wrap">
+        {TYPE_TABS.map((tab) => {
+          const active = filter === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setFilter(tab.id)}
+              className="text-meta pb-1 transition-colors"
+              style={{
+                color: active ? 'var(--burgundy)' : 'var(--muted-foreground)',
+                borderBottom: `2px solid ${active ? 'var(--burgundy)' : 'transparent'}`,
+              }}
+            >
+              {tab.label}
+              {counts[tab.id] ? (
+                <span className="ml-1.5 font-mono text-tabular opacity-70">
+                  {counts[tab.id]}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
 
       {error && (
-        <div className="text-sm border rounded px-3 py-2 text-[var(--error,#f87171)] border-[var(--error,#f87171)]/30 bg-[var(--error,#f87171)]/10">
+        <div
+          className="text-sm rounded-sm px-3 py-2"
+          style={{
+            color: 'var(--oxblood)',
+            border: '1px solid color-mix(in oklch, var(--oxblood) 30%, transparent)',
+            background: 'color-mix(in oklch, var(--oxblood) 8%, transparent)',
+          }}
+        >
           {error}
         </div>
       )}
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        {/* List pane */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">{filtered.length} items</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              {filtered.length === 0 ? (
-                <div className="px-4 py-6 text-sm text-muted-foreground text-center">
-                  Inbox zero 🎉
-                </div>
-              ) : (
-                <div className="divide-y divide-border">
-                  {filtered.map((item) => {
-                    const isSelected = (selected?.id ?? null) === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => setSelectedId(item.id)}
-                        className={`w-full text-left px-3 py-2 border-l-2 transition-colors ${
-                          isSelected
-                            ? 'bg-muted border-primary'
-                            : `border-transparent hover:bg-muted/50 ${urgencyClass(item.urgency)}`
-                        }`}
+      <div className="grid gap-8 lg:grid-cols-3">
+        {/* List pane — editorial feed */}
+        <section className="lg:col-span-1">
+          <div className="text-kicker text-[var(--muted-foreground)] mb-3">
+            {filtered.length} {filtered.length === 1 ? 'item' : 'items'}
+          </div>
+          {filtered.length === 0 ? (
+            <div className="py-6 text-sm text-[var(--muted-foreground)] text-center italic">
+              Inbox zero.
+            </div>
+          ) : (
+            <div className="border-t border-[var(--rule)]">
+              {filtered.map((item) => {
+                const isSelected = (selected?.id ?? null) === item.id;
+                const accent = urgencyAccent(item.urgency);
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setSelectedId(item.id)}
+                    className="w-full text-left px-3 py-2.5 border-b border-[var(--rule)] transition-colors"
+                    style={{
+                      borderLeft: `2px solid ${isSelected ? 'var(--burgundy)' : accent}`,
+                      background: isSelected ? 'var(--surface)' : 'transparent',
+                    }}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <span
+                        className="text-kicker"
+                        style={{ color: isSelected ? 'var(--burgundy)' : 'var(--ink-2)' }}
                       >
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <span className="text-primary text-xs">●</span>
-                          <Badge variant="outline" className="text-[9px]">
-                            {typeLabel(item.type)}
-                          </Badge>
-                          <span className="ml-auto text-[10px] text-muted-foreground">
-                            {new Date(item.createdAt).toLocaleTimeString()}
-                          </span>
-                        </div>
-                        <div className="text-sm font-medium truncate">{item.title}</div>
-                        <div className="text-xs text-muted-foreground truncate">{item.preview}</div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                        {typeLabel(item.type)}
+                      </span>
+                      <span className="ml-auto text-[10px] text-[var(--muted-foreground)] font-mono text-tabular">
+                        {new Date(item.createdAt).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <div className="text-sm font-medium truncate text-[var(--ink)]">
+                      {item.title}
+                    </div>
+                    <div className="text-xs text-[var(--muted-foreground)] truncate mt-0.5">
+                      {item.preview}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </section>
 
-        {/* Detail pane */}
-        <div className="lg:col-span-2">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">
-                {selected ? selected.title : 'Select an item'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!selected ? (
-                <div className="text-sm text-muted-foreground">
-                  Pick an item from the list to review.
-                </div>
-              ) : resolving ? (
-                <div className="text-sm text-muted-foreground">Resolving…</div>
-              ) : (
-                <DetailPanel item={selected} onResolve={handleResolve} />
+        {/* Detail pane — article */}
+        <section className="lg:col-span-2 lg:border-l lg:border-[var(--rule)] lg:pl-8">
+          {!selected ? (
+            <div className="text-sm text-[var(--muted-foreground)] italic">
+              Pick an item from the list to review.
+            </div>
+          ) : (
+            <>
+              <div className="text-kicker text-[var(--burgundy)] mb-2">
+                {typeLabel(selected.type)}
+              </div>
+              <h2 className="text-display-3 text-[var(--ink)] mb-4">
+                {selected.title}
+                <span className="italic text-[var(--burgundy)]">.</span>
+              </h2>
+              {selected.preview && (
+                <p className="text-[var(--ink-2)] italic mb-5 leading-relaxed">
+                  {selected.preview}
+                </p>
               )}
-            </CardContent>
-          </Card>
-        </div>
+              <div className="border-t border-[var(--rule)] pt-5">
+                {resolving ? (
+                  <div className="text-sm text-[var(--muted-foreground)] italic">Resolving…</div>
+                ) : (
+                  <DetailPanel item={selected} onResolve={handleResolve} />
+                )}
+              </div>
+            </>
+          )}
+        </section>
       </div>
     </div>
   );
