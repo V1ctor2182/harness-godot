@@ -4,12 +4,16 @@ import { useEffect, useState, useCallback, useMemo, type ReactNode } from 'react
 import { useRouter } from 'next/navigation';
 import { ExternalLink, Maximize2 } from 'lucide-react';
 
-import { api, type InboxItem, type TestResultItem, type MilestoneItem, type AssetSpec } from '@/lib/api';
+import {
+  api,
+  type InboxItem,
+  type TestResultItem,
+  type MilestoneItem,
+  type AssetSpec,
+} from '@/lib/api';
 import { useGlobalSSE } from '@/hooks/use-sse';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { StatusBadge } from '@/components/status-badge';
 import { usePopup } from '@/hooks/use-popup';
+import { StatusBadge } from '@/components/status-badge';
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -60,48 +64,58 @@ function summarize(data: unknown): string {
   return parts.join(' · ');
 }
 
-// ─── BentoTile wrapper ──────────────────────────────────────────────
+// ─── Editorial BentoTile ────────────────────────────────────────────
 
 interface BentoTileProps {
-  title: string;
+  kicker: string;
+  meta?: string;
   spanClass: string;
   onOpen?: () => void;
   onMaximize?: () => void;
   children: ReactNode;
 }
 
-function BentoTile({ title, spanClass, onOpen, onMaximize, children }: BentoTileProps) {
+function BentoTile({ kicker, meta, spanClass, onOpen, onMaximize, children }: BentoTileProps) {
   return (
-    <Card className={`${spanClass} flex flex-col min-h-0`}>
-      <div className="flex items-center justify-between border-b border-border px-3 py-1.5">
-        <div className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
-          {title}
+    <div
+      className={`${spanClass} flex flex-col min-h-0 bg-[var(--surface)] border border-[var(--rule-strong)] rounded-sm`}
+    >
+      <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--rule)]">
+        <div className="text-kicker text-[var(--muted-foreground)] flex items-center gap-2">
+          <span>{kicker}</span>
+          {meta && (
+            <>
+              <span>·</span>
+              <span className="text-[var(--ink-2)]">{meta}</span>
+            </>
+          )}
         </div>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1.5">
           {onOpen && (
             <button
               type="button"
               onClick={onOpen}
-              className="text-[10px] text-muted-foreground hover:text-foreground flex items-center gap-0.5"
-              title="Open preview"
+              className="text-kicker text-[var(--muted-foreground)] hover:text-[var(--burgundy)] inline-flex items-center gap-1"
+              title="Preview"
             >
-              <ExternalLink className="size-3" /> Open
+              <ExternalLink className="size-3" />
+              <span>OPEN</span>
             </button>
           )}
           {onMaximize && (
             <button
               type="button"
               onClick={onMaximize}
-              className="text-muted-foreground hover:text-foreground ml-1"
-              title="Maximize to full page"
+              className="text-[var(--muted-foreground)] hover:text-[var(--burgundy)]"
+              title="Maximize"
             >
               <Maximize2 className="size-3" />
             </button>
           )}
         </div>
       </div>
-      <CardContent className="p-3 flex-1 min-h-0 overflow-auto">{children}</CardContent>
-    </Card>
+      <div className="p-3 flex-1 min-h-0 overflow-auto">{children}</div>
+    </div>
   );
 }
 
@@ -139,7 +153,7 @@ export default function HomePage() {
       setMilestones(milestonesData);
       setAssets(assetsData);
     } catch {
-      // ignore — individual widgets handle their own empty state
+      /* empty states handled per-tile */
     }
   }, []);
 
@@ -148,7 +162,8 @@ export default function HomePage() {
   }, [refreshAll]);
 
   const activeCycle = useMemo(
-    () => cycles.find((c) => c.status === 'active' || c.status === 'running') ?? cycles[0] ?? null,
+    () =>
+      cycles.find((c) => c.status === 'active' || c.status === 'running') ?? cycles[0] ?? null,
     [cycles]
   );
 
@@ -222,7 +237,9 @@ export default function HomePage() {
     const roles = ['orchestrator', 'coder', 'tester', 'reviewer', 'integrator', 'curator'];
     return roles.map((role) => {
       const runs = agentRuns.filter((r) => r.role === role);
-      const running = runs.filter((r) => r.status === 'running' || r.status === 'active').length;
+      const running = runs.filter(
+        (r) => r.status === 'running' || r.status === 'active'
+      ).length;
       const done = runs.filter((r) => r.status === 'completed').length;
       return { role, count: runs.length, running, done };
     });
@@ -245,325 +262,438 @@ export default function HomePage() {
     : 0;
 
   const recent = cycles.slice(0, 4);
+  const milestoneDone = milestones.filter((m) => m.status === 'completed').length;
+  const milestoneActive = milestones.filter((m) => m.status === 'active');
+  const milestoneNext = milestones.find((m) => m.status === 'planned');
 
   return (
-    <div className="pt-4 space-y-3">
-      {/* Meta line */}
-      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-        {control && (
-          <>
-            <span>
-              Mode: <span className="text-foreground font-medium">{control.mode}</span>
-            </span>
-            <span>
-              Spend:{' '}
-              <span className="text-foreground font-mono">
-                ${control.spentUsd.toFixed(2)}
-                {control.spendingCapUsd ? ` / $${control.spendingCapUsd.toFixed(2)}` : ''}
-              </span>
-            </span>
-          </>
-        )}
-        <span className="ml-auto">Inbox: {inbox.length}</span>
-      </div>
-
-      {/* Bento grid */}
-      <div className="grid grid-cols-12 gap-3 auto-rows-[120px]">
-        {/* Active Cycle — 6×2 */}
-        <BentoTile
-          title="Active Cycle"
-          spanClass="col-span-12 md:col-span-6 row-span-2"
-          onOpen={activeCycle ? () => openPopup('cycle', { id: activeCycle._id }) : undefined}
-          onMaximize={activeCycle ? () => router.push(`/cycles/${activeCycle._id}`) : undefined}
-        >
-          {!activeCycle ? (
-            <div className="text-sm text-muted-foreground">No active cycle</div>
-          ) : (
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-lg font-bold">M{activeCycle._id}</span>
-                <StatusBadge status={activeCycle.phase} />
-                <StatusBadge status={activeCycle.status} />
-                <span className="ml-auto font-mono text-xs text-muted-foreground">
-                  ${activeCycle.metrics?.totalCostUsd?.toFixed(2) ?? '0.00'}
-                </span>
+    <div className="space-y-8">
+      {/* ── Cover hero: lead story ────────────────────────────────── */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-6 border-b border-[var(--rule)]">
+        <div className="lg:col-span-2">
+          <div className="text-kicker mb-2">
+            The Lead {activeCycle ? ` · M${activeCycle._id}` : ''}
+          </div>
+          {activeCycle ? (
+            <>
+              <h1 className="text-display-1 text-[var(--ink)]">
+                {activeCycle.goal}
+                <span className="italic text-[var(--burgundy)]">.</span>
+              </h1>
+              <p className="mt-3 text-[var(--ink-2)] max-w-[60ch]">
+                The team is working through{' '}
+                <span className="italic text-[var(--ink)]">
+                  {activeCycle.phase.toLowerCase()}
+                </span>{' '}
+                phase. {activeCycle.metrics?.tasksCompleted ?? 0} of{' '}
+                {activeCycle.tasks.length} tasks are done; the current budget has{' '}
+                {control?.spendingCapUsd
+                  ? `${spendPct}% consumed.`
+                  : 'no cap set.'}
+              </p>
+              <div className="mt-4 flex gap-6 flex-wrap">
+                <div>
+                  <div className="text-kicker">Tasks</div>
+                  <div className="font-display text-[22px] leading-none text-tabular">
+                    {activeCycle.metrics?.tasksCompleted ?? 0}/{activeCycle.tasks.length}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-kicker">Cost</div>
+                  <div className="font-display text-[22px] leading-none text-tabular">
+                    ${activeCycle.metrics?.totalCostUsd?.toFixed(2) ?? '0.00'}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-kicker">Phase</div>
+                  <div className="font-display text-[22px] leading-none">
+                    {activeCycle.phase}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-kicker">Failed</div>
+                  <div className="font-display text-[22px] leading-none text-tabular">
+                    {activeCycle.metrics?.tasksFailed ?? 0}
+                  </div>
+                </div>
               </div>
-              <div className="text-muted-foreground truncate">{activeCycle.goal}</div>
-              <div className="flex items-center gap-1 flex-wrap">
+              <div className="mt-4 flex items-center gap-2 flex-wrap">
+                <span className="text-kicker mr-1">Pipeline:</span>
                 {pipelineRoles.map((r, i) => (
-                  <div key={r.role} className="flex items-center">
-                    <div
-                      className={`px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wide border ${
+                  <span key={r.role} className="flex items-center gap-1">
+                    <span
+                      className={`inline-flex items-baseline gap-1 px-2 py-0.5 rounded-sm text-[10px] uppercase tracking-wider border ${
                         r.running > 0
-                          ? 'border-primary text-primary bg-primary/10 animate-pulse'
+                          ? 'border-[var(--burgundy)] text-[var(--burgundy)] bg-[color-mix(in_oklch,var(--burgundy)_6%,var(--surface))] live-pulse'
                           : r.done > 0
-                            ? 'border-success/50 text-success'
-                            : 'border-border text-muted-foreground'
+                            ? 'border-[var(--forest)] text-[var(--forest)]'
+                            : 'border-[var(--rule-strong)] text-[var(--muted-foreground)]'
                       }`}
                     >
                       {r.role.slice(0, 4)}
-                      {r.count > 1 && <span className="ml-0.5">×{r.count}</span>}
-                    </div>
+                      {r.count > 1 && (
+                        <span className="font-mono text-[9px]">×{r.count}</span>
+                      )}
+                    </span>
                     {i < pipelineRoles.length - 1 && (
-                      <span className="text-[10px] text-muted-foreground mx-0.5">▶</span>
+                      <span className="text-[var(--muted-foreground)] text-[10px]">
+                        →
+                      </span>
                     )}
-                  </div>
+                  </span>
                 ))}
               </div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span>{activeCycle.tasks.length} tasks</span>
-                <span>✔ {activeCycle.metrics?.tasksCompleted ?? 0}</span>
-                <span>✗ {activeCycle.metrics?.tasksFailed ?? 0}</span>
+              <div className="mt-4 flex gap-3">
+                <button
+                  onClick={() => openPopup('cycle', { id: activeCycle._id })}
+                  className="text-meta inline-flex items-center gap-1 text-[var(--burgundy)] hover:underline"
+                >
+                  <ExternalLink className="size-3" />
+                  Preview
+                </button>
+                <button
+                  onClick={() => router.push(`/cycles/${activeCycle._id}`)}
+                  className="text-meta inline-flex items-center gap-1 text-[var(--burgundy)] hover:underline"
+                >
+                  <Maximize2 className="size-3" />
+                  Open cycle
+                </button>
               </div>
-            </div>
-          )}
-        </BentoTile>
-
-        {/* Inbox — 3×2 */}
-        <BentoTile
-          title={`Inbox ${inbox.length > 0 ? `(${inbox.length})` : ''}`}
-          spanClass="col-span-12 md:col-span-3 row-span-2"
-          onOpen={() => openPopup('inbox')}
-          onMaximize={() => router.push('/inbox')}
-        >
-          {inbox.length === 0 ? (
-            <div className="text-sm text-muted-foreground">Inbox zero 🎉</div>
+            </>
           ) : (
-            <div className="space-y-1.5">
-              {inbox.slice(0, 4).map((item) => (
-                <div key={item.id} className="text-xs">
-                  <div className="flex items-center gap-1">
-                    <span className="text-primary">●</span>
-                    <Badge variant="outline" className="text-[9px]">
-                      {item.type.replace('_', ' ')}
-                    </Badge>
-                  </div>
-                  <div className="truncate text-foreground">{item.title}</div>
-                </div>
-              ))}
-            </div>
+            <>
+              <h1 className="text-display-1 text-[var(--ink)]">
+                No cycle in <span className="italic text-[var(--burgundy)]">flight</span>.
+              </h1>
+              <p className="mt-3 text-[var(--ink-2)] max-w-[60ch]">
+                Create a cycle from the Cycles page to get the team started.
+              </p>
+            </>
           )}
-        </BentoTile>
+        </div>
 
-        {/* Spending — 3×2 */}
-        <BentoTile title="Spending" spanClass="col-span-12 md:col-span-3 row-span-2">
-          {control ? (
-            <div className="space-y-2">
-              <div className="text-xl font-bold font-mono">${control.spentUsd.toFixed(2)}</div>
-              {control.spendingCapUsd && (
-                <>
-                  <div className="text-[10px] text-muted-foreground">
-                    of ${control.spendingCapUsd.toFixed(2)} cap
-                  </div>
-                  <div className="h-1.5 rounded bg-muted overflow-hidden">
+        {/* Meta sidebar — editorial-style */}
+        <aside className="lg:col-span-1 flex flex-col gap-5">
+          <div>
+            <div className="text-kicker mb-2">Budget</div>
+            {control ? (
+              <>
+                <div className="font-display text-[40px] leading-none text-tabular text-[var(--ink)]">
+                  ${control.spentUsd.toFixed(2)}
+                </div>
+                <div className="text-kicker mt-1 text-[var(--muted-foreground)]">
+                  of ${control.spendingCapUsd?.toFixed(2) ?? '—'} cap ·{' '}
+                  {spendPct}% used
+                </div>
+                {control.spendingCapUsd && (
+                  <div className="h-[3px] bg-[var(--surface-alt)] mt-3 overflow-hidden">
                     <div
-                      className={`h-full transition-all ${
-                        spendPct >= 80 ? 'bg-destructive' : spendPct >= 50 ? 'bg-warning' : 'bg-primary'
-                      }`}
-                      style={{ width: `${spendPct}%` }}
+                      className="h-full transition-all"
+                      style={{
+                        width: `${spendPct}%`,
+                        background:
+                          spendPct >= 80
+                            ? 'var(--oxblood)'
+                            : spendPct >= 50
+                              ? 'var(--mustard)'
+                              : 'var(--burgundy)',
+                      }}
                     />
                   </div>
-                  <div className="text-[10px] text-muted-foreground">{spendPct}% used</div>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground">—</div>
-          )}
-        </BentoTile>
+                )}
+              </>
+            ) : (
+              <div className="text-[var(--muted-foreground)]">—</div>
+            )}
+          </div>
 
-        {/* Milestones — 3×1 */}
-        <BentoTile
-          title="Milestones"
-          spanClass="col-span-12 md:col-span-3 row-span-1"
-          onMaximize={() => router.push('/milestones')}
-        >
-          {milestones.length === 0 ? (
-            <div className="text-xs text-muted-foreground">No milestones synced yet.</div>
-          ) : (
-            <div className="space-y-1">
-              {(() => {
-                const done = milestones.filter((m) => m.status === 'completed').length;
-                const active = milestones.filter((m) => m.status === 'active');
-                const nextPlanned = milestones.find((m) => m.status === 'planned');
-                return (
-                  <>
-                    <div className="text-xs">
-                      <span className="text-success">✔ {done}</span>
-                      <span className="mx-2 text-muted-foreground">/</span>
-                      <span className="text-muted-foreground">{milestones.length}</span>
+          <div className="border-t border-[var(--rule)] pt-4">
+            <div className="text-kicker mb-2">Inbox · {inbox.length} unread</div>
+            {inbox.length === 0 ? (
+              <div className="text-sm text-[var(--muted-foreground)] italic">
+                Inbox zero.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {inbox.slice(0, 3).map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => router.push('/inbox')}
+                    className="block w-full text-left border-b border-dotted border-[var(--rule)] pb-2 last:border-0 group"
+                  >
+                    <div className="text-meta text-[var(--burgundy)] mb-0.5">
+                      {item.type.replace('_', ' ')}
                     </div>
-                    {active.length > 0 && (
-                      <div className="text-[10px] text-primary truncate">
-                        ● {active[0]._id} {active[0].name}
-                      </div>
-                    )}
-                    {nextPlanned && (
-                      <div className="text-[10px] text-muted-foreground truncate">
-                        next: {nextPlanned._id}
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
-          )}
-        </BentoTile>
-
-        {/* Rooms — 3×1 */}
-        <BentoTile
-          title="Rooms & Specs"
-          spanClass="col-span-12 md:col-span-3 row-span-1"
-          onOpen={() => openPopup('rooms')}
-          onMaximize={() => router.push('/rooms')}
-        >
-          <div className="flex items-center gap-3 text-xs">
-            <div>
-              <div className="text-[10px] text-muted-foreground uppercase">Active</div>
-              <div className="font-semibold">{roomCounts.active}</div>
-            </div>
-            <div>
-              <div className="text-[10px] text-muted-foreground uppercase">Draft</div>
-              <div className="font-semibold text-warning">{roomCounts.draft}</div>
-            </div>
-            <div>
-              <div className="text-[10px] text-muted-foreground uppercase">Total</div>
-              <div className="font-semibold">{roomCounts.total}</div>
-            </div>
+                    <div className="text-sm text-[var(--ink)] group-hover:text-[var(--burgundy)] truncate">
+                      {item.title}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-        </BentoTile>
+        </aside>
+      </section>
 
-        {/* Recent Cycles — 6×1 */}
-        <BentoTile
-          title="Recent Cycles"
-          spanClass="col-span-12 md:col-span-6 row-span-1"
-          onMaximize={() => router.push('/cycles')}
-        >
-          <div className="space-y-1">
-            {recent.map((c) => (
-              <button
-                key={c._id}
-                type="button"
-                onClick={() => openPopup('cycle', { id: c._id })}
-                className="w-full flex items-center gap-2 text-xs hover:bg-muted/30 rounded px-1 py-0.5"
-              >
-                <span className="font-mono w-10 text-muted-foreground">{c._id}</span>
-                <StatusBadge status={c.status} />
-                <span className="flex-1 truncate text-left">{c.goal}</span>
-                <span className="font-mono text-muted-foreground">
-                  ${c.metrics?.totalCostUsd?.toFixed(2) ?? '0.00'}
-                </span>
-              </button>
-            ))}
-          </div>
-        </BentoTile>
+      {/* ── Bento grid ─────────────────────────────────────────────── */}
+      <section>
+        <h2 className="text-kicker mb-3">§ Workbench</h2>
+        <div className="grid grid-cols-12 gap-4 auto-rows-[120px]">
+          {/* Recent cycles */}
+          <BentoTile
+            kicker="Recent cycles"
+            spanClass="col-span-12 md:col-span-8 row-span-2"
+            onMaximize={() => router.push('/cycles')}
+          >
+            {recent.length === 0 ? (
+              <div className="text-sm text-[var(--muted-foreground)] italic">
+                No cycles yet.
+              </div>
+            ) : (
+              <div className="divide-y divide-[var(--rule)]">
+                {recent.map((c) => (
+                  <button
+                    key={c._id}
+                    type="button"
+                    onClick={() => openPopup('cycle', { id: c._id })}
+                    className="w-full flex items-baseline gap-3 py-2 text-left hover:bg-[var(--surface-alt)] px-1 -mx-1 rounded-sm"
+                  >
+                    <span className="font-mono text-xs text-[var(--muted-foreground)] w-12 text-tabular">
+                      M{c._id}
+                    </span>
+                    <StatusBadge status={c.status} />
+                    <span className="flex-1 truncate text-sm">{c.goal}</span>
+                    <span className="font-mono text-xs text-[var(--muted-foreground)] text-tabular">
+                      ${c.metrics?.totalCostUsd?.toFixed(2) ?? '0.00'}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </BentoTile>
 
-        {/* Assets — 4×1 */}
-        <BentoTile
-          title="Assets"
-          spanClass="col-span-12 md:col-span-4 row-span-1"
-          onMaximize={() => router.push('/assets')}
-        >
-          {assets.length === 0 ? (
-            <div className="text-xs text-muted-foreground">No assets loaded.</div>
-          ) : (
-            <div className="space-y-1">
-              {(() => {
+          {/* Milestones */}
+          <BentoTile
+            kicker="Milestones"
+            meta={`${milestoneDone}/${milestones.length}`}
+            spanClass="col-span-12 md:col-span-4 row-span-1"
+            onMaximize={() => router.push('/milestones')}
+          >
+            {milestones.length === 0 ? (
+              <div className="text-xs text-[var(--muted-foreground)] italic">
+                No milestones yet.
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <div className="font-display text-[20px] leading-none text-tabular">
+                  {milestoneDone}
+                  <span className="text-[var(--muted-foreground)] text-xs ml-1">
+                    / {milestones.length}
+                  </span>
+                </div>
+                {milestoneActive[0] && (
+                  <div className="text-xs text-[var(--burgundy)] truncate">
+                    ● {milestoneActive[0]._id} {milestoneActive[0].name}
+                  </div>
+                )}
+                {milestoneNext && (
+                  <div className="text-xs text-[var(--muted-foreground)] truncate italic">
+                    next — {milestoneNext._id}
+                  </div>
+                )}
+              </div>
+            )}
+          </BentoTile>
+
+          {/* Rooms */}
+          <BentoTile
+            kicker="Rooms & specs"
+            spanClass="col-span-12 md:col-span-4 row-span-1"
+            onOpen={() => openPopup('rooms')}
+            onMaximize={() => router.push('/rooms')}
+          >
+            <div className="flex items-baseline gap-4 text-sm">
+              <div>
+                <div className="font-display text-[20px] leading-none text-tabular">
+                  {roomCounts.active}
+                </div>
+                <div className="text-kicker mt-1">Active</div>
+              </div>
+              <div>
+                <div className="font-display text-[20px] leading-none text-tabular text-[var(--mustard)]">
+                  {roomCounts.draft}
+                </div>
+                <div className="text-kicker mt-1">Draft</div>
+              </div>
+              <div>
+                <div className="font-display text-[20px] leading-none text-tabular text-[var(--muted-foreground)]">
+                  {roomCounts.total}
+                </div>
+                <div className="text-kicker mt-1">Total</div>
+              </div>
+            </div>
+          </BentoTile>
+
+          {/* Assets */}
+          <BentoTile
+            kicker="Assets"
+            spanClass="col-span-12 md:col-span-4 row-span-1"
+            onMaximize={() => router.push('/assets')}
+          >
+            {assets.length === 0 ? (
+              <div className="text-xs text-[var(--muted-foreground)] italic">
+                No assets loaded.
+              </div>
+            ) : (
+              (() => {
                 const total = assets.length;
-                const placeholder = assets.filter((a) => a.status === 'placeholder').length;
+                const placeholder = assets.filter(
+                  (a) => a.status === 'placeholder'
+                ).length;
                 const replaced = assets.filter((a) => a.status === 'replaced').length;
                 const final = assets.filter((a) => a.status === 'final').length;
                 const planned = assets.filter((a) => a.status === 'planned').length;
                 return (
-                  <>
-                    <div className="text-xs flex items-center gap-3">
-                      <span className="text-success">● {final}</span>
-                      <span className="text-blue-400">◑ {replaced}</span>
-                      <span className="text-yellow-400">◐ {placeholder}</span>
-                      <span className="text-muted-foreground">○ {planned}</span>
-                      <span className="ml-auto text-muted-foreground text-[10px]">/ {total}</span>
+                  <div className="space-y-2">
+                    <div className="flex items-baseline gap-3 text-xs">
+                      <span className="text-[var(--forest)]">● {final}</span>
+                      <span className="text-[var(--burgundy)]">◑ {replaced}</span>
+                      <span className="text-[var(--mustard)]">◐ {placeholder}</span>
+                      <span className="text-[var(--muted-foreground)]">○ {planned}</span>
+                      <span className="ml-auto text-[var(--muted-foreground)] text-[10px] text-tabular">
+                        / {total}
+                      </span>
                     </div>
-                    <div className="flex h-1 rounded overflow-hidden">
-                      {final > 0 && <div className="bg-success" style={{ flex: final }} />}
-                      {replaced > 0 && <div className="bg-blue-400" style={{ flex: replaced }} />}
-                      {placeholder > 0 && <div className="bg-yellow-400" style={{ flex: placeholder }} />}
-                      {planned > 0 && <div className="bg-muted" style={{ flex: planned }} />}
+                    <div className="flex h-[3px] overflow-hidden">
+                      {final > 0 && (
+                        <div style={{ flex: final, background: 'var(--forest)' }} />
+                      )}
+                      {replaced > 0 && (
+                        <div style={{ flex: replaced, background: 'var(--burgundy)' }} />
+                      )}
+                      {placeholder > 0 && (
+                        <div
+                          style={{ flex: placeholder, background: 'var(--mustard)' }}
+                        />
+                      )}
+                      {planned > 0 && (
+                        <div
+                          style={{ flex: planned, background: 'var(--surface-alt)' }}
+                        />
+                      )}
                     </div>
-                  </>
+                  </div>
                 );
-              })()}
-            </div>
-          )}
-        </BentoTile>
+              })()
+            )}
+          </BentoTile>
 
-        {/* Tests — 4×1 */}
-        <BentoTile title="Tests (active cycle)" spanClass="col-span-12 md:col-span-4 row-span-1">
-          {testSummary.passed + testSummary.failed === 0 ? (
-            <div className="text-xs text-muted-foreground">No test results yet.</div>
-          ) : (
-            <div className="space-y-1">
-              <div className="text-xs">
-                <span className="text-success">✔ {testSummary.passed}</span>
-                <span className="mx-2 text-muted-foreground">·</span>
-                <span className="text-destructive">✗ {testSummary.failed}</span>
+          {/* Tests */}
+          <BentoTile
+            kicker="Tests"
+            meta="active cycle"
+            spanClass="col-span-12 md:col-span-6 row-span-1"
+          >
+            {testSummary.passed + testSummary.failed === 0 ? (
+              <div className="text-xs text-[var(--muted-foreground)] italic">
+                No test results yet.
               </div>
-              <div className="space-y-0.5">
-                {testSummary.layers.map(([layer, s]) => {
-                  const tot = s.passed + s.failed;
-                  const pct = tot > 0 ? Math.round((s.passed / tot) * 100) : 0;
-                  return (
-                    <div key={layer} className="flex items-center gap-1 text-[10px]">
-                      <span className="w-14 font-mono text-muted-foreground">{layer}</span>
-                      <div className="flex-1 h-1 rounded bg-muted overflow-hidden">
-                        <div className="h-full bg-success" style={{ width: `${pct}%` }} />
-                      </div>
-                      <span className="font-mono w-8 text-right">{pct}%</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </BentoTile>
-
-        {/* Analytics — 4×1 (fail reasons) */}
-        <BentoTile title="Fail reasons" spanClass="col-span-12 md:col-span-4 row-span-1">
-          {failReasons.length === 0 ? (
-            <div className="text-xs text-muted-foreground">No failures in active cycle.</div>
-          ) : (
-            <div className="space-y-0.5">
-              {failReasons.map(([reason, count]) => (
-                <div key={reason} className="flex items-center gap-2 text-[10px]">
-                  <span className="flex-1 truncate text-muted-foreground">{reason}</span>
-                  <span className="font-mono text-destructive">{count}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </BentoTile>
-
-        {/* Events stream — full width footer */}
-        <BentoTile title="Live events" spanClass="col-span-12 row-span-2">
-          {events.length === 0 ? (
-            <div className="text-xs text-muted-foreground">Waiting for events…</div>
-          ) : (
-            <div className="font-mono text-[10px] space-y-0.5">
-              {events
-                .slice(-30)
-                .reverse()
-                .map((e, i) => (
-                  <div key={i} className="flex gap-2 items-baseline">
-                    <span className="text-muted-foreground w-16 shrink-0">
-                      {e.at.toLocaleTimeString()}
+            ) : (
+              <div className="space-y-1.5">
+                <div className="text-xs flex gap-3">
+                  <span className="text-[var(--forest)]">✔ {testSummary.passed}</span>
+                  {testSummary.failed > 0 && (
+                    <span className="text-[var(--oxblood)]">
+                      ✗ {testSummary.failed}
                     </span>
-                    <span className="text-accent w-48 shrink-0 truncate">{e.type}</span>
-                    <span className="text-muted-foreground truncate">{e.summary}</span>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  {testSummary.layers.map(([layer, s]) => {
+                    const tot = s.passed + s.failed;
+                    const pct = tot > 0 ? Math.round((s.passed / tot) * 100) : 0;
+                    return (
+                      <div key={layer} className="flex items-center gap-2 text-[10px]">
+                        <span className="w-16 font-mono text-[var(--muted-foreground)]">
+                          {layer}
+                        </span>
+                        <div className="flex-1 h-[3px] bg-[var(--surface-alt)] overflow-hidden">
+                          <div
+                            className="h-full"
+                            style={{
+                              width: `${pct}%`,
+                              background:
+                                s.failed > 0 ? 'var(--oxblood)' : 'var(--forest)',
+                            }}
+                          />
+                        </div>
+                        <span className="font-mono w-8 text-right text-tabular">
+                          {pct}%
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </BentoTile>
+
+          {/* Fail reasons */}
+          <BentoTile
+            kicker="Fail reasons"
+            spanClass="col-span-12 md:col-span-6 row-span-1"
+          >
+            {failReasons.length === 0 ? (
+              <div className="text-xs text-[var(--muted-foreground)] italic">
+                No failures in active cycle.
+              </div>
+            ) : (
+              <div className="space-y-1 text-xs">
+                {failReasons.map(([reason, count]) => (
+                  <div key={reason} className="flex items-center gap-2">
+                    <span className="flex-1 truncate text-[var(--ink-2)]">
+                      {reason}
+                    </span>
+                    <span className="font-mono text-tabular text-[var(--oxblood)]">
+                      ×{count}
+                    </span>
                   </div>
                 ))}
-            </div>
-          )}
-        </BentoTile>
-      </div>
+              </div>
+            )}
+          </BentoTile>
+
+          {/* Live events */}
+          <BentoTile
+            kicker="Live events"
+            meta="streaming"
+            spanClass="col-span-12 row-span-2"
+          >
+            {events.length === 0 ? (
+              <div className="text-xs text-[var(--muted-foreground)] italic">
+                Waiting for events…
+              </div>
+            ) : (
+              <div className="font-mono text-[10px] space-y-0.5 text-[var(--muted-foreground)]">
+                {events
+                  .slice(-30)
+                  .reverse()
+                  .map((e, i) => (
+                    <div key={i} className="flex gap-3 items-baseline">
+                      <span className="w-16 shrink-0 text-tabular">
+                        {e.at.toLocaleTimeString()}
+                      </span>
+                      <span className="w-48 shrink-0 truncate text-[var(--burgundy)]">
+                        {e.type}
+                      </span>
+                      <span className="truncate">{e.summary}</span>
+                    </div>
+                  ))}
+              </div>
+            )}
+          </BentoTile>
+        </div>
+      </section>
     </div>
   );
 }
