@@ -1,0 +1,29 @@
+# ── Caddy reverse proxy for local pretty domain ─────────────────
+#
+# Routes https://victorz.ludus → dashboard, with /api/* + /events
+# proxied to the server. TLS uses Caddy's internal CA (install the
+# root cert once; see docker/caddy/README.md).
+#
+# The domain can be overridden per-developer by exporting
+# LUDUS_DOMAIN before `docker compose up` (compose.yml passes it in
+# as an env var).
+
+{$LUDUS_DOMAIN:victorz.ludus} {
+	tls internal
+
+	# Server API (Express + SSE live at /api/events/stream).
+	# flush_interval -1 disables response buffering so SSE streams
+	# reach the browser token-by-token.
+	handle /api/* {
+		reverse_proxy server:3001 {
+			flush_interval -1
+		}
+	}
+
+	# Everything else → Next.js dashboard
+	handle {
+		reverse_proxy dashboard:3000
+	}
+
+	encode zstd gzip
+}
