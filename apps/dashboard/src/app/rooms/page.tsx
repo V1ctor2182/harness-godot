@@ -2,8 +2,6 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { api, RoomTreeNode, SpecItem } from '@/lib/api';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -19,22 +17,30 @@ import { ChevronRight, ChevronDown, AlertTriangle, Plus, Archive } from 'lucide-
 
 const SPEC_TYPES = ['All', 'constraint', 'decision', 'convention', 'context', 'intent', 'contract', 'change'] as const;
 
-const specTypeBadgeColor: Record<string, string> = {
-  constraint: 'bg-red-100 text-red-800 border-red-200',
-  decision: 'bg-blue-100 text-blue-800 border-blue-200',
-  convention: 'bg-purple-100 text-purple-800 border-purple-200',
-  context: 'bg-gray-100 text-gray-800 border-gray-200',
-  intent: 'bg-green-100 text-green-800 border-green-200',
-  contract: 'bg-orange-100 text-orange-800 border-orange-200',
-  change: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+const specTypeColor: Record<string, string> = {
+  constraint: 'var(--oxblood)',
+  decision: 'var(--burgundy)',
+  convention: 'var(--mustard)',
+  context: 'var(--muted-foreground)',
+  intent: 'var(--forest)',
+  contract: 'var(--mustard)',
+  change: 'var(--oxblood)',
 };
 
-const lifecycleBadgeColor: Record<string, string> = {
-  planning: 'bg-gray-100 text-gray-700',
-  active: 'bg-green-100 text-green-700',
-  stable: 'bg-blue-100 text-blue-700',
-  archived: 'bg-red-100 text-red-700',
+const lifecycleColor: Record<string, string> = {
+  planning: 'var(--muted-foreground)',
+  active: 'var(--forest)',
+  stable: 'var(--burgundy)',
+  archived: 'var(--oxblood)',
 };
+
+function pillStyle(color: string): React.CSSProperties {
+  return {
+    color,
+    borderColor: `color-mix(in oklch, ${color} 40%, transparent)`,
+    background: `color-mix(in oklch, ${color} 10%, transparent)`,
+  };
+}
 
 // ─── Tree Node Component ────────────────────────────────────────────
 
@@ -56,10 +62,13 @@ function TreeNode({
   return (
     <div>
       <div
-        className={`flex items-center gap-1 py-1 px-1 rounded cursor-pointer text-xs hover:bg-muted ${
-          isSelected ? 'bg-muted font-semibold' : ''
-        }`}
-        style={{ paddingLeft: `${depth * 16 + 4}px` }}
+        className="flex items-center gap-1 py-1 px-1 rounded-xs cursor-pointer text-xs transition-colors"
+        style={{
+          paddingLeft: `${depth * 16 + 4}px`,
+          background: isSelected ? 'var(--surface)' : 'transparent',
+          color: isSelected ? 'var(--burgundy)' : 'var(--ink)',
+          fontWeight: isSelected ? 600 : 400,
+        }}
         onClick={() => onSelect(node._id)}
       >
         {hasChildren ? (
@@ -71,9 +80,9 @@ function TreeNode({
             }}
           >
             {expanded ? (
-              <ChevronDown className="size-3 text-muted-foreground" />
+              <ChevronDown className="size-3 text-[var(--muted-foreground)]" />
             ) : (
-              <ChevronRight className="size-3 text-muted-foreground" />
+              <ChevronRight className="size-3 text-[var(--muted-foreground)]" />
             )}
           </button>
         ) : (
@@ -81,12 +90,17 @@ function TreeNode({
         )}
         <span className="truncate flex-1">{node.name}</span>
         {node.specCount.total > 0 && (
-          <Badge variant="outline" className="text-[9px] ml-auto">
+          <span
+            className="text-[9px] ml-auto font-mono text-tabular"
+            style={{ color: 'var(--muted-foreground)' }}
+          >
             {node.specCount.total}
             {node.specCount.draft > 0 && (
-              <span className="text-yellow-600 ml-0.5">({node.specCount.draft})</span>
+              <span className="ml-0.5" style={{ color: 'var(--mustard)' }}>
+                ({node.specCount.draft})
+              </span>
             )}
-          </Badge>
+          </span>
         )}
       </div>
       {expanded && hasChildren && (
@@ -141,7 +155,7 @@ function NewSpecForm({
   };
 
   return (
-    <div className="border border-border rounded p-3 space-y-2 bg-muted/30">
+    <div className="border border-[var(--rule-strong)] rounded-sm p-3 space-y-2 bg-[var(--surface)]">
       <div className="flex gap-2">
         <Input
           placeholder="Spec title"
@@ -152,7 +166,7 @@ function NewSpecForm({
         <select
           value={type}
           onChange={(e) => setType(e.target.value)}
-          className="text-xs border border-border rounded px-2 h-7 bg-background"
+          className="text-xs border border-[var(--rule-strong)] rounded-xs px-2 h-7 bg-[var(--paper)] focus:outline-none focus:border-[var(--burgundy)]"
         >
           {SPEC_TYPES.filter((t) => t !== 'All').map((t) => (
             <option key={t} value={t}>{t}</option>
@@ -163,14 +177,14 @@ function NewSpecForm({
         placeholder="Detail (optional)"
         value={detail}
         onChange={(e) => setDetail(e.target.value)}
-        className="w-full text-xs border border-border rounded p-2 h-16 bg-background resize-none"
+        className="w-full text-xs border border-[var(--rule-strong)] rounded-xs p-2 h-16 bg-[var(--paper)] resize-none focus:outline-none focus:border-[var(--burgundy)]"
       />
       <div className="flex gap-2 justify-end">
         <Button variant="outline" size="sm" className="text-xs h-6" onClick={onCancel}>
           Cancel
         </Button>
         <Button size="sm" className="text-xs h-6" onClick={handleSubmit} disabled={saving || !title.trim()}>
-          {saving ? 'Creating...' : 'Create'}
+          {saving ? 'Creating…' : 'Create'}
         </Button>
       </div>
     </div>
@@ -271,72 +285,91 @@ export default function RoomsPage() {
   const draftCount = specs.filter((s) => s.state === 'draft').length;
 
   return (
-    <div className="pt-4 font-mono">
-      <h1 className="text-xl font-bold text-foreground mb-1">Rooms</h1>
-      <p className="text-xs text-muted-foreground mb-4">
-        Feature Rooms & Spec Management
-      </p>
+    <div className="pt-4 space-y-6">
+      <header className="pb-5 border-b-2 border-[var(--ink)]">
+        <div className="text-kicker text-[var(--burgundy)] mb-2">
+          <span>The Library</span>
+          <span className="mx-2 text-[var(--rule-strong)]">·</span>
+          <span className="text-[var(--muted-foreground)]">Feature Rooms &amp; Specs</span>
+        </div>
+        <h1 className="text-display-3 text-[var(--ink)]">
+          Rooms
+          <span className="italic text-[var(--burgundy)]">.</span>
+        </h1>
+      </header>
 
       {error && (
-        <div className="bg-destructive/10 border border-destructive/30 rounded p-2 mb-4 flex items-center justify-between">
-          <span className="text-xs text-destructive">{error}</span>
-          <button className="text-xs text-destructive underline" onClick={() => setError(null)}>dismiss</button>
+        <div
+          className="rounded-sm p-2 flex items-center justify-between"
+          style={{
+            color: 'var(--oxblood)',
+            border: '1px solid color-mix(in oklch, var(--oxblood) 30%, transparent)',
+            background: 'color-mix(in oklch, var(--oxblood) 8%, transparent)',
+          }}
+        >
+          <span className="text-xs">{error}</span>
+          <button className="text-xs underline" onClick={() => setError(null)}>
+            dismiss
+          </button>
         </div>
       )}
 
-      <div className="grid grid-cols-[300px_1fr] gap-4">
+      <div className="grid grid-cols-[300px_1fr] gap-8">
         {/* Left: Room Tree */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Room Tree</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0">
-            <ScrollArea className="h-[calc(100vh-200px)]">
-              <div className="p-2">
-                {loading ? (
-                  <p className="text-xs text-muted-foreground p-4">Loading...</p>
-                ) : tree.length === 0 ? (
-                  <p className="text-xs text-muted-foreground p-4">No rooms found</p>
-                ) : (
-                  tree.map((node) => (
-                    <TreeNode
-                      key={node._id}
-                      node={node}
-                      selectedId={selectedRoomId}
-                      onSelect={setSelectedRoomId}
-                    />
-                  ))
-                )}
-              </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+        <aside>
+          <div className="text-kicker text-[var(--muted-foreground)] mb-2">Room Tree</div>
+          <ScrollArea className="h-[calc(100vh-240px)] border border-[var(--rule)] rounded-sm bg-[var(--surface)]">
+            <div className="p-2">
+              {loading ? (
+                <p className="text-xs text-[var(--muted-foreground)] p-4 italic">Loading…</p>
+              ) : tree.length === 0 ? (
+                <p className="text-xs text-[var(--muted-foreground)] p-4 italic">No rooms found</p>
+              ) : (
+                tree.map((node) => (
+                  <TreeNode
+                    key={node._id}
+                    node={node}
+                    selectedId={selectedRoomId}
+                    onSelect={setSelectedRoomId}
+                  />
+                ))
+              )}
+            </div>
+          </ScrollArea>
+        </aside>
 
         {/* Right: Spec Detail */}
-        <Card>
-          <CardHeader className="pb-2">
-            {selectedNode ? (
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <CardTitle className="text-sm">{selectedNode.name}</CardTitle>
-                  <Badge className={`text-[9px] ${lifecycleBadgeColor[selectedNode.lifecycle] ?? ''}`}>
-                    {selectedNode.lifecycle}
-                  </Badge>
-                  <Badge variant="outline" className="text-[9px]">{selectedNode.type}</Badge>
-                </div>
-                <p className="text-[10px] text-muted-foreground">
-                  {specs.length} specs ({draftCount} draft) · {selectedNode._id}
-                </p>
+        <section>
+          {selectedNode ? (
+            <div className="mb-4 pb-3 border-b border-[var(--rule)]">
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-display-3 text-[var(--ink)]" style={{ fontSize: '1.5rem', lineHeight: 1.2 }}>
+                  {selectedNode.name}
+                </h2>
+                <span
+                  className="inline-flex items-center rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.08em]"
+                  style={pillStyle(lifecycleColor[selectedNode.lifecycle] ?? 'var(--muted-foreground)')}
+                >
+                  {selectedNode.lifecycle}
+                </span>
+                <span
+                  className="inline-flex items-center rounded-full border border-[var(--rule-strong)] px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.08em] text-[var(--ink-2)]"
+                >
+                  {selectedNode.type}
+                </span>
               </div>
-            ) : (
-              <CardTitle className="text-sm text-muted-foreground">Select a room</CardTitle>
-            )}
-          </CardHeader>
+              <p className="text-[10px] text-[var(--muted-foreground)] font-mono">
+                {specs.length} specs ({draftCount} draft) · {selectedNode._id}
+              </p>
+            </div>
+          ) : (
+            <div className="text-sm text-[var(--muted-foreground)] italic">Select a room</div>
+          )}
 
           {selectedNode && (
-            <CardContent>
+            <div>
               {/* Filter bar */}
-              <div className="flex items-center gap-2 mb-3 flex-wrap">
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
                 {SPEC_TYPES.map((t) => (
                   <Button
                     key={t}
@@ -348,7 +381,7 @@ export default function RoomsPage() {
                     {t}
                   </Button>
                 ))}
-                <label className="flex items-center gap-1 text-[10px] text-muted-foreground ml-2 cursor-pointer">
+                <label className="flex items-center gap-1 text-[10px] text-[var(--muted-foreground)] ml-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={draftOnly}
@@ -369,7 +402,8 @@ export default function RoomsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-[10px] h-6 text-destructive"
+                    className="text-[10px] h-6"
+                    style={{ color: 'var(--oxblood)' }}
                     onClick={handleArchiveStale}
                   >
                     <Archive className="size-3 mr-1" /> Archive Stale
@@ -406,12 +440,12 @@ export default function RoomsPage() {
                   {filteredSpecs.map((spec) => (
                     <TableRow key={spec._id}>
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={`text-[9px] ${specTypeBadgeColor[spec.type] ?? ''}`}
+                        <span
+                          className="inline-flex items-center rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.08em]"
+                          style={pillStyle(specTypeColor[spec.type] ?? 'var(--muted-foreground)')}
                         >
                           {spec.type}
-                        </Badge>
+                        </span>
                       </TableCell>
                       <TableCell>
                         {editingSpec === spec._id ? (
@@ -424,7 +458,7 @@ export default function RoomsPage() {
                             <textarea
                               value={editDetail}
                               onChange={(e) => setEditDetail(e.target.value)}
-                              className="w-full text-xs border border-border rounded p-1.5 h-14 bg-background resize-none"
+                              className="w-full text-xs border border-[var(--rule-strong)] rounded-xs p-1.5 h-14 bg-[var(--paper)] resize-none focus:outline-none focus:border-[var(--burgundy)]"
                             />
                             <div className="flex gap-1">
                               <Button size="sm" className="text-[10px] h-5" onClick={() => handleSaveEdit(spec._id)}>
@@ -439,12 +473,15 @@ export default function RoomsPage() {
                           <div>
                             <div className="flex items-center gap-1">
                               {spec.state === 'draft' && (
-                                <AlertTriangle className="size-3 text-yellow-500 flex-shrink-0" />
+                                <AlertTriangle
+                                  className="size-3 flex-shrink-0"
+                                  style={{ color: 'var(--mustard)' }}
+                                />
                               )}
-                              <span className="text-xs">{spec.title}</span>
+                              <span className="text-xs text-[var(--ink)]">{spec.title}</span>
                             </div>
                             {spec.provenance?.cycle_tag && (
-                              <span className="text-[9px] text-muted-foreground">
+                              <span className="text-[9px] text-[var(--muted-foreground)] font-mono">
                                 {spec.provenance.cycle_tag} · conf {Math.round(spec.provenance.confidence * 100)}%
                               </span>
                             )}
@@ -452,20 +489,20 @@ export default function RoomsPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={`text-[9px] ${
+                        <span
+                          className="inline-flex items-center rounded-full border px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.08em]"
+                          style={pillStyle(
                             spec.state === 'draft'
-                              ? 'border-yellow-400 text-yellow-700'
+                              ? 'var(--mustard)'
                               : spec.state === 'active'
-                                ? 'border-green-400 text-green-700'
-                                : 'border-gray-300 text-gray-500'
-                          }`}
+                                ? 'var(--forest)'
+                                : 'var(--muted-foreground)'
+                          )}
                         >
                           {spec.state}
-                        </Badge>
+                        </span>
                       </TableCell>
-                      <TableCell className="text-xs text-muted-foreground">
+                      <TableCell className="text-xs text-[var(--muted-foreground)] font-mono text-tabular">
                         {spec.qualityScore}
                       </TableCell>
                       <TableCell>
@@ -484,7 +521,8 @@ export default function RoomsPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="text-[9px] h-5 px-1.5 text-destructive"
+                              className="text-[9px] h-5 px-1.5"
+                              style={{ color: 'var(--oxblood)' }}
                               onClick={() => handleArchive(spec._id)}
                             >
                               Archive
@@ -506,16 +544,16 @@ export default function RoomsPage() {
                   ))}
                   {filteredSpecs.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-xs text-muted-foreground py-8">
+                      <TableCell colSpan={5} className="text-center text-xs text-[var(--muted-foreground)] py-8 italic">
                         {specs.length === 0 ? 'No specs in this room' : 'No specs match filters'}
                       </TableCell>
                     </TableRow>
                   )}
                 </TableBody>
               </Table>
-            </CardContent>
+            </div>
           )}
-        </Card>
+        </section>
       </div>
     </div>
   );
