@@ -112,7 +112,7 @@ async function countPrdDocs(repoPath: string): Promise<number> {
   }
 }
 
-// POST /api/project/init — scaffold .harness/ in a game repo
+// POST /api/project/init — scaffold .ludus/ in a game repo
 const initSchema = z.object({
   path: z.string().min(1),
   name: z.string().optional(),

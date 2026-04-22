@@ -64,7 +64,7 @@ interface PlannedAsset {
  * list and only surfaces whatever it finds on disk.
  *
  * Lookup order inside projectRepoLocalPath:
- *   1. .harness/assets-planned.json   (canonical, Phase B+)
+ *   1. .ludus/assets-planned.json   (canonical, Phase B+)
  *   2. assets-planned.json            (legacy, one release of grace)
  */
 function plannedAssetsCandidates(): string[] {

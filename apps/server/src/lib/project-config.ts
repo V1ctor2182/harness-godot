@@ -89,14 +89,14 @@ export function getProjectConfigState(): {
 }
 
 /**
- * Load `$PROJECT_REPO_LOCAL_PATH/.harness/project.yaml` into the cache.
+ * Load `$PROJECT_REPO_LOCAL_PATH/.ludus/project.yaml` into the cache.
  * Call at server startup (after seedRooms, before any agent-spawning
  * work) and from POST /api/project/reload.
  *
  * Failure modes:
  *  - No PROJECT_REPO_LOCAL_PATH env var  → cache.loaded=false, no error
  *  - Path doesn't exist / not a dir      → cache.loaded=false, error set
- *  - .harness/project.yaml missing       → cache.loaded=false, error set
+ *  - .ludus/project.yaml missing         → cache.loaded=false, error set
  *  - yaml parse or schema validation fail → cache.loaded=false, error set
  *
  * In every failure mode the server keeps running. Cycle creation is
@@ -143,7 +143,7 @@ export async function loadProjectConfig(): Promise<Cache> {
     cache.loaded = false;
     cache.config = null;
     cache.source = yamlPath;
-    cache.error = `missing ${path.relative(base, yamlPath)} — create a .harness/project.yaml in the project repo`;
+    cache.error = `missing ${path.relative(base, yamlPath)} — create a ${PROJECT_CONFIG_DIR}/project.yaml in the project repo`;
     logger.warn({ yamlPath }, '[project-config] project.yaml not found');
     return cache;
   }
