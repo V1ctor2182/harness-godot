@@ -50,7 +50,7 @@ async function main() {
   const roomResult = await seedRooms();
   console.log('Rooms seeded');
 
-  // Load project config from $PROJECT_REPO_LOCAL_PATH/.harness/project.yaml.
+  // Load project config from $PROJECT_REPO_LOCAL_PATH/.ludus/project.yaml.
   // Safe to call without a project — the server runs in "no project loaded"
   // mode and the dashboard shows an empty state.
   console.log('Loading project config...');

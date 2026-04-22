@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 
+import { PROJECT_CONFIG_DIR } from '@ludus/shared';
 import { config } from '../config.js';
 import { logger } from './logger.js';
 
@@ -70,7 +71,7 @@ function plannedAssetsCandidates(): string[] {
   const base = config.projectRepoLocalPath;
   if (!base) return [];
   return [
-    path.join(base, '.harness', 'assets-planned.json'),
+    path.join(base, PROJECT_CONFIG_DIR, 'assets-planned.json'),
     path.join(base, 'assets-planned.json'),
   ];
 }

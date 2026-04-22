@@ -1,6 +1,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
+import { PROJECT_CONFIG_DIR } from '@ludus/shared';
 import { RoomModel } from '../models/room.js';
 import { SpecModel } from '../models/spec.js';
 import { config } from '../config.js';
@@ -212,10 +213,10 @@ export async function seedRooms(): Promise<{ roomsUpserted: number; specsUpserte
     await processNode(topNode, null);
   }
 
-  // ── Dual-source: also scan project repo .harness/rooms/ ──────────
+  // ── Dual-source: also scan project repo {PROJECT_CONFIG_DIR}/rooms/ ──
   const projectBase = config.projectRepoLocalPath;
   if (projectBase) {
-    const projectRoomsDir = path.join(projectBase, '.harness', 'rooms');
+    const projectRoomsDir = path.join(projectBase, PROJECT_CONFIG_DIR, 'rooms');
     try {
       const projectTreePath = path.join(projectRoomsDir, '_tree.yaml');
       let projectTreeContent: string | null = null;

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 
+import { PROJECT_CONFIG_DIR } from '@ludus/shared';
 import { config } from '../config.js';
 import { logger } from './logger.js';
 
@@ -133,7 +134,7 @@ export async function loadProjectConfig(): Promise<Cache> {
     return cache;
   }
 
-  const yamlPath = path.join(base, '.harness', 'project.yaml');
+  const yamlPath = path.join(base, PROJECT_CONFIG_DIR, 'project.yaml');
 
   let raw: string;
   try {

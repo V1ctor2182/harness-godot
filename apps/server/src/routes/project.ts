@@ -7,6 +7,7 @@ import { getProjectConfigState, loadProjectConfig } from '../lib/project-config.
 import { asyncHandler } from '../lib/async-handler.js';
 import { ValidationError } from '../lib/errors.js';
 import { broadcast } from '../services/sse-manager.js';
+import { PROJECT_CONFIG_DIR } from '@ludus/shared';
 
 const router = Router();
 
@@ -139,12 +140,12 @@ router.post(
       throw new ValidationError(`Path does not exist: ${repoPath}`);
     }
 
-    // Check if .harness/project.yaml already exists
-    const existingYaml = path.join(repoPath, '.harness', 'project.yaml');
+    // Check if project.yaml already exists
+    const existingYaml = path.join(repoPath, PROJECT_CONFIG_DIR, 'project.yaml');
     try {
       await fs.stat(existingYaml);
       throw new ValidationError(
-        '.harness/project.yaml already exists. Use POST /api/project/reload to load it.'
+        `${PROJECT_CONFIG_DIR}/project.yaml already exists. Use POST /api/project/reload to load it.`
       );
     } catch (e) {
       if (e instanceof ValidationError) throw e;
@@ -183,7 +184,7 @@ router.post(
     const yamlContent = yamlStringify(projectConfig, { lineWidth: 120 });
 
     // Scaffold directories
-    await fs.mkdir(path.join(repoPath, '.harness', 'rooms'), { recursive: true });
+    await fs.mkdir(path.join(repoPath, PROJECT_CONFIG_DIR, 'rooms'), { recursive: true });
 
     // Write project.yaml
     await fs.writeFile(existingYaml, yamlContent, 'utf-8');

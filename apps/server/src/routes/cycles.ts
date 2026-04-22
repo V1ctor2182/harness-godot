@@ -48,7 +48,7 @@ router.post(
       res.status(409).json({
         error: 'no_project_loaded',
         message:
-          'No project loaded. Set PROJECT_REPO_LOCAL_PATH and create .harness/project.yaml in the project repo, then POST /api/project/reload.',
+          'No project loaded. Set PROJECT_REPO_LOCAL_PATH and create .ludus/project.yaml in the project repo, then POST /api/project/reload.',
       });
       return;
     }
