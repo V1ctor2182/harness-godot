@@ -39,4 +39,4 @@ Your FINAL message must be ONLY a fenced JSON block:
 
 ## Project-specific instructions
 
-This is the generic harness stub. If the target project ships a `.harness/agents/integrator.md`, the spawner loads that instead. Project-specific prompts add: import/build verification commands, protected path lists, and conflict resolution heuristics for the project's tech stack.
+This is the generic harness stub. If the target project ships a `.ludus/agents/integrator.md`, the spawner loads that instead. Project-specific prompts add: import/build verification commands, protected path lists, and conflict resolution heuristics for the project's tech stack.

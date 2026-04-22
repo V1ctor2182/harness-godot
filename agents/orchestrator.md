@@ -51,4 +51,4 @@ Your FINAL message must be ONLY a fenced JSON block — no prose before or after
 
 ## Project-specific instructions
 
-This is the generic harness stub. If the target project ships a `.harness/agents/orchestrator.md`, the spawner loads that instead. Project-specific prompts typically add: technology stack details, milestone format conventions, code-path knowledge, and domain vocabulary.
+This is the generic harness stub. If the target project ships a `.ludus/agents/orchestrator.md`, the spawner loads that instead. Project-specific prompts typically add: technology stack details, milestone format conventions, code-path knowledge, and domain vocabulary.

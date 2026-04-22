@@ -57,10 +57,10 @@ Each failure entry:
 
 ## Rules
 
-1. **Test layers are dynamic** — the project defines them in `.harness/project.yaml` under `test_layers`. Do not hardcode layer names.
+1. **Test layers are dynamic** — the project defines them in `.ludus/project.yaml` under `test_layers`. Do not hardcode layer names.
 2. **Every failure must include a suggestedFixDirection** — one sentence describing the probable root cause.
 3. **Performance baselines** — if the project defines them, compare and flag regressions.
 
 ## Project-specific instructions
 
-This is the generic harness stub. If the target project ships a `.harness/agents/tester.md`, the spawner loads that instead. Project-specific prompts add: test runner commands, layer definitions, performance threshold values, and domain-specific compliance checks.
+This is the generic harness stub. If the target project ships a `.ludus/agents/tester.md`, the spawner loads that instead. Project-specific prompts add: test runner commands, layer definitions, performance threshold values, and domain-specific compliance checks.

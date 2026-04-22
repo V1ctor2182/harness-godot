@@ -51,4 +51,4 @@ Your FINAL message must be ONLY a fenced JSON block:
 
 ## Project-specific instructions
 
-This is the generic harness stub. If the target project ships a `.harness/agents/coder.md`, the spawner loads that instead. Project-specific prompts typically add: language and framework rules, test runner commands, file layout conventions, example code patterns, and domain vocabulary.
+This is the generic harness stub. If the target project ships a `.ludus/agents/coder.md`, the spawner loads that instead. Project-specific prompts typically add: language and framework rules, test runner commands, file layout conventions, example code patterns, and domain vocabulary.

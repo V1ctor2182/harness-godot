@@ -53,4 +53,4 @@ Your FINAL message must be ONLY a fenced JSON block:
 
 ## Project-specific instructions
 
-This is the generic harness stub. If the target project ships a `.harness/agents/reviewer.md`, the spawner loads that instead. Project-specific prompts add: language-specific review rules, architecture patterns, and domain-specific quality gates.
+This is the generic harness stub. If the target project ships a `.ludus/agents/reviewer.md`, the spawner loads that instead. Project-specific prompts add: language-specific review rules, architecture patterns, and domain-specific quality gates.

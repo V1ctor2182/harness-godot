@@ -59,4 +59,4 @@ Your FINAL message must be ONLY a fenced JSON block:
 
 ## Project-specific instructions
 
-This is the generic harness stub. If the target project ships a `.harness/agents/curator.md`, the spawner loads that instead. Project-specific prompts add: domain vocabulary, room taxonomy, and domain-specific extraction heuristics.
+This is the generic harness stub. If the target project ships a `.ludus/agents/curator.md`, the spawner loads that instead. Project-specific prompts add: domain vocabulary, room taxonomy, and domain-specific extraction heuristics.

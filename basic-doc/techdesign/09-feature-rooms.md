@@ -17,7 +17,7 @@ Room = {
 
 Room 来自两个地方：
 - **harness-system/rooms/** — 描述 harness 自身的架构（cycle engine, agent system, dashboard...）
-- **game-repo/.harness/rooms/** — 描述目标项目的功能域（farming, combat, mutation...）
+- **game-repo/.ludus/rooms/** — 描述目标项目的功能域（farming, combat, mutation...）
 
 两者在 server 启动时由 `seedRooms()` 合并到同一个 Mongo Room collection 里。
 
@@ -151,7 +151,7 @@ Server 启动
     │         读 rooms/{path}/specs/*.yaml → upsert Spec → Mongo
     │       结果: harness 内部 rooms 同步完成
     │
-    └── 2. 扫描 $PROJECT_REPO_LOCAL_PATH/.harness/rooms/
+    └── 2. 扫描 $PROJECT_REPO_LOCAL_PATH/.ludus/rooms/
             │
             ├── 有 _tree.yaml?
             │     是 → 解析树，和 step 1 完全相同的处理逻辑
@@ -307,7 +307,7 @@ Draft spec 出现在 Inbox，但它们的来源和语义不同：
 ```
 ┌────────────────────────┬──────────────────────────────────────────┐
 │ Ludus Rooms          │ Project Feature Rooms                    │
-│ (harness-system/rooms/)│ (game-repo/.harness/rooms/)              │
+│ (harness-system/rooms/)│ (game-repo/.ludus/rooms/)              │
 ├────────────────────────┼──────────────────────────────────────────┤
 │ 描述 harness 架构本身  │ 描述目标游戏的功能域                      │
 │                        │                                          │
@@ -328,7 +328,7 @@ Draft spec 出现在 Inbox，但它们的来源和语义不同：
 ## R10. 当前 Ludus Room 结构 (截至 2026-04-19)
 
 ```
-00-project-room                 [project] 全局 conventions + .harness/ contract
+00-project-room                 [project] 全局 conventions + .ludus/ contract
 ├── 01-cycle-engine             [epic]    Cycle 状态机 + Task 生命周期
 ├── 02-agent-system             [epic]    6 agent 容器化执行
 │   ├── 01-orchestrator         [feature] 任务规划
