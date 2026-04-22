@@ -65,7 +65,7 @@ export function TopNav(_props: TopNavProps) {
               className="font-display text-[28px] font-medium leading-none text-[var(--ink)] hover:no-underline"
               style={{ fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}
             >
-              Harness
+              Ludus
               <span
                 className="italic"
                 style={{ fontFamily: 'var(--font-display)', color: 'var(--burgundy)' }}

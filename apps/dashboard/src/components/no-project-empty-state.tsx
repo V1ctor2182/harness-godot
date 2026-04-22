@@ -28,7 +28,7 @@ export function NoProjectEmptyState({
 
         {!compact && (
           <p className="text-xs text-muted-foreground">
-            Harness is project-agnostic. Create or connect a game project to get started.
+            Ludus is project-agnostic. Create or connect a game project to get started.
           </p>
         )}
 

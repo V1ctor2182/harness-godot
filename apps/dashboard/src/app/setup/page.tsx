@@ -132,12 +132,12 @@ export default function SetupPage() {
           <span className="text-[var(--muted-foreground)]">Step 1 of 1</span>
         </div>
         <h1 className="text-display-2 text-[var(--ink)]">
-          Point the harness at a project
+          Point Ludus at a project
           <span className="italic text-[var(--burgundy)]">.</span>
         </h1>
         <p className="mt-4 text-base text-[var(--ink-2)] max-w-2xl leading-relaxed">
-          <span className="dropcap" style={{ color: 'var(--burgundy)' }}>T</span>
-          he harness scaffolds a <code className="px-1 py-0.5 rounded-xs bg-[var(--surface)] text-[var(--oxblood)] font-mono text-sm">.harness/</code> directory in your repo — engine auto-detected, room templates seeded, prd docs discovered. Feed it a path; it does the rest.
+          <span className="dropcap" style={{ color: 'var(--burgundy)' }}>L</span>
+          udus scaffolds a <code className="px-1 py-0.5 rounded-xs bg-[var(--surface)] text-[var(--oxblood)] font-mono text-sm">.harness/</code> directory in your repo — engine auto-detected, room templates seeded, prd docs discovered. Feed it a path; it does the rest.
         </p>
       </header>
 
