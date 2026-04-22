@@ -50,10 +50,13 @@ export async function reconcileOrphans(): Promise<void> {
 
   for (const info of orphans) {
     const containerId = info.Id;
-    // Read both new and legacy label keys so the first boot after the
-    // Phase A rename still cleans up containers started under the old label.
+    // Read current + legacy label keys so the first boot after the Ludus
+    // rename still cleans up containers started under the old `harness.*` or
+    // `zombie-farm.*` prefixes. Drop the legacy keys after one release.
     const agentRunId =
-      info.Labels?.['harness.agent-run-id'] ?? info.Labels?.['zombie-farm.agent-run-id'];
+      info.Labels?.['ludus.agent-run-id'] ??
+      info.Labels?.['harness.agent-run-id'] ??
+      info.Labels?.['zombie-farm.agent-run-id'];
     const container = docker.getContainer(containerId);
 
     if (!agentRunId) {

@@ -32,7 +32,7 @@ export interface ContainerHandle {
 export async function createAgentContainer(cfg: ContainerConfig): Promise<ContainerHandle> {
   const container = await docker.createContainer({
     Image: AGENT_IMAGE,
-    name: `harness-${cfg.agentRunId}`,
+    name: `ludus-${cfg.agentRunId}`,
     Env: [
       `CLAUDE_CODE_OAUTH_TOKEN=${config.claudeCodeOauthToken}`,
       `AGENT_ROLE=${cfg.role}`,
@@ -48,8 +48,8 @@ export async function createAgentContainer(cfg: ContainerConfig): Promise<Contai
     ],
     Labels: {
       [AGENT_CONTAINER_LABEL]: AGENT_CONTAINER_LABEL_VALUE,
-      'harness.agent-run-id': cfg.agentRunId,
-      'harness.role': cfg.role,
+      'ludus.agent-run-id': cfg.agentRunId,
+      'ludus.role': cfg.role,
     },
     HostConfig: {
       Memory: CONTAINER_MEMORY_MB * 1024 * 1024,
@@ -174,8 +174,8 @@ export async function findOrphanedContainers(): Promise<Dockerode.ContainerInfo[
         status: ['running'],
       },
     }),
-    // Also pick up containers from the old `zombie-farm=agent` label so the
-    // first boot after the Phase A rename can clean them up gracefully.
+    // Also pick up containers from the old `harness=agent` label so the
+    // first boot after the Ludus rename can clean them up gracefully.
     docker.listContainers({
       all: true,
       filters: {

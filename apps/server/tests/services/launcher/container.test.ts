@@ -2,9 +2,9 @@
  * Unit tests for container.ts: createAgentContainer and injectContext
  *
  * Tests cover:
- *   1. Container name is `harness-{agentRunId}`
+ *   1. Container name is `ludus-{agentRunId}`
  *   2. All required env vars are injected
- *   3. Container labels include harness=agent and harness.agent-run-id
+ *   3. Container labels include ludus=agent and ludus.agent-run-id
  *   4. HostConfig includes ExtraHosts: ['host.docker.internal:host-gateway']
  *   5. Memory and CPU limits match shared constants
  *   6. Returns a ContainerHandle with container and containerId
@@ -89,14 +89,14 @@ describe('createAgentContainer', () => {
 
   // ── Test 1: Container name ────────────────────────────────────────────────
 
-  it('names the container harness-{agentRunId}', async () => {
+  it('names the container ludus-{agentRunId}', async () => {
     const cfg = makeContainerConfig({ agentRunId: 'coder-xyz789' });
 
     await createAgentContainer(cfg);
 
     expect(mockCreateContainer).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: 'harness-coder-xyz789',
+        name: 'ludus-coder-xyz789',
       })
     );
   });
@@ -130,7 +130,7 @@ describe('createAgentContainer', () => {
 
   // ── Test 3: Container labels ──────────────────────────────────────────────
 
-  it('sets harness=agent label and harness.agent-run-id label', async () => {
+  it('sets ludus=agent label and ludus.agent-run-id label', async () => {
     const cfg = makeContainerConfig({ agentRunId: 'coder-abc123' });
 
     await createAgentContainer(cfg);
@@ -139,7 +139,7 @@ describe('createAgentContainer', () => {
     const labels = call.Labels;
 
     expect(labels[AGENT_CONTAINER_LABEL]).toBe(AGENT_CONTAINER_LABEL_VALUE);
-    expect(labels['harness.agent-run-id']).toBe('coder-abc123');
+    expect(labels['ludus.agent-run-id']).toBe('coder-abc123');
   });
 
   // ── Test 4: HostConfig ExtraHosts ─────────────────────────────────────────

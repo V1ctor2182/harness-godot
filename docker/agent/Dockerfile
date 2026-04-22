@@ -29,8 +29,8 @@ RUN useradd -m -s /bin/bash agent
 USER agent
 RUN mkdir -p /home/agent/workspace /home/agent/context /home/agent/output
 WORKDIR /home/agent/workspace
-RUN git config --global user.name "harness-agent" \
-    && git config --global user.email "agent@harness.local" \
+RUN git config --global user.name "ludus-agent" \
+    && git config --global user.email "agent@ludus.local" \
     && git config --global init.defaultBranch main
 
 ENV GODOT_BINARY=/usr/local/bin/godot BASE_BRANCH=main MAX_BUDGET_USD=5 MODEL=claude-sonnet-4-6 NODE_ENV=production

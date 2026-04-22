@@ -1,4 +1,4 @@
-name: harness
+name: ludus
 
 services:
   mongodb:
@@ -6,7 +6,7 @@ services:
     expose:
       - '27017'
     volumes:
-      - harness_mongodb_data:/data/db
+      - ludus_mongodb_data:/data/db
     healthcheck:
       test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
       interval: 10s
@@ -91,7 +91,7 @@ services:
         condition: service_healthy
 
 volumes:
-  harness_mongodb_data:
+  ludus_mongodb_data:
   reload_trigger:
   caddy_data:
   caddy_config:

@@ -87,13 +87,13 @@ export const PROTECTED_PATHS = [
 
 // ─── Container Labels ────────────────────────────────────────────────
 
-export const AGENT_CONTAINER_LABEL = 'harness';
+export const AGENT_CONTAINER_LABEL = 'ludus';
 export const AGENT_CONTAINER_LABEL_VALUE = 'agent';
 // Legacy label key, read-only. Kept so the first boot after the
-// Phase A rename can still discover and clean up containers started under
-// the old label. Remove after one release cycle once no zombie-farm
-// containers are expected on any dev machine.
-export const LEGACY_AGENT_CONTAINER_LABEL = 'zombie-farm';
+// harness→ludus rename can still discover and clean up containers
+// started under the old label. Remove after one release cycle once no
+// `harness=agent` containers are expected on any dev machine.
+export const LEGACY_AGENT_CONTAINER_LABEL = 'harness';
 
 // ─── Task ID Format ──────────────────────────────────────────────────
 
@@ -116,10 +116,13 @@ export const SPEC_TYPE_PRIORITY: Record<string, number> = {
   change: 6,
 };
 
-// ─── Godot ───────────────────────────────────────────────────────────
+// ─── Agent container ─────────────────────────────────────────────────
+// The image still ships with Godot baked in (docker/agent/Dockerfile).
+// Engine-specific tooling will move to project-configured layers later;
+// for now the tag just reflects the Godot version the image installs.
 
 export const GODOT_VERSION = '4.6.1';
-export const AGENT_DOCKER_IMAGE = `godot-agent:${GODOT_VERSION}`;
+export const AGENT_DOCKER_IMAGE = `ludus-agent:${GODOT_VERSION}`;
 
 // ─── Reload ─────────────────────────────────────────────────────────
 
