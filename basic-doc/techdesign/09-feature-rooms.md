@@ -302,11 +302,11 @@ Draft spec 出现在 Inbox，但它们的来源和语义不同：
 └──────────────────┴─────────────────────────────┴────────────────────────┘
 ```
 
-## R9. 项目 Feature Room vs Harness Room
+## R9. 项目 Feature Room vs Ludus Room
 
 ```
 ┌────────────────────────┬──────────────────────────────────────────┐
-│ Harness Rooms          │ Project Feature Rooms                    │
+│ Ludus Rooms          │ Project Feature Rooms                    │
 │ (harness-system/rooms/)│ (game-repo/.harness/rooms/)              │
 ├────────────────────────┼──────────────────────────────────────────┤
 │ 描述 harness 架构本身  │ 描述目标游戏的功能域                      │
@@ -325,7 +325,7 @@ Draft spec 出现在 Inbox，但它们的来源和语义不同：
 └────────────────────────┴──────────────────────────────────────────┘
 ```
 
-## R10. 当前 Harness Room 结构 (截至 2026-04-19)
+## R10. 当前 Ludus Room 结构 (截至 2026-04-19)
 
 ```
 00-project-room                 [project] 全局 conventions + .harness/ contract

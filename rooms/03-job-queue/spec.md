@@ -16,7 +16,7 @@ _No decisions recorded yet._
 - Stale job detection: infra 10min, agent based on role timeout
 
 ## Context
-The job queue is the central work distribution mechanism for the harness system. It manages concurrent agent and infrastructure jobs through separate slot pools, enforces approval gates for protected paths, and detects stale jobs to prevent tasks from getting stuck.
+The job queue is the central work distribution mechanism for Ludus. It manages concurrent agent and infrastructure jobs through separate slot pools, enforces approval gates for protected paths, and detects stale jobs to prevent tasks from getting stuck.
 
 ## Interface
 _To be defined as implementation progresses._

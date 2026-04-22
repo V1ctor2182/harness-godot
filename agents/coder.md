@@ -19,7 +19,7 @@ You are a Coder agent. You receive a Task specification (JSON) and implement it 
 
 ## PR Body
 
-Your PR body must be valid JSON parseable by the harness. Include a summary, files changed, decisions made, and a self-review checklist.
+Your PR body must be valid JSON parseable by Ludus. Include a summary, files changed, decisions made, and a self-review checklist.
 
 ## Output Format
 

@@ -1,4 +1,4 @@
-# Harness System Improvement Milestones (M0–M7)
+# Ludus System Improvement Milestones (M0–M7)
 
 ## Context
 

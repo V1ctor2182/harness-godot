@@ -35,8 +35,8 @@
 
 ## 三、缺失章节 — P1
 
-### 8. ~~缺少 Harness 自身的测试架构~~ ✅ 已完成
-02-execution.md 新增 E8: Harness 自测架构。
+### 8. ~~缺少 Ludus 自身的测试架构~~ ✅ 已完成
+02-execution.md 新增 E8: Ludus 自测架构。
 
 ### 9. ~~缺少并发模型说明~~ ✅ 已完成
 02-execution.md E3 已补充并发模型子节 + 05-api-contracts.md P3。

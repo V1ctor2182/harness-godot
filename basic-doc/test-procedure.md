@@ -309,7 +309,7 @@ mongosh zombie-farm --eval "db.jobs.find({ notBefore: { \$exists: true } }).limi
 # 直接测试 webhook
 curl -s -X POST "$DISCORD_WEBHOOK_URL" \
   -H "Content-Type: application/json" \
-  -d '{"content": "🧪 Harness system test notification"}' -w "\n%{http_code}"
+  -d '{"content": "🧪 Ludus system test notification"}' -w "\n%{http_code}"
 # 预期: HTTP 204, Discord 频道收到消息
 ```
 

@@ -1,4 +1,4 @@
-# Design System — Harness
+# Design System — Ludus
 
 **Direction:** Editorial Workbench. A long-form magazine/journal aesthetic applied to live engineering observability. Each cycle is a story being written by six agents; the dashboard is the editor's desk.
 
@@ -139,7 +139,7 @@ Invert lightness carefully; keep the warm undertone. Do not simply flip — rede
 
 ## Editorial elements (distinctive)
 
-These are the touches that make Harness feel editorial rather than generic SaaS:
+These are the touches that make Ludus feel editorial rather than generic SaaS:
 
 - **Kickers:** `font-mono 10px uppercase tracking-[0.12em]` labels above titles (`§4 · MOCKUP`, `BY CODER AGENT`, `CYCLE M8-C1`). Use constantly on section heads, card heads, table captions.
 - **Bylines:** meta strip between title and body (`BY ORCHESTRATOR · STARTED 42 MIN AGO · $2.40 / $5.00 BUDGET`). Use on Cycle detail header.
@@ -179,6 +179,6 @@ These are the touches that make Harness feel editorial rather than generic SaaS:
 | Date | Decision | Rationale |
 |---|---|---|
 | 2026-04-21 | Initial design system created via `/design-consultation` | From-scratch Editorial Workbench direction, informed by category research (Linear 2026 refresh, LangSmith, Vercel, Raycast). Light-mode-default, burgundy+forest accents, Fraunces+Instrument Sans+JetBrains Mono. |
-| 2026-04-21 | Light mode default (contra category norm) | Dev tools default to dark. Harness defaults to light because long-form content (PR diffs, specs, agent reasoning) is more comfortable in light, and the editorial metaphor requires paper. Dark mode supported via `.dark` class. |
-| 2026-04-21 | Burgundy accent instead of blue/purple | Every dev tool uses blue or purple. Harness uses burgundy because it's instantly distinctive and pairs with forest green for a wine-label / literary palette that matches the editorial direction. |
+| 2026-04-21 | Light mode default (contra category norm) | Dev tools default to dark. Ludus defaults to light because long-form content (PR diffs, specs, agent reasoning) is more comfortable in light, and the editorial metaphor requires paper. Dark mode supported via `.dark` class. |
+| 2026-04-21 | Burgundy accent instead of blue/purple | Every dev tool uses blue or purple. Ludus uses burgundy because it's instantly distinctive and pairs with forest green for a wine-label / literary palette that matches the editorial direction. |
 | 2026-04-21 | Fraunces serif as display font | Dev tools use sans-serif exclusively (Inter/Geist). Fraunces signals this is a crafted tool with literary intent, not a boilerplate dashboard. Variable optical sizing means it reads well at both hero scale and 16px. |

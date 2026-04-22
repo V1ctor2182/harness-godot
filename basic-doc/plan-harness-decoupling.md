@@ -1,4 +1,4 @@
-# Plan — Decouple Harness System from Zombie Farm
+# Plan — Decouple Ludus System from Zombie Farm
 
 ## Context
 
@@ -130,7 +130,7 @@ Zombie Farm as the running example. That's fine as long as it's clearly
 ### Option 1 — Game repo owns the project (recommended)
 
 `harness-system/` contains **nothing** project-specific. All project
-content lives in the game repo itself. Harness reads from a local
+content lives in the game repo itself. Ludus reads from a local
 checkout that it either expects to be mounted (dev) or clones on startup
 (prod) via an env var.
 
@@ -227,7 +227,7 @@ project:
       name: "PRD compliance"
 ```
 
-Harness boot flow:
+Ludus boot flow:
 
 ```
 1. docker compose up                     → server starts with no project
@@ -261,7 +261,7 @@ Cons:
 
 ### Option 2 — `projects/` registry inside harness-system
 
-Harness keeps a `projects/` dir with one subdir per known project. User
+Ludus keeps a `projects/` dir with one subdir per known project. User
 selects which one via `PROJECT_ID=zombie-farm`.
 
 ```
@@ -283,7 +283,7 @@ Pros:
 - Easier to prototype a second project (just copy the folder)
 
 Cons:
-- Harness still contains project content (weaker decoupling)
+- Ludus still contains project content (weaker decoupling)
 - Can't cleanly version project content alongside its code
 - Contradicts the earlier decision "milestones live in game repo"
 
@@ -317,7 +317,7 @@ Pure rename. No behavior changes. Can ship in a single PR.
 - `packages/shared/src/constants.ts` →
   `AGENT_CONTAINER_LABEL = 'harness'`
 - `apps/server/src/config.ts` default `mongodb://.../harness`
-- `CLAUDE.md` + `README.md` → "Harness — AI Implementation Team" +
+- `CLAUDE.md` + `README.md` → "Ludus — AI Implementation Team" +
   example section "Currently driving: Zombie Farm (see zombie-farm-godot
   repo)"
 
@@ -399,8 +399,8 @@ drives downstream subsystems:
   (keep `GAME_REPO_LOCAL_PATH` as a deprecated alias for one release).
 - NEW: `GET /api/project` endpoint — returns the loaded config for the
   dashboard to show project name in top nav, empty state, etc.
-- NEW: TopNav badge showing `⚡ Harness · {project.name}` or
-  `⚡ Harness · no project` when unset.
+- NEW: TopNav badge showing `⚡ Ludus · {project.name}` or
+  `⚡ Ludus · no project` when unset.
 - NEW: "No project loaded" empty state on Home bento when
   `getProjectConfig()` returns null — blocks Cycle creation with a
   clear message and a link to the Settings drawer's "Load project"

@@ -1,6 +1,18 @@
 # Changelog
 
-All notable changes to the Harness system.
+All notable changes to Ludus (formerly "Harness").
+
+---
+
+## 2026-04-22 — Rename: Harness → Ludus
+
+- Workspace packages: `@harness/{shared,server,dashboard}` → `@ludus/*`
+- Mongo database: `harness` → `ludus` (fresh DB; mongodump/restore to carry data over)
+- Docker: compose project name `harness` → `ludus`; volume `harness_mongodb_data` → `ludus_mongodb_data`; agent image `godot-agent:4.6.1` → `ludus-agent:4.6.1`
+- Container labels: primary now `ludus=agent`; orphan-recovery still reads legacy `harness=agent` + `zombie-farm=agent` for one release cycle
+- UI: TopNav brand, layout metadata, empty-state and setup copy rebranded
+- **Intentionally kept:** target-repo contract directory name `.harness/` — renaming it would break every connected project. Deprecation path is a separate change.
+- Caddy reverse proxy added for local pretty domain (default `victorz.ludus`; see `docker/caddy/README.md`)
 
 ---
 

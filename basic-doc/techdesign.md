@@ -1,4 +1,4 @@
-# Zombie Farm AI Harness — Tech Design
+# Zombie Farm AI Ludus — Tech Design
 
 7 个文档，按关注点拆分。Prefix 编号避免跨文件冲突。
 
@@ -7,7 +7,7 @@
 | Doc | 内容 | Sections |
 |-----|------|----------|
 | [01-architecture](techdesign/01-architecture.md) | 系统架构总览、Feature Rooms、数据流、项目结构、安全边界、可观测性 | A1-A6 |
-| [02-execution](techdesign/02-execution.md) | Cycle 状态机、Container、Job Queue+并发、Testing、SSE、Docker、错误恢复、Harness 自测、Auto Mode | E1-E9 |
+| [02-execution](techdesign/02-execution.md) | Cycle 状态机、Container、Job Queue+并发、Testing、SSE、Docker、错误恢复、Ludus 自测、Auto Mode | E1-E9 |
 | [03-knowledge](techdesign/03-knowledge.md) | Room + Spec 知识系统：结构、生命周期、Schemas、Context Builder、Curator、API、Dashboard | K1-K8 |
 | [04-failure-modes](techdesign/04-failure-modes.md) | 故障分类、级联场景、外部依赖、并发风险、已知 gap、Rollback、人工干预 | F1-F7 |
 | [05-api-contracts](techdesign/05-api-contracts.md) | REST API 端点、SSE 事件合约、并发模型、Authentication 现状 | P1-P4 |

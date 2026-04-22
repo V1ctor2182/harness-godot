@@ -374,7 +374,7 @@
   │                  DATA FLOW OVERVIEW                          │
   └─────────────────────────────────────────────────────────────┘
 
-  Game Repo (zombie-farm-godot)            Harness Repo
+  Game Repo (zombie-farm-godot)            Ludus Repo
   ┌───────────────────────────┐           ┌──────────────────────────┐
   │ prd/  (21 模块化文档)      │           │ agents/*.md → 系统提示词  │
   │ milestones/ (M0-M15)      │           │ rooms/00-project-room/ → 全局 specs (继承给所有子 Room) │
@@ -422,7 +422,7 @@
 
   知识流向:
 
-  Game Rooms                   Harness Rooms
+  Game Rooms                   Ludus Rooms
   (zombie-farm-godot/rooms/)   (harness-system/rooms/)
          │                            │
          │  seedRooms()               │  seedRooms()
@@ -516,7 +516,7 @@ godot-self-evolve-implementation-system/
 │   │                                  (boot.md, conventions.md, glossary.md
 │   │                                   已迁入 rooms/00-project-room/specs/)
 │   │
-│   ├── rooms/                         ★ Harness Feature Rooms (26 rooms)
+│   ├── rooms/                         ★ Ludus Feature Rooms (26 rooms)
 │   │   │                              管线自身的 constraints/decisions
 │   │   ├── 00-project-room/
 │   │   │   └── _tree.yaml             唯一索引
@@ -589,7 +589,7 @@ godot-self-evolve-implementation-system/
 
   双 Repo Room ID 命名规则:
   ┌──────────────────────────────────────────────────────────────┐
-  │ Harness rooms: 00-xx, 01-xx, 02-xx, ... 11-xx               │
+  │ Ludus rooms: 00-xx, 01-xx, 02-xx, ... 11-xx               │
   │ Game rooms:    00-xx (shared project), 01-xx ... 10-xx       │
   │ 区分: seedRooms() 时通过 repo 字段标记来源                   │
   │                                                              │

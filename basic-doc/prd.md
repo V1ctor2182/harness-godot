@@ -1,4 +1,4 @@
-# Zombie Farm AI Harness — PRD
+# Zombie Farm AI Ludus — PRD
 
 ## 1. 产品概述
 
@@ -178,13 +178,13 @@ rooms/{room-name}/
 
 ## 12. 里程碑映射
 
-Harness 系统服务于 Zombie Farm 游戏的 M0-M15 里程碑：
+Ludus 系统服务于 Zombie Farm 游戏的 M0-M15 里程碑：
 
 - M0-M7：已完成（React 版本）
 - M8：Mutations & Evolution（开发中）
 - M9a-M15：待 Godot 版本实现
 
-Harness 的每个 cycle 对应一个或多个 milestone 的子任务。Orchestrator 从 `milestones/` 读取当前目标。
+Ludus 的每个 cycle 对应一个或多个 milestone 的子任务。Orchestrator 从 `milestones/` 读取当前目标。
 
 ## 13. 成功标准
 

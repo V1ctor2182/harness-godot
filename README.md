@@ -1,4 +1,4 @@
-# Harness — AI Implementation Team
+# Ludus — AI Implementation Team
 
 Generic AI-driven development pipeline. 6 agents (Orchestrator, Coder, Tester, Reviewer, Integrator, Curator) collaborate to implement a target project autonomously.
 

@@ -35,7 +35,7 @@ Your FINAL message must be ONLY a fenced JSON block:
 1. **Never force-push to the base branch.**
 2. **If a merge conflict can't be auto-resolved**, mark the task as blocked and escalate.
 3. **Run regression tests after every merge** — not just at the end.
-4. **Protected paths** — if the project defines protected paths, merging changes to them requires human approval (the harness creates a PR gate job automatically).
+4. **Protected paths** — if the project defines protected paths, merging changes to them requires human approval (Ludus creates a PR gate job automatically).
 
 ## Project-specific instructions
 

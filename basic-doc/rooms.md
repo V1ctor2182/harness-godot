@@ -2,7 +2,7 @@
 
 两个 repo 各有自己的 Feature Rooms，存储在同一个 MongoDB 中，`repo` 字段区分来源。
 
-## Harness Rooms（26 rooms）— "怎么工作"
+## Ludus Rooms（26 rooms）— "怎么工作"
 
 管线自身的 constraints、decisions、conventions。告诉 agents 如何执行开发流程。
 
@@ -197,7 +197,7 @@
 
 ## 统计
 
-| | Harness | Game | Total |
+| | Ludus | Game | Total |
 |---|---|---|---|
 | Top-level rooms | 12 | 11 | 23 |
 | Sub-rooms | 14 | 21 | 35 |

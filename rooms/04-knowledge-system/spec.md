@@ -15,7 +15,7 @@ _No decisions recorded yet._
 - Files in knowledge/ upserted (not duplicated)
 
 ## Context
-The knowledge system provides persistent institutional memory for the harness. It stores categorized knowledge files (skills, decisions, specs, journal, inbox, pruned, retrospectives) and uses a quality score feedback loop to rank and select the most relevant context for each agent run.
+The knowledge system provides persistent institutional memory for Ludus. It stores categorized knowledge files (skills, decisions, specs, journal, inbox, pruned, retrospectives) and uses a quality score feedback loop to rank and select the most relevant context for each agent run.
 
 ## Interface
 _To be defined as implementation progresses._

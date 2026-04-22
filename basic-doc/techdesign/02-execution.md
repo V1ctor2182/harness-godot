@@ -1,6 +1,6 @@
 # Execution — Cycle、Container、Job Queue、Testing、SSE、Infra
 
-执行层的所有机制：Cycle (E1)、Container (E2)、Job Queue (E3)、Testing (E4)、SSE (E5)、Docker (E6)、错误恢复 (E7)、Harness 自测 (E8)、Auto Mode (E9)。
+执行层的所有机制：Cycle (E1)、Container (E2)、Job Queue (E3)、Testing (E4)、SSE (E5)、Docker (E6)、错误恢复 (E7)、Ludus 自测 (E8)、Auto Mode (E9)。
 
 ## E1. Cycle 状态机
 
@@ -867,7 +867,7 @@
   └──────────────────────────────────────────────────────────────┘
 ```
 
-## E8. Harness 自测架构
+## E8. Ludus 自测架构
 
 ```
   ┌─────────────────────────────────────────────────────────────┐
