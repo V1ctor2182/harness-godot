@@ -43,7 +43,7 @@ COPY --from=build /app/apps/server/package.json apps/server/
 COPY --from=build /app/package.json ./
 
 # Runtime needs agents/ (context-builder reads prompts from it).
-# Project knowledge lives in the target repo's .harness/rooms/, not in the image.
+# Project knowledge lives in the target repo's .ludus/rooms/, not in the image.
 COPY agents/ agents/
 
 # Create reload trigger mount point
