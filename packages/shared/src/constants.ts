@@ -127,3 +127,9 @@ export const AGENT_DOCKER_IMAGE = `ludus-agent:${GODOT_VERSION}`;
 // ─── Reload ─────────────────────────────────────────────────────────
 
 export const RELOAD_TRIGGER_PATH = '/reload/trigger';
+
+// ─── Target-project contract directory ──────────────────────────────
+// Single source of truth for the directory name Ludus reads from and
+// writes to in every connected target project. Hard renamed from
+// `.harness` to `.ludus` in 2026-04-22; no backward-compat fallback.
+export const PROJECT_CONFIG_DIR = '.ludus';
