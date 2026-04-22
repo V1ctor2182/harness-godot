@@ -54,7 +54,7 @@ export default function SetupPage() {
         router.push('/');
       } else {
         setError(
-          `Could not load project. Make sure PROJECT_REPO_LOCAL_PATH=${connectPath.trim()} is set in .env and .harness/project.yaml exists in that repo.`
+          `Could not load project. Make sure PROJECT_REPO_LOCAL_PATH=${connectPath.trim()} is set in .env and .ludus/project.yaml exists in that repo.`
         );
       }
     } catch (e) {
@@ -137,7 +137,7 @@ export default function SetupPage() {
         </h1>
         <p className="mt-4 text-base text-[var(--ink-2)] max-w-2xl leading-relaxed">
           <span className="dropcap" style={{ color: 'var(--burgundy)' }}>L</span>
-          udus scaffolds a <code className="px-1 py-0.5 rounded-xs bg-[var(--surface)] text-[var(--oxblood)] font-mono text-sm">.harness/</code> directory in your repo — engine auto-detected, room templates seeded, prd docs discovered. Feed it a path; it does the rest.
+          udus scaffolds a <code className="px-1 py-0.5 rounded-xs bg-[var(--surface)] text-[var(--oxblood)] font-mono text-sm">.ludus/</code> directory in your repo — engine auto-detected, room templates seeded, prd docs discovered. Feed it a path; it does the rest.
         </p>
       </header>
 
@@ -274,7 +274,7 @@ export default function SetupPage() {
               <p className="text-xs text-[var(--ink-2)] mb-3 leading-relaxed">
                 Next: set{' '}
                 <code className="bg-[var(--paper)] px-1 py-0.5 rounded-xs border border-[var(--rule)] text-[var(--oxblood)]">
-                  PROJECT_REPO_LOCAL_PATH={result.yamlPath.replace('/.harness/project.yaml', '')}
+                  PROJECT_REPO_LOCAL_PATH={result.yamlPath.replace('/.ludus/project.yaml', '')}
                 </code>{' '}
                 in <code className="bg-[var(--paper)] px-1 py-0.5 rounded-xs border border-[var(--rule)] text-[var(--oxblood)]">.env</code>, then click Finish.
               </p>
@@ -290,7 +290,7 @@ export default function SetupPage() {
           <p className="text-sm text-[var(--ink-2)] leading-relaxed">
             If the repo already has a{' '}
             <code className="px-1 py-0.5 rounded-xs bg-[var(--surface)] text-[var(--oxblood)] font-mono text-xs">
-              .harness/project.yaml
+              .ludus/project.yaml
             </code>
             , just set the env var and reload.
           </p>

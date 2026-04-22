@@ -60,7 +60,7 @@ export default function CyclesPage() {
       const msg = e instanceof Error ? e.message : 'Failed to create cycle';
       setCreateError(
         msg.includes('no_project_loaded')
-          ? 'Cannot create cycle — no project loaded. Set PROJECT_REPO_LOCAL_PATH and create .harness/project.yaml.'
+          ? 'Cannot create cycle — no project loaded. Set PROJECT_REPO_LOCAL_PATH and create .ludus/project.yaml.'
           : msg
       );
     }

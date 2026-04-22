@@ -110,7 +110,7 @@ export function SettingsDrawer({ open, onOpenChange }: SettingsDrawerProps) {
                   <div className="text-destructive font-semibold">No project loaded</div>
                   <div className="text-muted-foreground">
                     {projectState.error ??
-                      'Set PROJECT_REPO_LOCAL_PATH in .env and create .harness/project.yaml in the project repo.'}
+                      'Set PROJECT_REPO_LOCAL_PATH in .env and create .ludus/project.yaml in the project repo.'}
                   </div>
                   <div className="text-[10px] text-muted-foreground">
                     Cycle creation is blocked until a project is loaded.
