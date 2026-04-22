@@ -144,7 +144,7 @@ import {
   computeCycleMetrics,
   persistRetryReviewIssues,
 } from '../../src/services/job-queue.js';
-import { RELOAD_TRIGGER_PATH } from '@harness/shared';
+import { RELOAD_TRIGGER_PATH } from '@ludus/shared';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

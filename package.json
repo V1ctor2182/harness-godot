@@ -1,5 +1,5 @@
 {
-  "name": "harness",
+  "name": "ludus",
   "private": true,
   "workspaces": [
     "apps/*",

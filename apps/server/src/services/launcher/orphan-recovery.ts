@@ -5,7 +5,7 @@ import { findOrphanedContainers, removeContainer } from './container.js';
 import { docker } from '../../lib/docker.js';
 import { isDockerAvailable } from '../../lib/docker.js';
 import { createJob } from '../job-queue.js';
-import { DEFAULT_MAX_RETRIES, MAX_RETRY_CODER_RUNS } from '@harness/shared';
+import { DEFAULT_MAX_RETRIES, MAX_RETRY_CODER_RUNS } from '@ludus/shared';
 import { broadcast } from '../sse-manager.js';
 
 /**

@@ -2,7 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  transpilePackages: ['@harness/shared'],
+  transpilePackages: ['@ludus/shared'],
 };
 
 export default nextConfig;

@@ -59,7 +59,7 @@ import {
   AGENT_CONTAINER_LABEL_VALUE,
   CONTAINER_MEMORY_MB,
   CONTAINER_CPU_COUNT,
-} from '@harness/shared';
+} from '@ludus/shared';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

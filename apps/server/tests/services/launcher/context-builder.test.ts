@@ -103,7 +103,7 @@ import {
   QUALITY_SCORE_USEFUL_DELTA,
   QUALITY_SCORE_UNNECESSARY_DELTA,
   QUALITY_SCORE_DECAY,
-} from '@harness/shared';
+} from '@ludus/shared';
 
 // ─── Helper: create chainable Mongoose query stub ─────────────────────────────
 

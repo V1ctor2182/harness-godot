@@ -1,5 +1,5 @@
 {
-  "name": "@harness/dashboard",
+  "name": "@ludus/dashboard",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -10,7 +10,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@harness/shared": "*",
+    "@ludus/shared": "*",
     "@tailwindcss/postcss": "^4.2.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

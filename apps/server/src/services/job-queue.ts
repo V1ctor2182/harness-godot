@@ -10,8 +10,8 @@ import { getCIStatus, closeStalePRs, validatePRBodyJSON } from './github.js';
 import { broadcast } from './sse-manager.js';
 import { logger } from '../lib/logger.js';
 import { notifyJobRequiresApproval, notifyCycleCompleted, notifyCycleFailed, notifyPlanQuestions } from './notifier.js';
-import { DEFAULT_MAX_RETRIES, MAX_RETRY_CODER_RUNS, RELOAD_TRIGGER_PATH } from '@harness/shared';
-import type { JobType, JobPool, TaskType, TaskPriority } from '@harness/shared';
+import { DEFAULT_MAX_RETRIES, MAX_RETRY_CODER_RUNS, RELOAD_TRIGGER_PATH } from '@ludus/shared';
+import type { JobType, JobPool, TaskType, TaskPriority } from '@ludus/shared';
 import {
   validatePlan,
   VALID_TASK_TYPES,
@@ -237,7 +237,7 @@ async function processJob(
     const job = await JobModel.findById(jobId);
     if (job && job.retryCount < job.maxRetries) {
       // Exponential backoff: delay increases with retry count
-      const { RETRY_BACKOFF_MS } = await import('@harness/shared');
+      const { RETRY_BACKOFF_MS } = await import('@ludus/shared');
       const delay = RETRY_BACKOFF_MS[Math.min(job.retryCount, RETRY_BACKOFF_MS.length - 1)] ?? 30_000;
       const notBefore = new Date(Date.now() + delay);
       await JobModel.updateOne(
@@ -266,7 +266,7 @@ export async function handleSpawn(payload: Record<string, unknown>): Promise<voi
     role: payload['role'] as string,
     taskId: payload['taskId'] as string | undefined,
     cycleId: payload['cycleId'] as number,
-    retryContext: payload['retryContext'] as import('@harness/shared').RetryContext | undefined,
+    retryContext: payload['retryContext'] as import('@ludus/shared').RetryContext | undefined,
   });
 }
 
@@ -558,7 +558,7 @@ export async function handleAdvanceCycle(payload: Record<string, unknown>): Prom
     // unused specs gradually sink and eventually auto-archive at QUALITY_SCORE_MIN.
     try {
       const { SpecModel } = await import('../models/spec.js');
-      const { QUALITY_SCORE_DECAY: decay, QUALITY_SCORE_MIN: minScore } = await import('@harness/shared');
+      const { QUALITY_SCORE_DECAY: decay, QUALITY_SCORE_MIN: minScore } = await import('@ludus/shared');
 
       // Bulk decay: multiply all active spec scores by 0.95
       await SpecModel.updateMany(

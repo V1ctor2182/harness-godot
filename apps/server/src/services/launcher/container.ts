@@ -9,9 +9,9 @@ import {
   LEGACY_AGENT_CONTAINER_LABEL,
   CONTAINER_MEMORY_MB,
   CONTAINER_CPU_COUNT,
-} from '@harness/shared';
+} from '@ludus/shared';
 
-import { AGENT_DOCKER_IMAGE } from '@harness/shared';
+import { AGENT_DOCKER_IMAGE } from '@ludus/shared';
 const AGENT_IMAGE = AGENT_DOCKER_IMAGE;
 
 export interface ContainerConfig {

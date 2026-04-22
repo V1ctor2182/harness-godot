@@ -1,5 +1,5 @@
 {
-  "name": "@harness/server",
+  "name": "@ludus/server",
   "version": "0.0.1",
   "private": true,
   "scripts": {
@@ -11,7 +11,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
-    "@harness/shared": "*",
+    "@ludus/shared": "*",
     "cors": "^2.8.5",
     "dockerode": "^4.0.4",
     "dotenv": "^16.4.7",
