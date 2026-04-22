@@ -2,11 +2,11 @@ spec_id: "intent-04-knowledge-system-001"
 type: intent
 state: active
 intent:
-  summary: "Room+Spec dual-source knowledge system — harness rooms + project .harness/rooms/"
+  summary: "Room+Spec dual-source knowledge system — harness rooms + project .ludus/rooms/"
   detail: |
     Room+Spec architecture with 7 spec types (intent, constraint, decision, convention,
     contract, runbook, snapshot). Dual-source seedRooms() scans both harness-system/rooms/
-    and $PROJECT_REPO_LOCAL_PATH/.harness/rooms/ to upsert Room and Spec documents into
+    and $PROJECT_REPO_LOCAL_PATH/.ludus/rooms/ to upsert Room and Spec documents into
     MongoDB. Quality score feedback loop: specs referenced by successful agent runs gain
     score, unused specs decay. Context builder assembles specs per task keywords, enforcing
     a token budget and priority ordering.

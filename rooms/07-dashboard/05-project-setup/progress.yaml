@@ -2,11 +2,11 @@ lifecycle: active
 completion: 90
 milestones:
   - id: project-config-loader
-    name: "ProjectConfig loader reads .harness/project.yaml with zod validation"
+    name: "ProjectConfig loader reads .ludus/project.yaml with zod validation"
     status: completed
     completed_at: "2026-04-15"
   - id: project-init-endpoint
-    name: "POST /api/project/init auto-detects engine and scaffolds .harness/"
+    name: "POST /api/project/init auto-detects engine and scaffolds .ludus/"
     status: completed
     completed_at: "2026-04-16"
   - id: setup-page

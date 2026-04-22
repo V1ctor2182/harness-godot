@@ -2,17 +2,17 @@ spec_id: "intent-07-05-project-setup-001"
 type: intent
 state: active
 intent:
-  summary: "Project onboarding — auto-detect engine, scaffold .harness/, dashboard /setup page"
+  summary: "Project onboarding — auto-detect engine, scaffold .ludus/, dashboard /setup page"
   detail: |
     The harness is project-agnostic. Connecting a target project requires:
       1. PROJECT_REPO_LOCAL_PATH env var pointing to a local checkout
-      2. .harness/project.yaml inside that repo
+      2. .ludus/project.yaml inside that repo
 
     POST /api/project/init auto-detects the engine from marker files
     (project.godot → Godot, Cargo.toml → Rust, package.json → Node,
     go.mod → Go, pyproject.toml → Python) and scaffolds:
-      - .harness/project.yaml with detected values
-      - .harness/rooms/ empty dir for Feature Rooms
+      - .ludus/project.yaml with detected values
+      - .ludus/rooms/ empty dir for Feature Rooms
       - prd/README.md template if prd/ doesn't exist
 
     Dashboard /setup page provides a two-tab onboarding flow:
@@ -29,7 +29,7 @@ intent:
     GET /api/project returns the current config state.
     POST /api/project/reload re-reads project.yaml from disk.
 constraints:
-  - "Init must refuse if .harness/project.yaml already exists (use reload instead)"
+  - "Init must refuse if .ludus/project.yaml already exists (use reload instead)"
   - "Cycle creation MUST return 409 when getProjectConfig() is null"
 indexing:
   type: intent
