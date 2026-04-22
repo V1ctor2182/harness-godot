@@ -21,7 +21,7 @@ services:
       - '127.0.0.1:3001:3001'
     environment:
       - PORT=3001
-      - MONGODB_URI=mongodb://mongodb:27017/harness
+      - MONGODB_URI=mongodb://mongodb:27017/ludus
       - NODE_ENV=production
     env_file:
       - .env
